@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 
+// Live-Daten aus der DB — nie statisch vorrendern (sonst zeigt die Seite einen eingefrorenen
+// Stand vom Build-Zeitpunkt, siehe CLAUDE.md Deployment-Hinweise).
+export const dynamic = "force-dynamic";
+
 export default async function StartPage() {
   const users = await prisma.user.findMany({
     include: { company: true },

@@ -42,6 +42,10 @@ function formatMinuten(min: number | null | undefined): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+// Live-Daten aus der DB — nie statisch vorrendern (sonst zeigt die Seite einen eingefrorenen
+// Stand vom Build-Zeitpunkt bzw. den letzten Seeding-Stand, siehe CLAUDE.md).
+export const dynamic = "force-dynamic";
+
 type Props = {
   params: Promise<{ userId: string; jahr: string; monat: string }>;
 };
