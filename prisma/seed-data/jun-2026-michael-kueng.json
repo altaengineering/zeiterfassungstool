@@ -1,0 +1,1003 @@
+[
+  {
+    "date": "2026-06-01",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": 0,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-02",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": 0,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-03",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": 0,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-04",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-05",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": 0,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-06",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-07",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-08",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": 0,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-09",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": 0,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-10",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": 0,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-11",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": 0,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-12",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": 0,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-13",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-14",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-15",
+    "bookings": [
+      {
+        "label": "Raytech AG",
+        "hours": 10.17
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 380,
+        "stop": 720
+      },
+      {
+        "start": 750,
+        "stop": 1020
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-16",
+    "bookings": [
+      {
+        "label": "Raytech AG",
+        "hours": 9.1
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 495,
+        "stop": 780
+      },
+      {
+        "start": 810,
+        "stop": 1070
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-17",
+    "bookings": [
+      {
+        "label": "Raytech AG",
+        "hours": 9
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 450,
+        "stop": 720
+      },
+      {
+        "start": 750,
+        "stop": 1020
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-18",
+    "bookings": [
+      {
+        "label": "Raytech AG",
+        "hours": 8.5
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 450,
+        "stop": 720
+      },
+      {
+        "start": 750,
+        "stop": 990
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-19",
+    "bookings": [
+      {
+        "label": "Raytech AG",
+        "hours": 8.4
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 375,
+        "stop": 690
+      },
+      {
+        "start": 720,
+        "stop": 910
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-20",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-21",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-22",
+    "bookings": [
+      {
+        "label": "Raytech AG",
+        "hours": 4
+      },
+      {
+        "label": "Unproduktiv",
+        "hours": 3
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 430,
+        "stop": 690
+      },
+      {
+        "start": 720,
+        "stop": 880
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-23",
+    "bookings": [
+      {
+        "label": "Avesco AG",
+        "hours": 4
+      },
+      {
+        "label": "Unproduktiv",
+        "hours": 4.5
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 465,
+        "stop": 690
+      },
+      {
+        "start": 720,
+        "stop": 1005
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-24",
+    "bookings": [
+      {
+        "label": "Raytech AG",
+        "hours": 2
+      },
+      {
+        "label": "Avesco AG",
+        "hours": 5.8
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 2,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 195,
+        "stop": 780
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-25",
+    "bookings": [
+      {
+        "label": "Avesco AG",
+        "hours": 7
+      },
+      {
+        "label": "Unproduktiv",
+        "hours": 1.42
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 465,
+        "stop": 720
+      },
+      {
+        "start": 750,
+        "stop": 1000
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-26",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 8.4,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-27",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-28",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-29",
+    "bookings": [
+      {
+        "label": "Avesco AG",
+        "hours": 7.75
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 405,
+        "stop": 720
+      },
+      {
+        "start": 750,
+        "stop": 900
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-06-30",
+    "bookings": [
+      {
+        "label": "Avesco AG",
+        "hours": 8.25
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 360,
+        "stop": 720
+      },
+      {
+        "start": 750,
+        "stop": 885
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  }
+]

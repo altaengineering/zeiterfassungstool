@@ -1,0 +1,16 @@
+[
+  { "date": "2026-01-01", "label": "Neujahr", "bezahlt": true },
+  { "date": "2026-03-19", "label": "Josefstag", "bezahlt": true },
+  { "date": "2026-04-03", "label": "Karfreitag", "bezahlt": true },
+  { "date": "2026-04-06", "label": "Ostermontag", "bezahlt": false },
+  { "date": "2026-05-14", "label": "Auffahrt", "bezahlt": true },
+  { "date": "2026-05-25", "label": "Pfingstmontag", "bezahlt": false },
+  { "date": "2026-06-04", "label": "Fronleichnam", "bezahlt": true },
+  { "date": "2026-08-01", "label": "Nationalfeiertag", "bezahlt": true },
+  { "date": "2026-08-15", "label": "Maria Himmelfahrt", "bezahlt": true },
+  { "date": "2026-09-02", "label": "Justustag", "bezahlt": true },
+  { "date": "2026-11-01", "label": "Allerheiligen", "bezahlt": true },
+  { "date": "2026-12-08", "label": "Maria Empfängnis", "bezahlt": true },
+  { "date": "2026-12-25", "label": "Weihnachtstag", "bezahlt": true },
+  { "date": "2026-12-26", "label": "Stephanstag", "bezahlt": true }
+]
