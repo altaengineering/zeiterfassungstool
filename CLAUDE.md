@@ -1,15 +1,28 @@
 # Zeiterfassung Alta Engineering AG – Projekt-Referenz
 
 **Status:** Klickbarer Proof-of-Concept lauffähig (Next.js/TS/Prisma, `src/lib/calc/` mit 26
-Tests). DB aktuell **SQLite** (lokal, kostenlos, kein Docker/Postgres nötig für die Demo) statt
-des für Produktion vorgesehenen Postgres — Umstellung siehe Kommentar in `prisma/schema.prisma`.
+Tests), inkl. Excel-Export und Git-Repo (lokal committed, siehe unten für Deployment-Stand).
 Kein Login (jeder Mitarbeitende ist über `/mitarbeiter/[userId]/[jahr]/[monat]` erreichbar, siehe
-Startseite `/`), kein Excel-Export, keine Admin-Oberfläche für Feiertage. Vorhanden: Monatsansicht
-mit Soll/Ist/+/-/Stand pro Tag (inkl. rollierendem Saldo über Monatsgrenzen), Ferien-Widget
-(Guthaben/bezogen/Übertrag), Formular zum Erfassen/Überschreiben eines Tages via Server Action
-(automatisches Speichern, kein Upload). Seed-Daten (`prisma/seed.ts`) enthalten echte Juni-2026-
-Werte aus der Original-Excel-Datei zur Validierung. Nächste Schritte: Login/Rollen, Admin-
-Feiertagsverwaltung, Excel-Export, Umstieg auf Postgres + Infomaniak-Hosting.
+Startseite `/`), keine Admin-Oberfläche für Feiertage. Vorhanden: Monatsansicht mit
+Soll/Ist/+/-/Stand pro Tag (inkl. rollierendem Saldo über Monatsgrenzen, Monats-Navigation),
+Ferien-Widget (Guthaben/bezogen/Übertrag), Formular zum Erfassen/Überschreiben eines Tages via
+Server Action (automatisches Speichern, kein Upload), Excel-Export im Originalformat
+(`src/lib/export/exportExcel.ts`, Template-Ansatz mit `exceljs` — Formeln bleiben erhalten, nur
+Eingabezellen werden befüllt; **aktuell nur für Jahr 2026 unterstützt**, da die Vorlage eine feste
+Zeilenzahl pro Monat hat, siehe Kommentar in `exportExcel.ts`).
+
+**Datenbank/Deployment:** Zwei parallele Prisma-Schemas (bewusst dupliziert, siehe Kommentar in
+`prisma/schema.production.prisma`):
+- `prisma/schema.prisma` — SQLite, für die lokale Offline-Demo (`prisma/dev.db`, gitignored).
+- `prisma/schema.production.prisma` — PostgreSQL, für das Online-Deployment auf Vercel (Postgres
+  via Vercel-Storage-Tab/Neon). Wird im Vercel-Build automatisch generiert + geschoben
+  (`package.json` Skript `vercel-build`, nutzt `prisma db push`, keine formalen Migrationen für
+  den POC-Stand).
+Bei Schema-Änderungen **beide Dateien synchron halten**.
+
+Nächste Schritte: Login/Rollen, Admin-Feiertagsverwaltung, Excel-Export für weitere Jahre
+generalisieren, Vercel-Deployment abschliessen (siehe Chat-Verlauf für Stand), später Umstieg auf
+Infomaniak-Hosting (Schweiz) für den Produktivbetrieb.
 
 
 Diese Datei ist die verbindliche Business-Logik-Referenz für alle künftigen Claude-Code-Sessions
