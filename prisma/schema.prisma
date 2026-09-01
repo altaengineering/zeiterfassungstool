@@ -1,0 +1,124 @@
+// Datenmodell gemäss CLAUDE.md §2.
+// POC-Stand (siehe CLAUDE.md "Status"): SQLite für lokale Demo, kostenlos & ohne Setup.
+// Produktion später: PostgreSQL (Infomaniak, Schweiz) — dazu provider unten umstellen und
+// Migrationen neu erzeugen. SQLite kennt weder natives `enum` noch `@db.Date`, daher hier
+// bewusst auf provider-neutrale Typen (String statt enum, DateTime statt @db.Date) gehalten.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Gültige Werte: "MITARBEITER" | "ADMIN" (kein natives enum wegen SQLite, siehe Hinweis oben).
+
+model Company {
+  id       String    @id @default(cuid())
+  name     String
+  users    User[]
+  holidays Holiday[]
+  settings CompanySettings[]
+}
+
+// Firmenweite, jahresabhängige Konstanten (CLAUDE.md §2, §7 Punkt 3: Jahresferientage bleibt
+// globale Konstante, nicht pro Mitarbeitendem — aber pro Firma/Jahr administrierbar).
+model CompanySettings {
+  id                String  @id @default(cuid())
+  company           Company @relation(fields: [companyId], references: [id])
+  companyId         String
+  year              Int
+  kmSpesensatz      Float // CHF/km, Summen!B44
+  jahresferientage  Float // Tage/Jahr, Summen!B16 (Default: 6.5/12*20-0.00333333 ≈ 10.83)
+
+  @@unique([companyId, year])
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
+  date      DateTime
+  label     String
+  bezahlt   Boolean // true = "ja", false = "nein" — siehe CLAUDE.md §3 (Soll-Formel)
+
+  @@unique([companyId, date])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  company      Company  @relation(fields: [companyId], references: [id])
+  companyId    String
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("MITARBEITER")
+
+  jahresStammdaten JahresStammdaten[]
+  dailyEntries     DailyEntry[]
+}
+
+// Entspricht Blatt "Summen", Zellen B1-B44 (CLAUDE.md §2). Ein Datensatz pro User + Jahr.
+model JahresStammdaten {
+  id        String @id @default(cuid())
+  user      User   @relation(fields: [userId], references: [id])
+  userId    String
+  year      Int
+
+  anstellungPct                Float // Summen!B5, z.B. 1.0 = 100%
+  wochenstunden                Float // Summen!B6, z.B. 42
+  anzahlVorholtage              Float @default(0) // Summen!B10
+  stundenuebertragAltesJahr    Float @default(0) // Summen!B14 -> Startwert Stand am 1. Januar
+  ferienuebertragAltesJahr     Float @default(0) // Summen!B15
+  arbeitsmonate                 Float @default(12) // Summen!B17
+
+  @@unique([userId, year])
+}
+
+// Entspricht einer Tageszeile in den Monatsblättern (CLAUDE.md §2/§3).
+model DailyEntry {
+  id     String   @id @default(cuid())
+  user   User     @relation(fields: [userId], references: [id])
+  userId String
+  date   DateTime
+
+  // Feste Kategorie-Stunden (Spalten L-Q)
+  krank      Float @default(0)
+  reisezeit  Float @default(0)
+  cad        Float @default(0)
+  ausbildung Float @default(0)
+  buero      Float @default(0)
+  ferien     Float @default(0)
+
+  // Spesen (Spalten V, W)
+  spesenFr Float @default(0)
+  km       Float @default(0)
+
+  // Manuelles Überschreiben von Soll (CLAUDE.md §3/§7 Punkt 2). Null = automatisch berechnet.
+  sollOverride Float?
+
+  // Stempelzeiten, bis zu 4 Start/Stop-Paare (Spalten Y-AF). Minuten seit Mitternacht, lokal.
+  start1 Int?
+  stop1  Int?
+  start2 Int?
+  stop2  Int?
+  start3 Int?
+  stop3  Int?
+  start4 Int?
+  stop4  Int?
+
+  bookings Booking[]
+
+  @@unique([userId, date])
+}
+
+// Freie Projekt-/Kategorie-Buchung (Spalten C-K, pro Monat/User frei benennbar — CLAUDE.md §2).
+model Booking {
+  id           String     @id @default(cuid())
+  dailyEntry   DailyEntry @relation(fields: [dailyEntryId], references: [id], onDelete: Cascade)
+  dailyEntryId String
+  label        String
+  hours        Float
+}

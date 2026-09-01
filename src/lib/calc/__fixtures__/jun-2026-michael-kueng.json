@@ -1,0 +1,1188 @@
+{
+  "sollProTag": 8.4,
+  "startStand": 0,
+  "feiertage": [
+    {
+      "date": "2026-01-01",
+      "label": "* * * * * * * * Neujahr * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-03-19",
+      "label": "* * * * * * * * Josefstag * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-04-03",
+      "label": "* * * * * * * * Karfreitag * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-04-06",
+      "label": "* * * * * * * * Ostermontag * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": false
+    },
+    {
+      "date": "2026-05-14",
+      "label": "* * * * * * * * Auffahrt * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-05-25",
+      "label": "* * * * * * * * Pfingstmontag * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": false
+    },
+    {
+      "date": "2026-06-04",
+      "label": "* * * * * * * * Fronleichnam * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-08-01",
+      "label": "* * * * * * * * Nationalfeiertag * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-08-15",
+      "label": "* * * * * * * * Maria Himmelfahrt * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-09-02",
+      "label": "* * * * * * * * Justustag * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-11-01",
+      "label": "* * * * * * * * Allerheiligen * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-12-08",
+      "label": "* * * * * * * * Maria Empfängnis * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-12-25",
+      "label": "* * * * * * * * Weihnachtstag * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    },
+    {
+      "date": "2026-12-26",
+      "label": "* * * * * * * * Stephanstag * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *",
+      "bezahlt": true
+    }
+  ],
+  "days": [
+    {
+      "date": "2026-06-01",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": 0,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-02",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": 0,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-03",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": 0,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-04",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-05",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": 0,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-06",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-07",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-08",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": 0,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-09",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": 0,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-10",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": 0,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-11",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": 0,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-12",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": 0,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-13",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-14",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 0,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-15",
+      "projektStunden": 10.17,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 380,
+          "stop": 720
+        },
+        {
+          "start": 750,
+          "stop": 1020
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 10.17,
+        "plusMinus": 1.7699999999999996,
+        "stand": 1.7699999999999996,
+        "istZeitAusStempelzeiten": 10.166666666666666,
+        "aufteilungIstzeit": 0.0033333333333338544
+      }
+    },
+    {
+      "date": "2026-06-16",
+      "projektStunden": 9.1,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 495,
+          "stop": 780
+        },
+        {
+          "start": 810,
+          "stop": 1070
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 9.1,
+        "plusMinus": 0.6999999999999993,
+        "stand": 2.469999999999999,
+        "istZeitAusStempelzeiten": 9.083333333333334,
+        "aufteilungIstzeit": 0.01666666666666572
+      }
+    },
+    {
+      "date": "2026-06-17",
+      "projektStunden": 9,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 450,
+          "stop": 720
+        },
+        {
+          "start": 750,
+          "stop": 1020
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 9,
+        "plusMinus": 0.5999999999999996,
+        "stand": 3.0699999999999985,
+        "istZeitAusStempelzeiten": 9,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-18",
+      "projektStunden": 8.5,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 450,
+          "stop": 720
+        },
+        {
+          "start": 750,
+          "stop": 990
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 8.5,
+        "plusMinus": 0.09999999999999964,
+        "stand": 3.169999999999998,
+        "istZeitAusStempelzeiten": 8.5,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-19",
+      "projektStunden": 8.4,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 375,
+          "stop": 690
+        },
+        {
+          "start": 720,
+          "stop": 910
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 8.4,
+        "plusMinus": 0,
+        "stand": 3.169999999999998,
+        "istZeitAusStempelzeiten": 8.416666666666666,
+        "aufteilungIstzeit": -0.01666666666666572
+      }
+    },
+    {
+      "date": "2026-06-20",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 3.169999999999998,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-21",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 3.169999999999998,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-22",
+      "projektStunden": 7,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 430,
+          "stop": 690
+        },
+        {
+          "start": 720,
+          "stop": 880
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 7,
+        "plusMinus": -1.4000000000000004,
+        "stand": 1.7699999999999978,
+        "istZeitAusStempelzeiten": 7,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-23",
+      "projektStunden": 8.5,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 465,
+          "stop": 690
+        },
+        {
+          "start": 720,
+          "stop": 1005
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 8.5,
+        "plusMinus": 0.09999999999999964,
+        "stand": 1.8699999999999974,
+        "istZeitAusStempelzeiten": 8.5,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-24",
+      "projektStunden": 7.8,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 2,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 195,
+          "stop": 780
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 9.8,
+        "plusMinus": 1.4000000000000004,
+        "stand": 3.269999999999998,
+        "istZeitAusStempelzeiten": 9.75,
+        "aufteilungIstzeit": 0.05000000000000071
+      }
+    },
+    {
+      "date": "2026-06-25",
+      "projektStunden": 8.42,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 465,
+          "stop": 720
+        },
+        {
+          "start": 750,
+          "stop": 1000
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 8.42,
+        "plusMinus": 0.019999999999999574,
+        "stand": 3.2899999999999974,
+        "istZeitAusStempelzeiten": 8.416666666666666,
+        "aufteilungIstzeit": 0.0033333333333338544
+      }
+    },
+    {
+      "date": "2026-06-26",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 8.4,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 8.4,
+        "plusMinus": 0,
+        "stand": 3.2899999999999974,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 8.4
+      }
+    },
+    {
+      "date": "2026-06-27",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 3.2899999999999974,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-28",
+      "projektStunden": 0,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 0,
+        "ist": 0,
+        "plusMinus": 0,
+        "stand": 3.2899999999999974,
+        "istZeitAusStempelzeiten": 0,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-29",
+      "projektStunden": 7.75,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 405,
+          "stop": 720
+        },
+        {
+          "start": 750,
+          "stop": 900
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 7.75,
+        "plusMinus": -0.6500000000000004,
+        "stand": 2.639999999999997,
+        "istZeitAusStempelzeiten": 7.75,
+        "aufteilungIstzeit": 0
+      }
+    },
+    {
+      "date": "2026-06-30",
+      "projektStunden": 8.25,
+      "krank": 0,
+      "reisezeit": 0,
+      "cad": 0,
+      "ausbildung": 0,
+      "buero": 0,
+      "ferien": 0,
+      "sollOverride": null,
+      "stempelzeiten": [
+        {
+          "start": 360,
+          "stop": 720
+        },
+        {
+          "start": 750,
+          "stop": 885
+        },
+        {
+          "start": null,
+          "stop": null
+        },
+        {
+          "start": null,
+          "stop": null
+        }
+      ],
+      "expected": {
+        "soll": 8.4,
+        "ist": 8.25,
+        "plusMinus": -0.15000000000000036,
+        "stand": 2.4899999999999967,
+        "istZeitAusStempelzeiten": 8.25,
+        "aufteilungIstzeit": 0
+      }
+    }
+  ]
+}

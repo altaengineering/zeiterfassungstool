@@ -1,0 +1,229 @@
+# Zeiterfassung Alta Engineering AG – Projekt-Referenz
+
+**Status:** Klickbarer Proof-of-Concept lauffähig (Next.js/TS/Prisma, `src/lib/calc/` mit 26
+Tests). DB aktuell **SQLite** (lokal, kostenlos, kein Docker/Postgres nötig für die Demo) statt
+des für Produktion vorgesehenen Postgres — Umstellung siehe Kommentar in `prisma/schema.prisma`.
+Kein Login (jeder Mitarbeitende ist über `/mitarbeiter/[userId]/[jahr]/[monat]` erreichbar, siehe
+Startseite `/`), kein Excel-Export, keine Admin-Oberfläche für Feiertage. Vorhanden: Monatsansicht
+mit Soll/Ist/+/-/Stand pro Tag (inkl. rollierendem Saldo über Monatsgrenzen), Ferien-Widget
+(Guthaben/bezogen/Übertrag), Formular zum Erfassen/Überschreiben eines Tages via Server Action
+(automatisches Speichern, kein Upload). Seed-Daten (`prisma/seed.ts`) enthalten echte Juni-2026-
+Werte aus der Original-Excel-Datei zur Validierung. Nächste Schritte: Login/Rollen, Admin-
+Feiertagsverwaltung, Excel-Export, Umstieg auf Postgres + Infomaniak-Hosting.
+
+
+Diese Datei ist die verbindliche Business-Logik-Referenz für alle künftigen Claude-Code-Sessions
+an diesem Projekt. Quelle: `Zeiterfassung_Spezifikation.md` **und** die tatsächlichen Formeln aus
+`Arbeitsrapport_2026_kum.xlsx` (per openpyxl mit `data_only=False` ausgelesen, nicht nur die
+gecachten Werte). Bei Widersprüchen zwischen Spezifikationstext und Excel-Formel gilt bis auf
+Weiteres **die Excel-Formel als Quelle der Wahrheit** (siehe Abschnitt "Offene Fragen" – dort sind
+die gefundenen Widersprüche dokumentiert, bis der Nutzer sie explizit klärt).
+
+## 1. Zweck
+
+Ersatz für den manuell geführten Excel-Arbeitsrapport von 15 Mitarbeitenden. Direkte Online-Erfassung,
+automatisches Speichern, kein Datei-Upload mehr. Stefan (Admin) sieht alle Mitarbeitenden und kann
+einen Excel-Export im Originalformat ziehen.
+
+## 2. Datenmodell
+
+### User
+- Name, Firma (aktuell nur "Alta Engineering AG"), Rolle (`mitarbeiter` / `admin`)
+- Login-Zugangsdaten
+
+### JahresStammdaten (pro User + Jahr — entspricht Blatt "Summen", Zellen B1–B44)
+| Feld | Excel-Zelle | Formel/Bedeutung |
+|---|---|---|
+| Firmenname | Summen!B1 | manuell |
+| Anstellung % | Summen!B5 | manuell, z.B. 1.0 = 100% |
+| Arbeitsstunden/Woche | Summen!B6 | manuell, z.B. 42 |
+| **Arbeitszeit pro Tag (Soll/Tag)** | Summen!B9 | `= Wochenstunden / 5 * Anstellung%` — **das ist der zentrale Wert, der täglich im Soll verwendet wird** |
+| Anzahl Vorholtage | Summen!B10 | manuell |
+| Vorholzeit pro Tag | Summen!B11 | `= B25/C25 - B9` — **wird nirgends sonst im Original verwendet** (weder in der Tages-Soll-Formel noch im Export sichtbar). Vermutlich nur informativ. Siehe offene Frage. |
+| Arbeitszeit/Tag inkl. Vorholzeit | Summen!B12 | `= B9 + B11` — ebenfalls **ungenutzt** im Rest der Datei |
+| Stundenübertrag altes Jahr | Summen!B14 | manueller Startwert → wird Startwert für `Stand` am 1. Januar (`Jan!U2`) |
+| Ferienübertrag altes Jahr | Summen!B15 | manueller Startwert |
+| Jahresferientage neu | Summen!B16 | `= 6.5/12*20 - 0.00333333` (≈ 10.83 Tage/Jahr) — **magische Konstante, für alle Mitarbeitenden identisch/hart codiert im Original**. Bedeutung von `0.00333333` unklar (Rundungskorrektur?). Siehe offene Frage. |
+| Anzahl Arbeitsmonate | Summen!B17 | manuell, Standard 12 |
+| Ferien Guthaben | Summen!B18 | `= ROUND(Ferienübertrag_altesJahr + Arbeitsmonate/12 * Jahresferientage_neu, 1)` |
+| Ferien bezogen im Jahr | Summen!B19 | `= Dez!H2 + (Dez!Q35 / B9)` — siehe Kettenmechanismus unten |
+| Ferienübertrag nächstes Jahr | Summen!B20 | `= Ferien_Guthaben - Ferien_bezogen` |
+| Kilometer-Spesensatz | Summen!B44 | manuell, z.B. 0.70 CHF/km, **pro Firma/Jahr konfigurierbar** |
+
+**Ferien-bezogen-Kette (wichtig für Reimplementierung):** Jeder Monat hat im Kopfbereich ein Feld
+"Bezogen:" (`H2`), das NICHT direkt aus allen Monaten summiert wird, sondern sich verkettet fortträgt:
+```
+Jan!H2 = 0                                  (manueller Startwert)
+Feb!H2 = Jan!H2 + (Jan!Q35 / Summen!B9)     (Q35 = Summe Ferien-Stunden im Monat, /Soll-pro-Tag = Tage)
+Mar!H2 = Feb!H2 + (Feb!Q_total / Summen!B9)
+...
+Summen!B19 (Ferien bezogen im Jahr) = Dez!H2 + (Dez!Q_total / Summen!B9)
+```
+Das ist funktional äquivalent zu "Summe aller Ferientage über alle 12 Monate", aber technisch als
+Kette von Monat zu Monat implementiert. In der DB am einfachsten als abgeleiteter Wert
+(Summe Ferien-Stunden aller Vormonate + laufender Monat) / Soll-pro-Tag berechnen.
+
+### Feiertage (Stammdaten, editierbar pro Firma/Jahr — Blatt "Feiertage")
+| Spalte | Feld |
+|---|---|
+| B | Datum |
+| C | Bezeichnung |
+| D | bezahlt ("ja"/"nein") |
+
+Zusätzlich: Zelle `Feiertage!C23` enthält die feste Textmarke `"Wochenende"`, die als Anzeige-Label
+für Wochenendtage verwendet wird (kein echter Feiertag-Eintrag, nur Konstante für die Anzeige).
+
+**Beispiel-Feiertagsliste 2026** (Alta Engineering, siehe Spezifikation §Feiertage): Neujahr,
+Josefstag, Karfreitag, Ostermontag, Auffahrt, Pfingstmontag, Fronleichnam, Nationalfeiertag,
+Maria Himmelfahrt, Justustag, Allerheiligen, Maria Empfängnis, Weihnachtstag, Stephanstag.
+Im Beispiel sind `Ostermontag` und `Pfingstmontag` als `bezahlt = "nein"` markiert, alle anderen `"ja"`.
+
+### Projekt (dynamisch, pro Mitarbeitendem + Monat frei benennbar!)
+Die Spalten C–K im Monatsblatt sind **keine festen Projekt-Slots**, sondern werden pro Monat und
+Mitarbeitendem frei umbenannt/neu belegt. Beobachtete Beispiele im Original:
+- Jan: nur "Alta Engineering"
+- Feb: "Pfisterer AG", "Alta Eng."
+- Jun: "Raytech AG", "Avesco AG", "Unproduktiv"
+- Jul: "Avesco", "Unproduktiv", "Web Projekte", "Villiger"
+- Aug: "Villiger" (C) und "NBU" (K) — **auch Nicht-Projekt-Kategorien wie "NBU" (Nichtberufsunfall)
+  werden gelegentlich in diese freien Spalten gepackt**, nicht nur echte Kundenprojekte.
+
+→ **Datenmodell-Konsequenz:** Projekt/Kategorie-Buchungen als eigene Entität modellieren
+(`Booking`: userId, date, label, hours), NICHT als feste Spalten. Labels sind pro Monat frei,
+maximal 9 Stück (C–K) im Original, aber die App muss das nicht als Hard-Limit übernehmen.
+
+### Tageseintrag (DailyEntry) — ein Datensatz pro User + Datum
+| Feld | Typ | Excel-Spalte |
+|---|---|---|
+| Datum | Date | A |
+| Projekt-/Kategorie-Buchungen | Booking[] (label, hours) | C–K, frei benennbar |
+| krank | Number (h) | L |
+| Reisezeit | Number (h) | M |
+| CAD | Number (h) | N |
+| Ausbildung | Number (h) | O |
+| Büro | Number (h) | P |
+| Ferien | Number (h) | Q |
+| Spesen Fr. | Number (CHF) | V |
+| Km | Number | W |
+| Start1/Stop1 … Start4/Stop4 | Time × 8 | Y–AF |
+
+## 3. Berechnungslogik (pro Tag) — verbindliche Formeln
+
+```
+Soll[Tag] =
+  0                                    wenn WEEKDAY(Datum,2) in {6,7}   (Samstag/Sonntag)
+  0                                    sonst, wenn Feiertag(Datum) gefunden UND bezahlt = "ja"
+  Soll-pro-Tag (Summen!B9)             sonst, wenn Feiertag(Datum) gefunden UND bezahlt = "nein"
+  Soll-pro-Tag (Summen!B9)             sonst (normaler Arbeitstag)
+
+Ist[Tag] = SUMME(alle Projekt-/Kategorie-Stunden: C..Q, also Projekte + krank + Reisezeit + CAD
+                  + Ausbildung + Büro + Ferien)
+
++/-[Tag] = Ist[Tag] - Soll[Tag]
+
+Stand[Tag] = Stand[Vortag] + (+/-[Tag])
+  // rollierender Saldo, läuft über Monats- UND Jahresgrenzen hinweg
+  // Startwert 1. Januar = Summen!B14 "Stundenübertrag altes Jahr"
+  // Startwert jeden Folgemonats = Stand des letzten Tages im Vormonat (Kette: Feb!U2 = Jan!U(letzter Tag))
+
+Ist-Zeit-aus-Stempelzeiten[Tag] =
+  (Stop1-Start1) + (Stop2-Start2) + (Stop3-Start3) + (Stop4-Start4)
+  dargestellt als:
+    hh:mm  (AG, Excel-Zeitformat)
+    hh     (AH = HOUR(AG))
+    .hh    (AI = MINUTE(AG)/60)
+    h.h    (AJ = AH + AI)  ← das ist die "echte" Dezimalstunden-Darstellung
+
+Aufteilung-Istzeit[Tag] = SUMME(C..Q) - AJ[Tag]
+  // Kontrollspalte, sollte im Idealfall 0 sein (gebuchte Kategorien == gestempelte Zeit)
+```
+
+**Exakte Original-Formel für Soll** (Referenz, Blatt Jan-Dez, Spalte R):
+```
+=IF(OR(WEEKDAY(A4,2)=6,WEEKDAY(A4,2)=7),
+    0,
+    IFERROR(
+      IF(VLOOKUP(A4,Feiertage!$B:$D,3,0)="ja", 0, Summen!$B$9),
+      Summen!$B$9
+    )
+  )
+```
+Wichtig: Bei einem Feiertag mit `bezahlt="nein"` liefert diese Formel **den vollen Tages-Soll**
+(`Summen!$B$9`), NICHT 0. Das weicht vom Fließtext der ursprünglichen Spezifikation ab.
+**Entschieden (siehe §7):** Diese Excel-Formel ist verbindlich — Soll wird nur bei `bezahlt="ja"`
+auf 0 gesetzt, bei `"nein"` bleibt der volle Tages-Soll bestehen.
+
+**Manuelles Überschreiben von Soll (entschieden, siehe §7):** Die App muss erlauben, den
+automatisch berechneten Tages-Soll für einzelne Tage manuell zu überschreiben (z.B. Teilzeit-Start,
+unbezahlter Urlaub, Sonderfälle) — analog zum Original-Excel, wo Zellen einfach überschrieben werden
+konnten. Datenmodell-Konsequenz: `DailyEntry` braucht ein Feld `sollOverride: number | null` —
+wenn gesetzt, hat es Vorrang vor der automatisch berechneten Soll-Zeit; sonst gilt die
+Wochenende/Feiertag-Formel oben. UI sollte klar anzeigen, wenn ein Tag manuell überschrieben wurde.
+
+## 4. Monats-/Jahresebene (Blatt "Summen")
+
+- Total-Zeile je Monatsblatt: Summe je Spalte C–Q, R (Soll-Summe), S (Ist-Summe), T (+/- Summe);
+  `Stand`-Summe = einfach der letzte Tageswert (kein Aufsummieren!)
+- Stand am Monatsende = Startwert `U2` (Stundenübertrag Vormonat) des Folgemonats
+- Spesen-Summe/Tag: `X[Tag] = Spesen_Fr[Tag] + Km[Tag] * Summen!B44`
+- Spesen-Total/Monat: `V_total + W_total * Summen!B44` (Reihenfolge vertauscht, mathematisch identisch)
+- Drei Varianten Jahres-Soll-Arbeitszeit (nur für Übersicht/Kennzahlen, nicht für Tages-Stand relevant):
+  - **o.F.o.F** (ohne Ferienabzug, ohne Vorholtage): `SUMME(alle Monats-Soll-Totale) * (Arbeitsmonate/12)`
+  - **m.F.o.F** (mit Ferienabzug, ohne Vorholtage): `(SUMME(Monats-Soll-Totale) - Ferien_Guthaben*Soll_pro_Tag) * (Arbeitsmonate/12)`
+  - **m.F.m.F** (mit Ferien, mit Vorholtage): im Original **identische Stundenformel wie m.F.o.F**
+    (Vorholtage werden dort NICHT von den Stunden abgezogen — nur die parallele Arbeitstage-Spalte
+    zieht `- Anzahl_Vorholtage` ab). Mögliche Inkonsistenz im Original, siehe offene Frage.
+- Ferien-Übersicht: Guthaben (B18), bezogen (B19), Übertrag nächstes Jahr (B20) — siehe Formeln oben
+
+## 5. Rollen & Rechte
+
+- **Mitarbeitende:** eigene Tageseinträge erfassen/bearbeiten, eigene Monats-/Jahresübersicht sehen
+- **Stefan (Admin):** alle 15 Mitarbeitenden einsehen, Feiertagsliste & Firmenstammdaten pflegen,
+  Excel-Export für einzelne oder alle Mitarbeitende ziehen
+
+## 6. Excel-Export
+
+Muss das Originalformat 1:1 reproduzieren:
+- Sheets: `Jan, Feb, Mar, Apr, Mai, Jun, Jul, Aug, Sep, Okt, Nov, Dez, Summen, Feiertage` (exakt
+  diese Reihenfolge und Blattnamen/Abkürzungen, deutsch: Mai statt May, Okt statt Oct, Dez statt Dec)
+- Kopfbereich pro Monatsblatt (Zeile 1–3): Firmenname (`=Summen!B1`), Name (`=Summen!B3`), Monat
+  (Datum 1. des Monats), Anstellung % (`=Summen!B5`), Blatt-Nr. (sequentiell 1–12), Ferien-Übersicht
+  (Guthaben/Bezogen/Rest), Stundenübertrag Vormonat (`=Vormonat!U<letzter Tag>`)
+- Empfohlener Ansatz: **Original-Datei als Vorlage verwenden und nur Eingabezellen befüllen**
+  (Datum-Spalte A, Projekt-/Kategorie-Spalten C–Q, Spesen V/W, Stempelzeiten Y–AF, Kopf-Stammdaten),
+  die vorhandenen Formeln in den restlichen Zellen unangetastet lassen. Das erfüllt die Anforderung
+  "gleiche Formeln, nicht nur Werte" am zuverlässigsten, ohne die Formellogik neu bauen zu müssen.
+- Reale Beispieldaten vorhanden: In `Arbeitsrapport_2026_kum.xlsx` sind für "Michael Küng" die
+  Monate Jun–Aug 2026 teilweise mit echten Ist-Werten befüllt (Jun: 103.29h, Jul: 186.35h,
+  Aug: 84.00h Ist gegen entsprechende Soll-Werte) — nützlich als Regressionstest-Fixture, sobald
+  die Berechnungs-Engine gebaut wird.
+
+## 7. Offene Fragen — Entscheidungen (geklärt am 2026-08-26)
+
+1. **Feiertag `bezahlt="nein"`:** ✅ Entschieden — Excel-Formel ist verbindlich (voller Tages-Soll
+   bei `bezahlt="nein"`, nicht 0). Spezifikationstext war an dieser Stelle ungenau.
+2. **Manuelles Überschreiben von Soll pro Tag:** ✅ Entschieden — wird als Feature unterstützt
+   (`DailyEntry.sollOverride`), siehe §3. Grund im Original vermutlich Sonderfälle wie
+   Teilzeit-Start/unbezahlter Urlaub.
+3. **Jahresferientage-Formel** (`6.5/12*20-0.00333333` ≈ 10.83 Tage): ✅ Entschieden — bleibt
+   globale Konstante wie im Original, NICHT pro Mitarbeitendem konfigurierbar. Die Formel exakt so
+   übernehmen (als Firmen-Konstante, nicht pro User editierbar).
+4. **Vorholzeit-Felder (`Summen!B11`, `B12`):** noch offen — werden im gesamten Original nirgends
+   sonst referenziert (vermutlich nur informativ). Für die Kern-Berechnung (Schritt 2–3 des
+   Projektplans) nicht relevant; bei Bedarf vor dem entsprechenden Umsetzungsschritt erneut fragen,
+   ob sie überhaupt eine Funktion haben sollen oder rein zur Anzeige gehören.
+5. **Hosting/Domain:** ✅ Entschieden — `alta-engineering.ch` bleibt unverändert als statische Seite
+   auf GitHub Pages (mit Cloudflare als DNS/CDN). Die Zeiterfassungs-App läuft als separate
+   Anwendung mit eigenem Backend + DB auf einem Schweizer Host (Infomaniak), erreichbar über eine
+   Subdomain (z.B. `zeit.alta-engineering.ch`), die per Cloudflare-DNS dorthin zeigt. GitHub Pages
+   selbst kann keine Datenbank/Login/Server-Code hosten — daher diese Trennung.
+
+## 8. Technische Rahmenbedingungen (nicht aus Excel ableitbar)
+
+- **Stack:** Next.js (TypeScript) + Prisma/PostgreSQL + Auth.js (Credentials-Login)
+- **Hosting:** App (Backend+DB) auf Infomaniak (Schweiz, wegen Personaldaten/nDSG), erreichbar über
+  Subdomain `zeit.alta-engineering.ch` (o.ä.), DNS via Cloudflare — siehe §7 Punkt 5.
+  Die bestehende Hauptseite `alta-engineering.ch` (GitHub Pages) bleibt unangetastet.
+- Auth: Login pro Mitarbeitendem + Admin-Rolle
+- DB: persistente Datenbank statt Excel als Datenquelle
+- Excel-Export-Engine: `exceljs`, Template-Ansatz — Formeln erhalten (siehe §6)

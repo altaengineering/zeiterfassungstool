@@ -1,0 +1,114 @@
+// PRODUKTIONS-/DEPLOYMENT-VARIANTE für Vercel + Postgres (Neon), siehe CLAUDE.md "Status".
+// Inhaltlich identisch zu schema.prisma (lokale SQLite-Variante für den Offline-Demo-Betrieb) —
+// einziger Unterschied ist der `provider`. Wird im Vercel-Build separat generiert
+// (`prisma generate --schema=prisma/schema.production.prisma`), damit die lokale
+// Offline-Demo (schema.prisma / SQLite) unangetastet bleibt. Bei Schemaänderungen BEIDE
+// Dateien synchron halten.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id       String    @id @default(cuid())
+  name     String
+  users    User[]
+  holidays Holiday[]
+  settings CompanySettings[]
+}
+
+model CompanySettings {
+  id                String  @id @default(cuid())
+  company           Company @relation(fields: [companyId], references: [id])
+  companyId         String
+  year              Int
+  kmSpesensatz      Float
+  jahresferientage  Float
+
+  @@unique([companyId, year])
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
+  date      DateTime
+  label     String
+  bezahlt   Boolean
+
+  @@unique([companyId, date])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  company      Company  @relation(fields: [companyId], references: [id])
+  companyId    String
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("MITARBEITER")
+
+  jahresStammdaten JahresStammdaten[]
+  dailyEntries     DailyEntry[]
+}
+
+model JahresStammdaten {
+  id        String @id @default(cuid())
+  user      User   @relation(fields: [userId], references: [id])
+  userId    String
+  year      Int
+
+  anstellungPct                Float
+  wochenstunden                Float
+  anzahlVorholtage              Float @default(0)
+  stundenuebertragAltesJahr    Float @default(0)
+  ferienuebertragAltesJahr     Float @default(0)
+  arbeitsmonate                 Float @default(12)
+
+  @@unique([userId, year])
+}
+
+model DailyEntry {
+  id     String   @id @default(cuid())
+  user   User     @relation(fields: [userId], references: [id])
+  userId String
+  date   DateTime
+
+  krank      Float @default(0)
+  reisezeit  Float @default(0)
+  cad        Float @default(0)
+  ausbildung Float @default(0)
+  buero      Float @default(0)
+  ferien     Float @default(0)
+
+  spesenFr Float @default(0)
+  km       Float @default(0)
+
+  sollOverride Float?
+
+  start1 Int?
+  stop1  Int?
+  start2 Int?
+  stop2  Int?
+  start3 Int?
+  stop3  Int?
+  start4 Int?
+  stop4  Int?
+
+  bookings Booking[]
+
+  @@unique([userId, date])
+}
+
+model Booking {
+  id           String     @id @default(cuid())
+  dailyEntry   DailyEntry @relation(fields: [dailyEntryId], references: [id], onDelete: Cascade)
+  dailyEntryId String
+  label        String
+  hours        Float
+}
