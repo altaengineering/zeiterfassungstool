@@ -1,0 +1,1103 @@
+[
+  {
+    "date": "2026-07-01",
+    "bookings": [
+      {
+        "label": "Avesco",
+        "hours": 7.75
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 405,
+        "stop": 870
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-02",
+    "bookings": [
+      {
+        "label": "Avesco",
+        "hours": 6
+      },
+      {
+        "label": "Unproduktiv",
+        "hours": 0.5
+      },
+      {
+        "label": "Web Projekte",
+        "hours": 1.3
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 480,
+        "stop": 950
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-03",
+    "bookings": [
+      {
+        "label": "Web Projekte",
+        "hours": 7
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 420,
+        "stop": 690
+      },
+      {
+        "start": 705,
+        "stop": 855
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-04",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-05",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-06",
+    "bookings": [
+      {
+        "label": "Avesco",
+        "hours": 1
+      },
+      {
+        "label": "Web Projekte",
+        "hours": 7.4
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 490,
+        "stop": 690
+      },
+      {
+        "start": 715,
+        "stop": 1020
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-07",
+    "bookings": [],
+    "krank": 8.4,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-08",
+    "bookings": [
+      {
+        "label": "Avesco",
+        "hours": 0.5
+      },
+      {
+        "label": "Web Projekte",
+        "hours": 8
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 465,
+        "stop": 720
+      },
+      {
+        "start": 735,
+        "stop": 990
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-09",
+    "bookings": [
+      {
+        "label": "Avesco",
+        "hours": 2.25
+      },
+      {
+        "label": "Web Projekte",
+        "hours": 5
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 480,
+        "stop": 720
+      },
+      {
+        "start": 735,
+        "stop": 930
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-10",
+    "bookings": [
+      {
+        "label": "Unproduktiv",
+        "hours": 4
+      },
+      {
+        "label": "Web Projekte",
+        "hours": 5.5
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 420,
+        "stop": 720
+      },
+      {
+        "start": 750,
+        "stop": 840
+      },
+      {
+        "start": 1140,
+        "stop": 1320
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-11",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-12",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-13",
+    "bookings": [
+      {
+        "label": "Avesco",
+        "hours": 5.2
+      },
+      {
+        "label": "Unproduktiv",
+        "hours": 2
+      },
+      {
+        "label": "Web Projekte",
+        "hours": 3
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 420,
+        "stop": 720
+      },
+      {
+        "start": 740,
+        "stop": 960
+      },
+      {
+        "start": 1140,
+        "stop": 1230
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-14",
+    "bookings": [
+      {
+        "label": "Avesco",
+        "hours": 3.5
+      },
+      {
+        "label": "Web Projekte",
+        "hours": 7.2
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 420,
+        "stop": 720
+      },
+      {
+        "start": 740,
+        "stop": 1080
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-15",
+    "bookings": [
+      {
+        "label": "Avesco",
+        "hours": 3
+      },
+      {
+        "label": "Web Projekte",
+        "hours": 5.5
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 420,
+        "stop": 720
+      },
+      {
+        "start": 750,
+        "stop": 960
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-16",
+    "bookings": [
+      {
+        "label": "Villiger",
+        "hours": 7.3
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 465,
+        "stop": 690
+      },
+      {
+        "start": 710,
+        "stop": 925
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-17",
+    "bookings": [
+      {
+        "label": "Villiger",
+        "hours": 5.75
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 390,
+        "stop": 690
+      },
+      {
+        "start": 705,
+        "stop": 750
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-18",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-19",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-20",
+    "bookings": [
+      {
+        "label": "Villiger",
+        "hours": 8.75
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 405,
+        "stop": 700
+      },
+      {
+        "start": 710,
+        "stop": 940
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-21",
+    "bookings": [
+      {
+        "label": "Villiger",
+        "hours": 9.25
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 450,
+        "stop": 695
+      },
+      {
+        "start": 710,
+        "stop": 1020
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-22",
+    "bookings": [
+      {
+        "label": "Villiger",
+        "hours": 6.6
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 490,
+        "stop": 690
+      },
+      {
+        "start": 710,
+        "stop": 905
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-23",
+    "bookings": [
+      {
+        "label": "Villiger",
+        "hours": 8.8
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 435,
+        "stop": 550
+      },
+      {
+        "start": 560,
+        "stop": 975
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-24",
+    "bookings": [
+      {
+        "label": "Villiger",
+        "hours": 6.7
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 500,
+        "stop": 900
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-25",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-26",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-27",
+    "bookings": [
+      {
+        "label": "Villiger",
+        "hours": 8.5
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 510,
+        "stop": 690
+      },
+      {
+        "start": 720,
+        "stop": 1050
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-28",
+    "bookings": [],
+    "krank": 8.4,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-29",
+    "bookings": [],
+    "krank": 8.4,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-30",
+    "bookings": [
+      {
+        "label": "Villiger",
+        "hours": 7.6
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 450,
+        "stop": 550
+      },
+      {
+        "start": 560,
+        "stop": 915
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-07-31",
+    "bookings": [
+      {
+        "label": "Villiger",
+        "hours": 6.3
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 495,
+        "stop": 550
+      },
+      {
+        "start": 560,
+        "stop": 885
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  }
+]
