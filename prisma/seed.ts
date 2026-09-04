@@ -2,8 +2,62 @@ import { PrismaClient } from "@prisma/client";
 import { STANDARD_JAHRESFERIENTAGE } from "../src/lib/calc";
 import feiertage2026 from "./seed-data/feiertage-2026.json";
 import juniDaten from "./seed-data/jun-2026-michael-kueng.json";
+import juliDaten from "./seed-data/jul-2026-michael-kueng.json";
+import augustDaten from "./seed-data/aug-2026-michael-kueng.json";
+import septemberDaten from "./seed-data/sep-2026-michael-kueng.json";
 
 const prisma = new PrismaClient();
+
+interface TagesDaten {
+  date: string;
+  bookings: { label: string; hours: number }[];
+  krank: number;
+  reisezeit: number;
+  cad: number;
+  ausbildung: number;
+  buero: number;
+  ferien: number;
+  sollOverride: number | null;
+  spesenFr: number;
+  km: number;
+  stempelzeiten: Array<{ start: number | null; stop: number | null }>;
+}
+
+async function seedTag(userId: string, tag: TagesDaten) {
+  const date = new Date(tag.date);
+  const felder = {
+    krank: tag.krank,
+    reisezeit: tag.reisezeit,
+    cad: tag.cad,
+    ausbildung: tag.ausbildung,
+    buero: tag.buero,
+    ferien: tag.ferien,
+    spesenFr: tag.spesenFr,
+    km: tag.km,
+    sollOverride: tag.sollOverride,
+    start1: tag.stempelzeiten[0]?.start ?? null,
+    stop1: tag.stempelzeiten[0]?.stop ?? null,
+    start2: tag.stempelzeiten[1]?.start ?? null,
+    stop2: tag.stempelzeiten[1]?.stop ?? null,
+    start3: tag.stempelzeiten[2]?.start ?? null,
+    stop3: tag.stempelzeiten[2]?.stop ?? null,
+    start4: tag.stempelzeiten[3]?.start ?? null,
+    stop4: tag.stempelzeiten[3]?.stop ?? null,
+  };
+
+  const entry = await prisma.dailyEntry.upsert({
+    where: { userId_date: { userId, date } },
+    update: felder,
+    create: { userId, date, ...felder },
+  });
+
+  await prisma.booking.deleteMany({ where: { dailyEntryId: entry.id } });
+  if (tag.bookings.length > 0) {
+    await prisma.booking.createMany({
+      data: tag.bookings.map((b) => ({ dailyEntryId: entry.id, label: b.label, hours: b.hours })),
+    });
+  }
+}
 
 async function main() {
   const company = await prisma.company.upsert({
@@ -71,66 +125,28 @@ async function main() {
     },
   });
 
-  for (const tag of juniDaten) {
-    const date = new Date(tag.date);
-    const entry = await prisma.dailyEntry.upsert({
-      where: { userId_date: { userId: michael.id, date } },
-      update: {
-        krank: tag.krank,
-        reisezeit: tag.reisezeit,
-        cad: tag.cad,
-        ausbildung: tag.ausbildung,
-        buero: tag.buero,
-        ferien: tag.ferien,
-        spesenFr: tag.spesenFr,
-        km: tag.km,
-        sollOverride: tag.sollOverride,
-        start1: tag.stempelzeiten[0]?.start ?? null,
-        stop1: tag.stempelzeiten[0]?.stop ?? null,
-        start2: tag.stempelzeiten[1]?.start ?? null,
-        stop2: tag.stempelzeiten[1]?.stop ?? null,
-        start3: tag.stempelzeiten[2]?.start ?? null,
-        stop3: tag.stempelzeiten[2]?.stop ?? null,
-        start4: tag.stempelzeiten[3]?.start ?? null,
-        stop4: tag.stempelzeiten[3]?.stop ?? null,
-      },
-      create: {
-        userId: michael.id,
-        date,
-        krank: tag.krank,
-        reisezeit: tag.reisezeit,
-        cad: tag.cad,
-        ausbildung: tag.ausbildung,
-        buero: tag.buero,
-        ferien: tag.ferien,
-        spesenFr: tag.spesenFr,
-        km: tag.km,
-        sollOverride: tag.sollOverride,
-        start1: tag.stempelzeiten[0]?.start ?? null,
-        stop1: tag.stempelzeiten[0]?.stop ?? null,
-        start2: tag.stempelzeiten[1]?.start ?? null,
-        stop2: tag.stempelzeiten[1]?.stop ?? null,
-        start3: tag.stempelzeiten[2]?.start ?? null,
-        stop3: tag.stempelzeiten[2]?.stop ?? null,
-        start4: tag.stempelzeiten[3]?.start ?? null,
-        stop4: tag.stempelzeiten[3]?.stop ?? null,
-      },
-    });
+  // Reale Daten aus Arbeitsrapport_2026_kum.xlsx, direkt aus der Datei extrahiert (siehe
+  // prisma/seed-data/*.json). Für Aug 24./25./26./27./31. wurde real gestempelt, aber keinem
+  // Projekt zugeordnet (Original-Excel-Bug, führte zu falschem Gleitzeit-Stand) — auf Rückfrage
+  // vom Nutzer bestätigt: diese Stunden zählen als "Webprojekt". Der 28.08. war komplett leer
+  // (weder gestempelt noch gebucht) — auf Rückfrage als Ferientag erfasst.
+  const alleMonatsDaten: TagesDaten[] = [
+    ...juniDaten,
+    ...juliDaten,
+    ...augustDaten,
+    ...septemberDaten,
+  ] as TagesDaten[];
 
-    await prisma.booking.deleteMany({ where: { dailyEntryId: entry.id } });
-    if (tag.bookings.length > 0) {
-      await prisma.booking.createMany({
-        data: tag.bookings.map((b) => ({ dailyEntryId: entry.id, label: b.label, hours: b.hours })),
-      });
-    }
+  for (const tag of alleMonatsDaten) {
+    await seedTag(michael.id, tag);
   }
 
   // Jan-Mai 2026: In der Original-Datei war der Tages-Soll für die Zeit VOR Live-Betrieb des
-  // Tools manuell auf 0 überschrieben (siehe CLAUDE.md §7 Punkt 2 / dieselbe Beobachtung für
-  // Jun 1.-14.). Für die Demo hier nachgebildet, damit der rollierende Saldo nicht künstlich
-  // ins Minus läuft, nur weil vor Juni nichts erfasst wurde.
+  // Tools manuell auf 0 überschrieben (siehe CLAUDE.md §7 Punkt 2). Für die Demo hier
+  // nachgebildet, damit der rollierende Saldo nicht künstlich ins Minus läuft, nur weil vor Juni
+  // nichts erfasst wurde. Ab Juni sind reale Daten (inkl. eigener sollOverride=0-Tage) vorhanden.
   const vorMonateCursor = new Date(Date.UTC(2026, 0, 1));
-  const stichtag = new Date(Date.UTC(2026, 5, 15)); // 15. Juni 2026
+  const stichtag = new Date(Date.UTC(2026, 5, 1)); // 1. Juni 2026
   while (vorMonateCursor < stichtag) {
     const date = new Date(vorMonateCursor);
     await prisma.dailyEntry.upsert({
@@ -141,8 +157,11 @@ async function main() {
     vorMonateCursor.setUTCDate(vorMonateCursor.getUTCDate() + 1);
   }
 
-  console.log(`Seed fertig: Firma "${company.name}", User "${michael.name}" (${michael.email}) und` +
-    ` "${stefan.name}" (Admin), ${feiertage2026.length} Feiertage, ${juniDaten.length} Tageseinträge Juni 2026.`);
+  console.log(
+    `Seed fertig: Firma "${company.name}", User "${michael.name}" (${michael.email}) und ` +
+      `"${stefan.name}" (Admin), ${feiertage2026.length} Feiertage, ${alleMonatsDaten.length} ` +
+      `Tageseinträge Jun-Sep 2026.`,
+  );
 }
 
 main()

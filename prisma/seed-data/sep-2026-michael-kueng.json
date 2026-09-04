@@ -1,0 +1,955 @@
+[
+  {
+    "date": "2026-09-01",
+    "bookings": [
+      {
+        "label": "Website",
+        "hours": 3
+      },
+      {
+        "label": "Zeiterfassung",
+        "hours": 6
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 390,
+        "stop": 660
+      },
+      {
+        "start": 750,
+        "stop": 1020
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-02",
+    "bookings": [
+      {
+        "label": "Zeiterfassung",
+        "hours": 4
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 780,
+        "stop": 1020
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-03",
+    "bookings": [
+      {
+        "label": "Website",
+        "hours": 5
+      },
+      {
+        "label": "Zeiterfassung",
+        "hours": 4
+      }
+    ],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": 390,
+        "stop": 660
+      },
+      {
+        "start": 750,
+        "stop": 1020
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-04",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-05",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-06",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-07",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-08",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-09",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-10",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-11",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-12",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-13",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-14",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-15",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-16",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-17",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-18",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-19",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-20",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-21",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-22",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-23",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-24",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-25",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-26",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-27",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-28",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-29",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  },
+  {
+    "date": "2026-09-30",
+    "bookings": [],
+    "krank": 0,
+    "reisezeit": 0,
+    "cad": 0,
+    "ausbildung": 0,
+    "buero": 0,
+    "ferien": 0,
+    "sollOverride": null,
+    "spesenFr": 0,
+    "km": 0,
+    "stempelzeiten": [
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      },
+      {
+        "start": null,
+        "stop": null
+      }
+    ]
+  }
+]
