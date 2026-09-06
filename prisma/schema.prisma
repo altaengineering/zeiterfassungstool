@@ -74,6 +74,12 @@ model JahresStammdaten {
   ferienuebertragAltesJahr     Float @default(0) // Summen!B15
   arbeitsmonate                 Float @default(12) // Summen!B17
 
+  // Nicht aus dem Original-Excel, App-eigenes Feature (CLAUDE.md §7): Tage VOR diesem Datum
+  // zählen nicht (Soll=0, wie ein manueller Override) — löst die "leere Startphase" beim
+  // Onboarding neuer Nutzer:innen, ohne hunderte DailyEntry-Zeilen anlegen zu müssen. NULL =
+  // von Anfang Jahr an zählen (Standardverhalten, z.B. für Michael, der schon reale Daten hat).
+  erfassungStartDatum DateTime?
+
   @@unique([userId, year])
 }
 

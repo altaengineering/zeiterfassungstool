@@ -3,42 +3,38 @@
 **Status (Stand 2026-09-07): Live und in Nutzung.**
 URL: https://zeiterfassungstool-psi.vercel.app — GitHub: https://github.com/altaengineering/zeiterfassungstool
 (privates Repo). Login mit E-Mail + Passwort für alle 14 Mitarbeitenden, Rollen MITARBEITER/ADMIN
-(Stefan Herger + Michael Küng sind Admin). Vorhanden: Monatsansicht mit Soll/Ist/+/-/Stand pro Tag
-(rollierender Saldo über Monatsgrenzen, Monats-Navigation), Ferien-Widget, Tageserfassung via
-Server Action, Excel-Export im Originalformat (`src/lib/export/exportExcel.ts`, **nur Jahr 2026**,
-siehe Kommentar dort), Dark Mode (Toggle in Kopfzeile), Passwort selbst ändern (`/konto/passwort`),
-Admin-Nutzerverwaltung mit Passwort-Reset (`/admin`, nur Admin-Rolle).
+(Stefan Herger + Michael Küng sind Admin; in der Anzeige heisst Michaels Rolle aus Spass „sudo“,
+technisch ist es dieselbe ADMIN-Rolle — siehe `email === "m.kueng@alta-engineering.ch"`-Sonderfall
+in `src/app/admin/page.tsx`). Vorhanden: Monatsansicht mit Soll/Ist/+/-/Stand pro Tag (rollierender
+Saldo über Monatsgrenzen, Monats-Navigation), Ferien-Widget, Tageserfassung via Server Action,
+Excel-Export im Originalformat (`src/lib/export/exportExcel.ts`, **jedes Nicht-Schaltjahr**
+unterstützt, siehe `istSchaltjahr()` dort — Schaltjahre wie 2028/2032 bewusst noch nicht), Dark
+Mode, Passwort selbst ändern (`/konto/passwort`), Admin-Nutzerverwaltung mit Passwort-Reset
+(`/admin`), Feiertage-Verwaltung (`/admin/feiertage`), und eine "Einrichtung"-Seite
+(`/konto/einrichtung`) gegen die leere Startphase (siehe nächster Absatz).
 
-**⚠️ Nächster Schritt — höchste Priorität (vom Nutzer am 2026-09-07 angefordert, noch nicht
-umgesetzt):** Alle 13 Mitarbeitenden ausser Michael haben **keine Tageseinträge**, dadurch läuft
-ihr Saldo seit 1. Januar ungebremst ins Minus (jeder Werktag ohne Eintrag zählt −Soll/Tag). Lösung:
-eine "Einrichtung"-Seite (z.B. `/konto/einrichtung`), auf der jede Person einmalig einträgt:
-- **Startdatum** (ab wann das Tool für sie zählt)
-- **Aktueller Stunden-Saldo** (→ `JahresStammdaten.stundenuebertragAltesJahr`)
-- **Aktuelles Ferien-Guthaben in Tagen** (→ `JahresStammdaten.ferienuebertragAltesJahr`)
+**"Leere Startphase" — gelöst (2026-09-07):** Neues Feld `JahresStammdaten.erfassungStartDatum`
+(`DateTime?`, in beiden Schema-Dateien). Auf `/konto/einrichtung` trägt jede Person Startdatum +
+aktuellen Stunden-/Ferienstand ein; die Tages-Schleife in
+`src/app/mitarbeiter/[userId]/[jahr]/[monat]/page.tsx` UND `src/lib/export/exportExcel.ts` /
+`src/app/api/export/.../route.ts` erzwingen für jeden Tag vor diesem Datum `sollOverride = 0`
+(Vorrang vor einem evtl. vorhandenen DB-Wert). Solange `erfassungStartDatum` noch `null` ist, zeigt
+die Monatsansicht einen Hinweis-Banner. Mit echten Testdaten verifiziert (Dominic Gruber, Startdatum
+1.9., Saldo 3.5h → alle Augusttage zeigen Soll/Ist/+/- = 0 und Stand bleibt bei 3.5, ab 1.9. zählt
+es normal weiter).
 
-Umsetzung: neues Feld `erfassungStartDatum DateTime?` auf `JahresStammdaten` (**in beiden**
-Schema-Dateien ergänzen, siehe unten). In der Tages-Schleife, die `DailyEntryInput[]` baut
-(`src/app/mitarbeiter/[userId]/[jahr]/[monat]/page.tsx` und `src/app/api/export/.../route.ts`):
-für jeden Tag `< erfassungStartDatum` den `sollOverride` hart auf `0` setzen (Vorrang vor einem
-evtl. vorhandenen DB-Wert) — dadurch bleibt der rollierende Saldo bis zum Startdatum bei genau dem
-eingetragenen Startwert stehen, und zählt erst danach normal. Nach dem Schema-Update: lokal
-`npx prisma migrate dev` (oder `db push`), Produktion läuft automatisch über `vercel-build`.
-Zusätzlich einen Hinweis-Banner auf der Monatsansicht anzeigen, solange `erfassungStartDatum` noch
-`null` ist ("Bitte zuerst einrichten"), plus Link in der Kopfzeile.
-
-Weitere angeforderte, noch offene Punkte:
-- Admin-Feiertagsverwaltung (UI fehlt, Feiertage nur per Seed-Skript pflegbar)
-- Excel-Export für Jahre ausser 2026 verallgemeinern
-- PDF-Übergabedokument für Stefan (angefordert 2026-09-07, noch nicht erstellt) — falls gewünscht:
-  Architektur, Zugriffe, Betrieb, Kosten, was bei Kündigung von Michael zu tun ist. Excel mit
-  Zugangsdaten aller 14 Nutzer wurde bereits erstellt und dem Nutzer geschickt (nicht im Repo,
-  enthält Klartext-Passwörter — siehe `.gitignore` Eintrag `handover/`).
+Noch offen:
 - Domain: Nutzer wollte ggf. `zeit.alta-engineering.ch` statt der Vercel-URL einrichten (Anleitung
   im Chat gegeben, Cloudflare-Zugriff nötig — noch nicht umgesetzt)
+- Excel-Export für Schaltjahre (2028, 2032, …) — bräuchte eine zusätzliche Zeile in der Feb-Tabelle
+  der Vorlage inkl. Verschiebung aller Formelbezüge, siehe Kommentar in `exportExcel.ts`
 - Später: Umstieg auf Infomaniak-Hosting (Schweiz) für Produktivbetrieb (§7 Punkt 5), falls
   Personaldaten-Compliance das erfordert — aktuell auf Vercel + Prisma Postgres (US/EU, siehe
-  Vercel-Dashboard für genaue Region).
+  Vercel-Dashboard für genaue Region)
+- Handbuch/Zugangsdaten-PDFs für Stefan sind erstellt und dem Nutzer geschickt (nicht im Repo,
+  `handover/`-Ordner, gitignored, enthält Klartext-Passwörter). Handbuch bewusst ohne jede
+  Erwähnung von KI/Claude/Anthropic (Kundenanforderung) — bei künftigen Änderungen daran
+  festhalten, falls das Dokument erneut generiert wird.
 
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit

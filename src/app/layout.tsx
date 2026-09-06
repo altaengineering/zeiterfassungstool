@@ -37,7 +37,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {session?.user && (
               <span className="topbar-user">
                 {istAdmin && <Link href="/admin">Nutzerverwaltung</Link>}
+                {istAdmin && <Link href="/admin/feiertage">Feiertage</Link>}
                 <Link href="/konto/passwort">Passwort ändern</Link>
+                <Link href="/konto/einrichtung">Einrichtung</Link>
                 <span>{session.user.name}</span>
                 <ThemeToggle />
                 <form

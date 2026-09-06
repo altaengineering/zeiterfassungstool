@@ -96,9 +96,17 @@ export default async function MonatsAnsicht({ params }: Props) {
   const entriesByDate = new Map(entriesDb.map((e) => [iso(e.date), e]));
   const sollProTagWert = sollProTag(jahresStammdaten.wochenstunden, jahresStammdaten.anstellungPct);
 
+  // Tage vor dem individuellen Startdatum zählen nicht (CLAUDE.md §7 "leere Startphase") — der
+  // Override hat Vorrang vor einem evtl. vorhandenen DB-Wert, damit der Saldo bis zum Startdatum
+  // exakt beim eingetragenen Anfangswert stehen bleibt.
+  const startDatumIso = jahresStammdaten.erfassungStartDatum
+    ? iso(jahresStammdaten.erfassungStartDatum)
+    : null;
+
   const alleTage = alleTageImJahr(jahr);
   const entryInputs: DailyEntryInput[] = alleTage.map((date) => {
     const e = entriesByDate.get(date);
+    const vorStart = startDatumIso !== null && date < startDatumIso;
     if (!e) {
       const leer: StempelPaar = { start: null, stop: null };
       return {
@@ -110,7 +118,7 @@ export default async function MonatsAnsicht({ params }: Props) {
         ausbildung: 0,
         buero: 0,
         ferien: 0,
-        sollOverride: null,
+        sollOverride: vorStart ? 0 : null,
         stempelzeiten: [leer, leer, leer, leer],
       };
     }
@@ -123,7 +131,7 @@ export default async function MonatsAnsicht({ params }: Props) {
       ausbildung: e.ausbildung,
       buero: e.buero,
       ferien: e.ferien,
-      sollOverride: e.sollOverride,
+      sollOverride: vorStart ? 0 : e.sollOverride,
       stempelzeiten: [
         { start: e.start1, stop: e.stop1 },
         { start: e.start2, stop: e.stop2 },
@@ -171,6 +179,15 @@ export default async function MonatsAnsicht({ params }: Props) {
         {(jahresStammdaten.anstellungPct * 100).toFixed(0)}%, {jahresStammdaten.wochenstunden}{" "}
         h/Woche (Soll/Tag {formatStunden(sollProTagWert)} h)
       </p>
+
+      {!startDatumIso && (
+        <p className="form-message error" style={{ maxWidth: 520 }}>
+          Noch nicht eingerichtet: Ohne Startdatum zählt das Tool ab dem 1. Januar, auch für Tage
+          ohne Eintrag. Bitte einmalig unter{" "}
+          <Link href="/konto/einrichtung">„Einrichtung“</Link> das Startdatum und den aktuellen
+          Stunden-/Ferienstand eintragen.
+        </p>
+      )}
 
       <div className="month-nav">
         <a href={`/api/export/${userId}/${jahr}`} className="export-link">

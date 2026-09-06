@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { erzeugeExcelExport, EXPORT_TEMPLATE_JAHR, type ExportTag } from "@/lib/export/exportExcel";
+import { erzeugeExcelExport, istSchaltjahr, type ExportTag } from "@/lib/export/exportExcel";
 
 function iso(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -21,10 +21,15 @@ export async function GET(
     return NextResponse.json({ error: "Nicht autorisiert" }, { status: 403 });
   }
 
-  if (jahr !== EXPORT_TEMPLATE_JAHR) {
+  if (!Number.isInteger(jahr) || jahr < 2000 || jahr > 2100) {
+    return NextResponse.json({ error: "Ungültiges Jahr." }, { status: 400 });
+  }
+  if (istSchaltjahr(jahr)) {
     return NextResponse.json(
       {
-        error: `Export aktuell nur für ${EXPORT_TEMPLATE_JAHR} unterstützt (Vorlage hat feste Zeilenzahl pro Monat, siehe CLAUDE.md §6).`,
+        error:
+          `Export für Schaltjahr ${jahr} noch nicht unterstützt (Februar hat dann 29 statt 28 ` +
+          "Tage, die Vorlage müsste dafür angepasst werden). Alle anderen Jahre funktionieren.",
       },
       { status: 400 },
     );
@@ -91,6 +96,9 @@ export async function GET(
     arbeitsmonate: jahresStammdaten.arbeitsmonate,
     kmSpesensatz: companySettings?.kmSpesensatz ?? 0,
     ferienBezogenBisher: 0,
+    erfassungStartDatum: jahresStammdaten.erfassungStartDatum
+      ? iso(jahresStammdaten.erfassungStartDatum)
+      : null,
     feiertage: holidaysDb.map((h) => ({ date: iso(h.date), label: h.label, bezahlt: h.bezahlt })),
     tage,
   });

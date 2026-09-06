@@ -5,11 +5,17 @@ import path from "node:path";
 // (Soll/Ist/+/-/Stand, Ist-Zeit aus Stempelzeiten, Ferien-Kette, Jahres-Summen). Wir befüllen nur
 // die Eingabezellen und lassen die Formeln unangetastet — siehe CLAUDE.md §6.
 //
-// WICHTIG: Die Vorlage hat für jeden Monat eine FESTE Anzahl Tageszeilen (passend zu 2026, kein
-// Schaltjahr). Für ein anderes Jahr mit abweichendem Februar (Schaltjahr) stimmen die Zeilen nicht
-// mehr exakt überein. Für den aktuellen POC-Stand daher nur Export für 2026 unterstützt.
+// Die Vorlage hat für jeden Monat eine FESTE Anzahl Tageszeilen, passend zu 2026 (kein
+// Schaltjahr, Feb = 28 Tage/Zeilen). Da sich die Tageszahl pro Monat zwischen Kalenderjahren nur
+// im Februar eines Schaltjahres unterscheidet (29 statt 28 Tage), funktioniert dieselbe Vorlage
+// unverändert für JEDES NICHT-Schaltjahr — nur echte Schaltjahre (2028, 2032, …) sind nicht
+// unterstützt, weil dafür in der Feb-Tabelle eine zusätzliche Zeile eingefügt werden müsste
+// (inkl. Verschiebung aller Formelbezüge) — das ist bewusst (noch) nicht gebaut.
 const TEMPLATE_PATH = path.join(process.cwd(), "src/lib/export/template-2026.xlsx");
-export const EXPORT_TEMPLATE_JAHR = 2026;
+
+export function istSchaltjahr(jahr: number): boolean {
+  return (jahr % 4 === 0 && jahr % 100 !== 0) || jahr % 400 === 0;
+}
 
 const MONATSBLAETTER = [
   "Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
@@ -60,6 +66,8 @@ export interface ExportInput {
   arbeitsmonate: number;
   kmSpesensatz: number;
   ferienBezogenBisher: number; // Jan!H2-Startwert, i.d.R. 0 für einen frischen Export
+  /** App-eigenes Feature (CLAUDE.md §7): Tage davor bekommen Soll=0, siehe DailyEntry-Seite. */
+  erfassungStartDatum?: string | null;
   feiertage: Array<{ date: string; label: string; bezahlt: boolean }>;
   tage: ExportTag[];
 }
@@ -163,8 +171,13 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
       setzeOderLeere(ws.getCell(`W${row}`), eintrag?.km ?? 0);
 
       // Soll-Override: nur bei explizitem Override den Formel-Wert überschreiben (Literalwert,
-      // analog zum Original-Excel bei manuellen Anpassungen — siehe CLAUDE.md §3/§7.2).
-      if (eintrag?.sollOverride != null) {
+      // analog zum Original-Excel bei manuellen Anpassungen — siehe CLAUDE.md §3/§7.2). Tage vor
+      // dem individuellen Startdatum (§7 "leere Startphase") werden immer auf 0 gezwungen, auch
+      // ohne eigenen DailyEntry-Datensatz.
+      const vorStart = input.erfassungStartDatum != null && dateStr < input.erfassungStartDatum;
+      if (vorStart) {
+        ws.getCell(`R${row}`).value = 0;
+      } else if (eintrag?.sollOverride != null) {
         ws.getCell(`R${row}`).value = eintrag.sollOverride;
       }
 
