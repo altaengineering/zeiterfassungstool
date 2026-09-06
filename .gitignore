@@ -10,3 +10,6 @@ prisma/dev.db-journal
 
 # Enthält Klartext-Initialpasswörter für den Seed — niemals committen.
 prisma/seed-data/*.local.json
+
+# Übergabe-Dokumente mit Klartext-Zugangsdaten — niemals committen.
+handover/
