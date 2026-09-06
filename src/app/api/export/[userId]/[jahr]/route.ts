@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import { erzeugeExcelExport, EXPORT_TEMPLATE_JAHR, type ExportTag } from "@/lib/export/exportExcel";
 
 function iso(date: Date): string {
@@ -12,6 +13,13 @@ export async function GET(
 ) {
   const { userId, jahr: jahrStr } = await params;
   const jahr = Number(jahrStr);
+
+  const session = await auth();
+  const rolle = (session?.user as { role?: string } | undefined)?.role;
+  const meineId = (session?.user as { id?: string } | undefined)?.id;
+  if (!session?.user || (rolle !== "ADMIN" && meineId !== userId)) {
+    return NextResponse.json({ error: "Nicht autorisiert" }, { status: 403 });
+  }
 
   if (jahr !== EXPORT_TEMPLATE_JAHR) {
     return NextResponse.json(
