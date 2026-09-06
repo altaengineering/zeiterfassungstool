@@ -15,11 +15,23 @@ datasource db {
 }
 
 model Company {
-  id       String    @id @default(cuid())
-  name     String
-  users    User[]
-  holidays Holiday[]
-  settings CompanySettings[]
+  id          String    @id @default(cuid())
+  name        String
+  users       User[]
+  holidays    Holiday[]
+  settings    CompanySettings[]
+  monthCloses MonthClose[]
+}
+
+model MonthClose {
+  id        String   @id @default(cuid())
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
+  year      Int
+  month     Int
+  closedAt  DateTime @default(now())
+
+  @@unique([companyId, year, month])
 }
 
 model CompanySettings {
