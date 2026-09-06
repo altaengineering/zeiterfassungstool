@@ -1,17 +1,34 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
 
 // Live-Daten aus der DB — nie statisch vorrendern (sonst zeigt die Seite einen eingefrorenen
 // Stand vom Build-Zeitpunkt, siehe CLAUDE.md Deployment-Hinweise).
 export const dynamic = "force-dynamic";
 
+function aktuellerMonatPfad(userId: string): string {
+  const jetzt = new Date();
+  return `/mitarbeiter/${userId}/${jetzt.getFullYear()}/${jetzt.getMonth() + 1}`;
+}
+
 export default async function StartPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+
+  const role = (session.user as { role?: string }).role;
+  const meineId = (session.user as { id?: string }).id;
+
+  // Mitarbeitende landen direkt in ihrer eigenen aktuellen Monatsansicht — nur Stefan (Admin)
+  // sieht die Übersicht aller Mitarbeitenden (CLAUDE.md §5).
+  if (role !== "ADMIN" && meineId) {
+    redirect(aktuellerMonatPfad(meineId));
+  }
+
   const users = await prisma.user.findMany({
     include: { company: true },
     orderBy: { name: "asc" },
   });
-
-  const now = new Date();
 
   return (
     <main>
@@ -25,7 +42,7 @@ export default async function StartPage() {
       <ul className="employee-list">
         {users.map((u) => (
           <li key={u.id}>
-            <Link href={`/mitarbeiter/${u.id}/2026/6`}>{u.name}</Link>
+            <Link href={aktuellerMonatPfad(u.id)}>{u.name}</Link>
             <span className="role-badge">{u.role === "ADMIN" ? "Admin" : "Mitarbeiter"}</span>
             <span style={{ color: "#888", fontSize: "0.85rem", marginLeft: 8 }}>
               {u.company.name}
@@ -33,10 +50,6 @@ export default async function StartPage() {
           </li>
         ))}
       </ul>
-      <p style={{ fontSize: "0.8rem", color: "#888", marginTop: 24 }}>
-        Demo-Zeitraum: Juni {now.getFullYear() === 2026 ? "2026 (aktuell)" : "2026"} — Michael
-        Küngs Monatsansicht enthält reale Beispieldaten aus der Original-Excel-Datei.
-      </p>
     </main>
   );
 }

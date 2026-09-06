@@ -1,4 +1,8 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { STANDARD_JAHRESFERIENTAGE } from "../src/lib/calc";
 import feiertage2026 from "./seed-data/feiertage-2026.json";
 import juniDaten from "./seed-data/jun-2026-michael-kueng.json";
@@ -7,6 +11,20 @@ import augustDaten from "./seed-data/aug-2026-michael-kueng.json";
 import septemberDaten from "./seed-data/sep-2026-michael-kueng.json";
 
 const prisma = new PrismaClient();
+
+interface MitarbeiterSeed {
+  name: string;
+  pct: number;
+  rolle: "ADMIN" | "MITARBEITER";
+  email: string;
+  pw: string;
+}
+
+// Enthält Klartext-Initialpasswörter, siehe .gitignore (prisma/seed-data/*.local.json) — nie
+// committen. Datei manuell neben diesem Skript ablegen (Format: siehe MitarbeiterSeed).
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const mitarbeitendePath = path.join(__dirname, "seed-data/mitarbeitende-2026.local.json");
+const mitarbeitende: MitarbeiterSeed[] = JSON.parse(readFileSync(mitarbeitendePath, "utf-8"));
 
 interface TagesDaten {
   date: string;
@@ -85,44 +103,42 @@ async function main() {
     });
   }
 
-  const michael = await prisma.user.upsert({
+  // Reale Firmen-Belegschaft (14 Personen, siehe CLAUDE.md §5). Passwörter kommen aus der
+  // lokalen, nicht committeten JSON-Datei; werden hier gehasht und bei jedem Seed-Lauf auf den
+  // (dort hinterlegten) Ausgangswert zurückgesetzt — bewusst so, damit ein erneuter Seed-Lauf als
+  // "Passwort zurücksetzen"-Mechanismus dient, solange kein Self-Service-Reset existiert.
+  for (const m of mitarbeitende) {
+    const passwordHash = await bcrypt.hash(m.pw, 10);
+    const user = await prisma.user.upsert({
+      where: { email: m.email },
+      update: { name: m.name, role: m.rolle, passwordHash },
+      create: {
+        companyId: company.id,
+        name: m.name,
+        email: m.email,
+        passwordHash,
+        role: m.rolle,
+      },
+    });
+
+    await prisma.jahresStammdaten.upsert({
+      where: { userId_year: { userId: user.id, year: 2026 } },
+      update: {},
+      create: {
+        userId: user.id,
+        year: 2026,
+        anstellungPct: m.pct,
+        wochenstunden: 42,
+        anzahlVorholtage: 0,
+        stundenuebertragAltesJahr: 0,
+        ferienuebertragAltesJahr: 0,
+        arbeitsmonate: 12,
+      },
+    });
+  }
+
+  const michael = await prisma.user.findUniqueOrThrow({
     where: { email: "michael.kueng@alta-engineering.ch" },
-    update: {},
-    create: {
-      companyId: company.id,
-      name: "Michael Küng",
-      email: "michael.kueng@alta-engineering.ch",
-      // POC: kein echtes Auth-System implementiert, nur Platzhalter (siehe CLAUDE.md Status).
-      passwordHash: "POC-KEIN-ECHTES-LOGIN",
-      role: "MITARBEITER",
-    },
-  });
-
-  const stefan = await prisma.user.upsert({
-    where: { email: "stefan@alta-engineering.ch" },
-    update: {},
-    create: {
-      companyId: company.id,
-      name: "Stefan",
-      email: "stefan@alta-engineering.ch",
-      passwordHash: "POC-KEIN-ECHTES-LOGIN",
-      role: "ADMIN",
-    },
-  });
-
-  await prisma.jahresStammdaten.upsert({
-    where: { userId_year: { userId: michael.id, year: 2026 } },
-    update: {},
-    create: {
-      userId: michael.id,
-      year: 2026,
-      anstellungPct: 1,
-      wochenstunden: 42,
-      anzahlVorholtage: 0,
-      stundenuebertragAltesJahr: 0,
-      ferienuebertragAltesJahr: 0,
-      arbeitsmonate: 12,
-    },
   });
 
   // Reale Daten aus Arbeitsrapport_2026_kum.xlsx, direkt aus der Datei extrahiert (siehe
@@ -158,9 +174,9 @@ async function main() {
   }
 
   console.log(
-    `Seed fertig: Firma "${company.name}", User "${michael.name}" (${michael.email}) und ` +
-      `"${stefan.name}" (Admin), ${feiertage2026.length} Feiertage, ${alleMonatsDaten.length} ` +
-      `Tageseinträge Jun-Sep 2026.`,
+    `Seed fertig: Firma "${company.name}", ${mitarbeitende.length} Mitarbeitende angelegt/` +
+      `aktualisiert, ${feiertage2026.length} Feiertage, ${alleMonatsDaten.length} Tageseinträge ` +
+      `Jun-Sep 2026 für ${michael.name}.`,
   );
 }
 

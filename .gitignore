@@ -7,3 +7,6 @@ dist/
 .env.production
 prisma/dev.db
 prisma/dev.db-journal
+
+# Enthält Klartext-Initialpasswörter für den Seed — niemals committen.
+prisma/seed-data/*.local.json
