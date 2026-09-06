@@ -33,10 +33,7 @@ export default async function StartPage() {
   return (
     <main>
       <h1>Zeiterfassung – Alta Engineering AG</h1>
-      <p className="subtitle">
-        Proof of Concept: direkte Online-Erfassung statt Excel-Upload. Datenmodell &amp;
-        Berechnungslogik 1:1 aus dem bestehenden Arbeitsrapport übernommen.
-      </p>
+      <p className="subtitle">Übersicht aller Mitarbeitenden und ihrer Zeiterfassung.</p>
 
       <h2>Mitarbeitende</h2>
       <ul className="employee-list">
@@ -44,7 +41,7 @@ export default async function StartPage() {
           <li key={u.id}>
             <Link href={aktuellerMonatPfad(u.id)}>{u.name}</Link>
             <span className="role-badge">{u.role === "ADMIN" ? "Admin" : "Mitarbeiter"}</span>
-            <span style={{ color: "#888", fontSize: "0.85rem", marginLeft: 8 }}>
+            <span className="muted" style={{ fontSize: "0.85rem", marginLeft: 8 }}>
               {u.company.name}
             </span>
           </li>
