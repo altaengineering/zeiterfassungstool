@@ -20,7 +20,7 @@ export default async function AdminSeite() {
 
   return (
     <main>
-      <h1>Admin – Nutzerverwaltung</h1>
+      <h1>sudo – Nutzerverwaltung</h1>
       <p className="subtitle">
         Alle Mitarbeitenden von {users[0]?.company.name ?? "Alta Engineering AG"}. Passwort
         vergessen? Hier zurücksetzen und das neue Passwort sicher weitergeben (z.B. persönlich
@@ -43,7 +43,7 @@ export default async function AdminSeite() {
               <tr key={u.id}>
                 <td className="label-cell">{u.name}</td>
                 <td className="label-cell">{u.email}</td>
-                <td className="label-cell">{u.role === "ADMIN" ? "Admin" : "Mitarbeiter"}</td>
+                <td className="label-cell">{u.role === "ADMIN" ? "sudo" : "Mitarbeiter"}</td>
                 <td className="label-cell">
                   <Link href={`/mitarbeiter/${u.id}/${jetzt.getFullYear()}/${jetzt.getMonth() + 1}`}>
                     öffnen
