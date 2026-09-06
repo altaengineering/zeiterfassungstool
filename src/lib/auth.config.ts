@@ -61,6 +61,11 @@ export const authConfig: NextAuthConfig = {
         return false;
       }
 
+      // Admin-Bereich (Nutzerverwaltung/Passwort zurücksetzen) nur für Admins.
+      if (pathname.startsWith("/admin") && role !== "ADMIN") {
+        return false;
+      }
+
       return true;
     },
   },

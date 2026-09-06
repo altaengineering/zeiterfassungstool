@@ -97,14 +97,6 @@ body {
   text-decoration: underline;
 }
 
-.topbar .tag {
-  background: rgba(255, 255, 255, 0.15);
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  letter-spacing: 0.03em;
-}
-
 .topbar-user {
   margin-left: auto;
   display: flex;
@@ -480,6 +472,31 @@ form.entry-form button[type="submit"]:hover {
   color: var(--neg);
 }
 
+.form-message.small {
+  font-size: 0.75rem;
+  margin-top: 6px;
+  max-width: 260px;
+}
+
+.form-message code {
+  font-weight: 700;
+  user-select: all;
+}
+
+.link-btn-inline {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.link-btn-inline:hover {
+  background: var(--surface-alt);
+}
+
 .form-message.success {
   background: color-mix(in srgb, var(--pos) 14%, transparent);
   color: var(--pos);
@@ -603,35 +620,47 @@ main.login-hero {
   max-width: 480px;
 }
 
-.login-brand p {
-  color: #c3cde0;
-  font-size: 1rem;
-  max-width: 420px;
-  margin: 0;
-}
-
-.login-stats {
-  display: flex;
-  gap: 32px;
-  margin-top: 48px;
-}
-
-.login-stats div {
+.login-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 40px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
 }
 
-.login-stats strong {
-  font-size: 1.6rem;
+.login-features li {
+  position: relative;
+  padding-left: 22px;
+  color: #c3cde0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.login-features li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--accent-2);
   font-weight: 700;
 }
 
-.login-stats span {
-  font-size: 0.72rem;
+.login-support {
+  font-size: 0.85rem;
   color: #93a2bc;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-top: 2px;
+  line-height: 1.6;
+}
+
+.login-support a {
+  color: #cfe0ff;
+}
+
+.login-forgot {
+  margin: 16px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
 }
 
 .login-form-side {

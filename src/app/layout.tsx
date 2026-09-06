@@ -23,6 +23,7 @@ const themeInitScript = `
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
+  const istAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
 
   return (
     <html lang="de" suppressHydrationWarning>
@@ -33,9 +34,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <div className="topbar">
           <div className="topbar-inner">
             <Link href="/">Zeiterfassung Alta Engineering AG</Link>
-            <span className="tag">Proof of Concept</span>
             {session?.user && (
               <span className="topbar-user">
+                {istAdmin && <Link href="/admin">Nutzerverwaltung</Link>}
                 <Link href="/konto/passwort">Passwort ändern</Link>
                 <span>{session.user.name}</span>
                 <ThemeToggle />

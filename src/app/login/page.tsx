@@ -60,25 +60,19 @@ export default async function LoginPage({
             </span>
           </div>
 
-          <h1>Präzision beginnt mit der Zeit.</h1>
-          <p>
-            Die digitale Zeiterfassung von Alta Engineering AG — direkt erfasst, automatisch
-            berechnet, immer aktuell. Kein Excel-Upload mehr.
-          </p>
+          <h1>Zeiterfassung für Alta Engineering AG</h1>
 
-          <div className="login-stats">
-            <div>
-              <strong>14</strong>
-              <span>Mitarbeitende</span>
-            </div>
-            <div>
-              <strong>100%</strong>
-              <span>Digital</span>
-            </div>
-            <div>
-              <strong>0</strong>
-              <span>Excel-Uploads</span>
-            </div>
+          <ul className="login-features">
+            <li>Tägliche Zeiterfassung direkt im Browser, kein Excel-Upload mehr</li>
+            <li>Automatische Berechnung von Soll-Zeit, Ist-Zeit und Überstunden-Saldo</li>
+            <li>Ferienübersicht (Guthaben, bezogen, Übertrag) auf einen Blick</li>
+            <li>Excel-Export im gewohnten Format, jederzeit abrufbar</li>
+          </ul>
+
+          <div className="login-support">
+            Fragen oder Passwort vergessen?
+            <br />
+            <a href="mailto:michael.kueng@alta-engineering.ch">michael.kueng@alta-engineering.ch</a>
           </div>
         </div>
       </section>
@@ -99,6 +93,11 @@ export default async function LoginPage({
             </label>
             <button type="submit">Anmelden</button>
           </form>
+          <p className="login-forgot">
+            Passwort vergessen? Wende dich an Stefan Herger oder{" "}
+            <a href="mailto:michael.kueng@alta-engineering.ch">Michael Küng</a> — als Admins können
+            sie dein Passwort zurücksetzen.
+          </p>
         </div>
       </section>
     </main>
