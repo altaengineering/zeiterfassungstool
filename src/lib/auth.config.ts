@@ -33,6 +33,16 @@ export const authConfig: NextAuthConfig = {
         return true;
       }
 
+      // Next.js prefetcht <Link>s im Hintergrund (z.B. den Home-Link in der Kopfzeile, der auf
+      // jeder Seite sichtbar ist). Ein solcher Prefetch-Request lässt sich hier nicht immer
+      // zuverlässig einer gültigen Session zuordnen und darf NIE eine echte Navigation auslösen —
+      // sonst kann ein Hintergrund-Prefetch den Nutzer mitten in einer Aktion (z.B. Formular-
+      // Absenden) fälschlich auf /login werfen. Der eigentliche Zugriffsschutz greift ohnehin bei
+      // der echten Navigation/Server Action.
+      if (request.headers.get("next-router-prefetch")) {
+        return true;
+      }
+
       const isLoggedIn = !!auth?.user;
       if (!isLoggedIn) return false;
 
