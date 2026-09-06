@@ -33,14 +33,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <div className="topbar">
           <div className="topbar-inner">
-            <Link href="/">Zeiterfassung Alta Engineering AG</Link>
+            <Link href="/" className="topbar-brand">
+              Zeiterfassung Alta Engineering AG
+            </Link>
             {session?.user && (
               <span className="topbar-user">
-                {istAdmin && <Link href="/admin">Nutzerverwaltung</Link>}
-                {istAdmin && <Link href="/admin/feiertage">Feiertage</Link>}
-                {istAdmin && <Link href="/admin/monatsabschluss">Monatsabschluss</Link>}
-                <Link href="/konto/passwort">Passwort ändern</Link>
-                <Link href="/konto/einrichtung">Einrichtung</Link>
+                <span className="topbar-nav">
+                  {istAdmin && <Link href="/admin">Nutzerverwaltung</Link>}
+                  {istAdmin && <Link href="/admin/feiertage">Feiertage</Link>}
+                  {istAdmin && <Link href="/admin/monatsabschluss">Monatsabschluss</Link>}
+                  <Link href="/konto/passwort">Passwort ändern</Link>
+                  <Link href="/konto/einrichtung">Einrichtung</Link>
+                </span>
                 <span>{session.user.name}</span>
                 <ThemeToggle />
                 <form
