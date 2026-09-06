@@ -16,11 +16,26 @@ datasource db {
 // Gültige Werte: "MITARBEITER" | "ADMIN" (kein natives enum wegen SQLite, siehe Hinweis oben).
 
 model Company {
-  id       String    @id @default(cuid())
-  name     String
-  users    User[]
-  holidays Holiday[]
-  settings CompanySettings[]
+  id           String    @id @default(cuid())
+  name         String
+  users        User[]
+  holidays     Holiday[]
+  settings     CompanySettings[]
+  monthCloses  MonthClose[]
+}
+
+// Monatsabschluss: sobald ein Monat abgeschlossen ist, können Mitarbeitende ihre Tageseinträge
+// für diesen Monat nicht mehr ändern (App-eigenes Feature, nicht aus dem Original-Excel).
+// Gilt firmenweit für alle Mitarbeitenden gleichzeitig (typischer Lohnlauf-Abschluss).
+model MonthClose {
+  id        String   @id @default(cuid())
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String
+  year      Int
+  month     Int // 1-12
+  closedAt  DateTime @default(now())
+
+  @@unique([companyId, year, month])
 }
 
 // Firmenweite, jahresabhängige Konstanten (CLAUDE.md §2, §7 Punkt 3: Jahresferientage bleibt

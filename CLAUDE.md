@@ -9,8 +9,10 @@ in `src/app/admin/page.tsx`). Vorhanden: Monatsansicht mit Soll/Ist/+/-/Stand pr
 Saldo über Monatsgrenzen, Monats-Navigation), Ferien-Widget, Tageserfassung via Server Action,
 Excel-Export im Originalformat (`src/lib/export/exportExcel.ts`, **jedes Nicht-Schaltjahr**
 unterstützt, siehe `istSchaltjahr()` dort — Schaltjahre wie 2028/2032 bewusst noch nicht), Dark
-Mode, Passwort selbst ändern (`/konto/passwort`), Admin-Nutzerverwaltung mit Passwort-Reset
-(`/admin`), Feiertage-Verwaltung (`/admin/feiertage`), und eine "Einrichtung"-Seite
+Mode, Passwort selbst ändern (`/konto/passwort`), Admin-Nutzerverwaltung mit Passwort-Reset sowie
+Anlegen/Löschen von Mitarbeitenden (`/admin`), Feiertage-Verwaltung (`/admin/feiertage`),
+Monatsabschluss (`/admin/monatsabschluss` — sperrt einen Monat firmenweit für Mitarbeitende,
+Admins können trotzdem noch korrigieren, Modell `MonthClose`), und eine "Einrichtung"-Seite
 (`/konto/einrichtung`) gegen die leere Startphase (siehe nächster Absatz).
 
 **"Leere Startphase" — gelöst (2026-09-07):** Neues Feld `JahresStammdaten.erfassungStartDatum`

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import {
   berechneFerienBezogen,
   berechneFerienGuthaben,
@@ -58,7 +59,10 @@ export default async function MonatsAnsicht({ params }: Props) {
   const user = await prisma.user.findUnique({ where: { id: userId }, include: { company: true } });
   if (!user) notFound();
 
-  const [jahresStammdaten, companySettings, holidaysDb, entriesDb] = await Promise.all([
+  const session = await auth();
+  const binAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
+
+  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, monatsAbschluss] = await Promise.all([
     prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
     prisma.companySettings.findUnique({
       where: { companyId_year: { companyId: user.companyId, year: jahr } },
@@ -76,7 +80,14 @@ export default async function MonatsAnsicht({ params }: Props) {
       },
       include: { bookings: true },
     }),
+    prisma.monthClose.findUnique({
+      where: { companyId_year_month: { companyId: user.companyId, year: jahr, month: monat } },
+    }),
   ]);
+
+  // Mitarbeitende dürfen einen abgeschlossenen Monat nicht mehr bearbeiten, Admins schon
+  // (siehe CLAUDE.md, Feature "Monatsabschluss" — die Server Action prüft das zusätzlich).
+  const istGesperrt = !!monatsAbschluss && !binAdmin;
 
   if (!jahresStammdaten) {
     return (
@@ -297,13 +308,25 @@ export default async function MonatsAnsicht({ params }: Props) {
       </table>
       </div>
 
-      <h2>Tageseintrag erfassen / bearbeiten</h2>
-      <EntryForm
-        userId={userId}
-        jahr={jahr}
-        monat={monat}
-        defaultDatum={`${jahr}-${String(monat).padStart(2, "0")}-01`}
-      />
+      {istGesperrt ? (
+        <>
+          <h2>Tageseintrag erfassen / bearbeiten</h2>
+          <p className="form-message error" style={{ maxWidth: 520 }}>
+            🔒 {MONATSNAMEN[monat - 1]} {jahr} ist abgeschlossen (Monatsabschluss) und kann nicht
+            mehr bearbeitet werden. Bei Korrekturbedarf bitte an einen Admin wenden.
+          </p>
+        </>
+      ) : (
+        <>
+          <h2>Tageseintrag erfassen / bearbeiten</h2>
+          <EntryForm
+            userId={userId}
+            jahr={jahr}
+            monat={monat}
+            defaultDatum={`${jahr}-${String(monat).padStart(2, "0")}-01`}
+          />
+        </>
+      )}
     </main>
   );
 }

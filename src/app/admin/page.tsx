@@ -3,6 +3,8 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { ResetPasswordButton } from "./ResetPasswordButton";
+import { AddUserForm } from "./AddUserForm";
+import { DeleteUserButton } from "./DeleteUserButton";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,8 @@ export default async function AdminSeite() {
   const session = await auth();
   const rolle = (session?.user as { role?: string } | undefined)?.role;
   if (!session?.user || rolle !== "ADMIN") redirect("/");
+
+  const meineId = (session.user as { id: string }).id;
 
   const users = await prisma.user.findMany({
     include: { company: true },
@@ -27,6 +31,8 @@ export default async function AdminSeite() {
         oder verschlüsselt).
       </p>
 
+      <AddUserForm />
+
       <div className="table-wrap">
         <table>
           <thead>
@@ -36,6 +42,7 @@ export default async function AdminSeite() {
               <th>Rolle</th>
               <th>Monatsansicht</th>
               <th>Passwort</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -57,6 +64,9 @@ export default async function AdminSeite() {
                 </td>
                 <td className="label-cell">
                   <ResetPasswordButton userId={u.id} name={u.name} />
+                </td>
+                <td className="label-cell">
+                  {u.id !== meineId && <DeleteUserButton userId={u.id} name={u.name} />}
                 </td>
               </tr>
             ))}

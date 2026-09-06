@@ -34,6 +34,24 @@ export async function tageseintragSpeichern(formData: FormData) {
     throw new Error("Nicht autorisiert");
   }
 
+  // Monatsabschluss: Mitarbeitende dürfen abgeschlossene Monate nicht mehr ändern, Admins schon
+  // (z.B. für nachträgliche Korrekturen) — siehe CLAUDE.md, Feature "Monatsabschluss".
+  if (rolle !== "ADMIN") {
+    const betroffenerUser = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const geschlossen = await prisma.monthClose.findUnique({
+      where: {
+        companyId_year_month: {
+          companyId: betroffenerUser.companyId,
+          year: date.getUTCFullYear(),
+          month: date.getUTCMonth() + 1,
+        },
+      },
+    });
+    if (geschlossen) {
+      throw new Error("Dieser Monat ist abgeschlossen und kann nicht mehr bearbeitet werden.");
+    }
+  }
+
   const sollOverrideRaw = formData.get("sollOverride");
   const sollOverride =
     typeof sollOverrideRaw === "string" && sollOverrideRaw !== "" ? Number(sollOverrideRaw) : null;

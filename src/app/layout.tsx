@@ -38,6 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <span className="topbar-user">
                 {istAdmin && <Link href="/admin">Nutzerverwaltung</Link>}
                 {istAdmin && <Link href="/admin/feiertage">Feiertage</Link>}
+                {istAdmin && <Link href="/admin/monatsabschluss">Monatsabschluss</Link>}
                 <Link href="/konto/passwort">Passwort ändern</Link>
                 <Link href="/konto/einrichtung">Einrichtung</Link>
                 <span>{session.user.name}</span>

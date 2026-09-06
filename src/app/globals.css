@@ -335,7 +335,8 @@ form.entry-form label {
   gap: 3px;
 }
 
-form.entry-form input {
+form.entry-form input,
+form.entry-form select {
   padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: 5px;
