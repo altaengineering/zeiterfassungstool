@@ -72,7 +72,7 @@ export default async function LoginPage({
           <div className="login-support">
             Fragen oder Passwort vergessen?
             <br />
-            <a href="mailto:michael.kueng@alta-engineering.ch">michael.kueng@alta-engineering.ch</a>
+            <a href="mailto:m.kueng@alta-engineering.ch">m.kueng@alta-engineering.ch</a>
           </div>
         </div>
       </section>
@@ -85,7 +85,7 @@ export default async function LoginPage({
             {error && <p className="form-message error">E-Mail oder Passwort falsch.</p>}
             <label>
               E-Mail
-              <input type="email" name="email" required autoFocus placeholder="vorname.nachname@alta-engineering.ch" />
+              <input type="email" name="email" required autoFocus placeholder="v.nachname@alta-engineering.ch" />
             </label>
             <label>
               Passwort
@@ -95,7 +95,7 @@ export default async function LoginPage({
           </form>
           <p className="login-forgot">
             Passwort vergessen? Wende dich an Stefan Herger oder{" "}
-            <a href="mailto:michael.kueng@alta-engineering.ch">Michael Küng</a> — als Admins können
+            <a href="mailto:m.kueng@alta-engineering.ch">Michael Küng</a> — als Admins können
             sie dein Passwort zurücksetzen.
           </p>
         </div>

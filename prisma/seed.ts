@@ -138,7 +138,7 @@ async function main() {
   }
 
   const michael = await prisma.user.findUniqueOrThrow({
-    where: { email: "michael.kueng@alta-engineering.ch" },
+    where: { email: "m.kueng@alta-engineering.ch" },
   });
 
   // Reale Daten aus Arbeitsrapport_2026_kum.xlsx, direkt aus der Datei extrahiert (siehe
