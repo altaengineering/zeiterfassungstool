@@ -12,8 +12,9 @@ unterstützt, siehe `istSchaltjahr()` dort — Schaltjahre wie 2028/2032 bewusst
 Mode, Passwort selbst ändern (`/konto/passwort`), Admin-Nutzerverwaltung mit Passwort-Reset sowie
 Anlegen/Löschen von Mitarbeitenden (`/admin`), Feiertage-Verwaltung (`/admin/feiertage`),
 Monatsabschluss (`/admin/monatsabschluss` — sperrt einen Monat firmenweit für Mitarbeitende,
-Admins können trotzdem noch korrigieren, Modell `MonthClose`), und eine "Einrichtung"-Seite
-(`/konto/einrichtung`) gegen die leere Startphase (siehe nächster Absatz).
+Admins können trotzdem noch korrigieren, Modell `MonthClose`), eine "Einrichtung"-Seite
+(`/konto/einrichtung`) gegen die leere Startphase (siehe nächster Absatz), sowie eine
+Pensumwechsel-Verwaltung (`/admin/pensum/[userId]`, siehe Absatz danach).
 
 **"Leere Startphase" — gelöst (2026-09-07):** Neues Feld `JahresStammdaten.erfassungStartDatum`
 (`DateTime?`, in beiden Schema-Dateien). Auf `/konto/einrichtung` trägt jede Person Startdatum +
@@ -24,6 +25,22 @@ aktuellen Stunden-/Ferienstand ein; die Tages-Schleife in
 die Monatsansicht einen Hinweis-Banner. Mit echten Testdaten verifiziert (Dominic Gruber, Startdatum
 1.9., Saldo 3.5h → alle Augusttage zeigen Soll/Ist/+/- = 0 und Stand bleibt bei 3.5, ab 1.9. zählt
 es normal weiter).
+
+**Pensumwechsel mitten im Jahr — gelöst (2026-09-07):** Neues Modell `PensumWechsel` (userId,
+`gueltigAb: DateTime`, anstellungPct, wochenstunden, in beiden Schema-Dateien). Admins tragen unter
+`/admin/pensum/[userId]` (verlinkt aus der Nutzerverwaltung) beliebig viele Wechsel mit Datum ein;
+ab `gueltigAb` gilt der neue Wert für den Tages-Soll, alle Tage davor rechnen mit dem zuvor gültigen
+Wert bzw. der Basis aus `JahresStammdaten` (Auflösung in `src/lib/calc/pensum.ts`,
+`pensumFuerDatum`/`sollProTagFuerDatum` — bei mehreren Wechseln zählt der letzte mit
+`gueltigAb <= Datum`). `berechneTagesReihe`/`berechneTag` (`src/lib/calc/tag.ts`) akzeptieren dafür
+jetzt statt eines konstanten Soll-pro-Tag-Werts auch eine Funktion `(date) => number`; ebenso nimmt
+`berechneFerienBezogen` (`src/lib/calc/ferien.ts`) optional ein Array (ein Wert pro Monat) statt
+eines einzelnen Werts. Im Excel-Export (`src/lib/export/exportExcel.ts`) wird die Soll-Zelle (R) für
+Tage nach einem Wechsel als Literalwert geschrieben (die Formel selbst rechnet nur mit dem
+konstanten Jahres-Basiswert Summen!$B$9) — analog zum bestehenden `sollOverride`-Mechanismus. Mit
+Testdaten verifiziert (Michael Küng, Wechsel 1.8.2026 auf 80%: Juli zeigt weiterhin Soll/Tag 8.40h,
+August korrekt 6.72h, Kopfzeile passt sich pro Monat an; Excel-Export mit aktivem Wechsel läuft ohne
+Fehler durch).
 
 Noch offen:
 - Domain: Nutzer wollte ggf. `zeit.alta-engineering.ch` statt der Vercel-URL einrichten (Anleitung

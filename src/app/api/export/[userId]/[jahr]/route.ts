@@ -40,7 +40,7 @@ export async function GET(
     return NextResponse.json({ error: "User nicht gefunden" }, { status: 404 });
   }
 
-  const [jahresStammdaten, companySettings, holidaysDb, entriesDb] = await Promise.all([
+  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, pensumWechselDb] = await Promise.all([
     prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
     prisma.companySettings.findUnique({
       where: { companyId_year: { companyId: user.companyId, year: jahr } },
@@ -58,6 +58,7 @@ export async function GET(
       },
       include: { bookings: true },
     }),
+    prisma.pensumWechsel.findMany({ where: { userId }, orderBy: { gueltigAb: "asc" } }),
   ]);
 
   if (!jahresStammdaten) {
@@ -99,6 +100,11 @@ export async function GET(
     erfassungStartDatum: jahresStammdaten.erfassungStartDatum
       ? iso(jahresStammdaten.erfassungStartDatum)
       : null,
+    pensumWechsel: pensumWechselDb.map((w) => ({
+      gueltigAb: iso(w.gueltigAb),
+      anstellungPct: w.anstellungPct,
+      wochenstunden: w.wochenstunden,
+    })),
     feiertage: holidaysDb.map((h) => ({ date: iso(h.date), label: h.label, bezahlt: h.bezahlt })),
     tage,
   });
