@@ -247,7 +247,8 @@ td:first-child {
   text-align: left;
 }
 
-td.label-cell {
+td.label-cell,
+th.label-cell {
   text-align: left;
 }
 
