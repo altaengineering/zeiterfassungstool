@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import path from "node:path";
+import { berechneSoll, sollProTag, sollProTagFuerDatum, type PensumPeriode } from "@/lib/calc";
 
 // Original-Vorlage (Arbeitsrapport_2026_kum.xlsx). Enthält bereits alle Formeln pro Monatsblatt
 // (Soll/Ist/+/-/Stand, Ist-Zeit aus Stempelzeiten, Ferien-Kette, Jahres-Summen). Wir befüllen nur
@@ -68,6 +69,12 @@ export interface ExportInput {
   ferienBezogenBisher: number; // Jan!H2-Startwert, i.d.R. 0 für einen frischen Export
   /** App-eigenes Feature (CLAUDE.md §7): Tage davor bekommen Soll=0, siehe DailyEntry-Seite. */
   erfassungStartDatum?: string | null;
+  /**
+   * App-eigenes Feature: Pensumwechsel mitten im Jahr (siehe `src/lib/calc/pensum.ts` und
+   * `/admin/pensum`). Die Vorlage kennt nur einen konstanten Soll-pro-Tag (Summen!$B$9), daher
+   * wird für Tage, an denen der Wechsel bereits gilt, der Soll-Zellwert als Literal überschrieben.
+   */
+  pensumWechsel?: PensumPeriode[];
   feiertage: Array<{ date: string; label: string; bezahlt: boolean }>;
   tage: ExportTag[];
 }
@@ -123,6 +130,9 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
   });
 
   const tageByDate = new Map(input.tage.map((t) => [t.date, t]));
+  const pensumWechsel = input.pensumWechsel ?? [];
+  const pensumBasis = { anstellungPct: input.anstellungPct, wochenstunden: input.wochenstunden };
+  const basisSollProTag = sollProTag(input.wochenstunden, input.anstellungPct);
 
   // Jan!H2 (Ferien "Bezogen"-Kette Startwert), siehe CLAUDE.md §2.
   const janSheet = workbook.getWorksheet("Jan");
@@ -179,6 +189,14 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
         ws.getCell(`R${row}`).value = 0;
       } else if (eintrag?.sollOverride != null) {
         ws.getCell(`R${row}`).value = eintrag.sollOverride;
+      } else if (pensumWechsel.length > 0) {
+        // Pensumwechsel mitten im Jahr: die Formel in R rechnet immer mit dem konstanten
+        // Summen!$B$9 (Jahres-Basiswert) — weicht der für diesen Tag gültige Soll davon ab, muss
+        // der Zellwert als Literal überschrieben werden (analog zum sollOverride-Fall oben).
+        const resolvedSollProTag = sollProTagFuerDatum(dateStr, pensumBasis, pensumWechsel);
+        if (resolvedSollProTag !== basisSollProTag) {
+          ws.getCell(`R${row}`).value = berechneSoll(dateStr, resolvedSollProTag, input.feiertage, null);
+        }
       }
 
       STEMPEL_SPALTEN.forEach(([startCol, stopCol], i) => {

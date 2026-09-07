@@ -21,14 +21,19 @@ export function berechneFerienGuthaben(
 /**
  * Entspricht der Ferien-bezogen-Kette (Summen!B19, siehe CLAUDE.md §2 "Ferien-bezogen-Kette"):
  * Summe der Ferien-Stunden über alle Monate bis inkl. dem betrachteten Zeitraum, umgerechnet in
- * Tage über den Soll-pro-Tag-Wert.
+ * Tage über den Soll-pro-Tag-Wert. `sollProTag` kann pro Monat unterschiedlich sein (App-eigenes
+ * Feature: Pensumwechsel mitten im Jahr, siehe `pensum.ts`) — dann ein Array parallel zu
+ * `ferienStundenProMonat` übergeben, sonst reicht ein einzelner Wert fürs ganze Jahr.
  */
 export function berechneFerienBezogen(
   ferienStundenProMonat: readonly number[],
-  sollProTag: number,
+  sollProTag: number | readonly number[],
 ): number {
-  const summeStunden = ferienStundenProMonat.reduce((sum, h) => sum + h, 0);
-  return summeStunden / sollProTag;
+  if (typeof sollProTag === "number") {
+    const summeStunden = ferienStundenProMonat.reduce((sum, h) => sum + h, 0);
+    return summeStunden / sollProTag;
+  }
+  return ferienStundenProMonat.reduce((sum, h, i) => sum + h / sollProTag[i]!, 0);
 }
 
 /** Entspricht Summen!B20: `=Ferien_Guthaben-Ferien_bezogen`. */

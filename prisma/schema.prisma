@@ -73,6 +73,24 @@ model User {
 
   jahresStammdaten JahresStammdaten[]
   dailyEntries     DailyEntry[]
+  pensumWechsel    PensumWechsel[]
+}
+
+// App-eigenes Feature (nicht aus dem Original-Excel, das pro Jahr nur einen konstanten
+// Anstellungsgrad kennt — siehe Summen!B5/B6): erlaubt einen Pensumwechsel MITTEN im Jahr. Ab
+// `gueltigAb` gilt der neue Wert für den Tages-Soll, alle Tage davor rechnen mit dem "davor"
+// gültigen Wert (letzter Wechsel mit gueltigAb <= Datum, sonst die Basis aus JahresStammdaten des
+// jeweiligen Jahres) — siehe `src/lib/calc/pensum.ts`.
+model PensumWechsel {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  gueltigAb     DateTime
+  anstellungPct Float
+  wochenstunden Float
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, gueltigAb])
 }
 
 // Entspricht Blatt "Summen", Zellen B1-B44 (CLAUDE.md §2). Ein Datensatz pro User + Jahr.

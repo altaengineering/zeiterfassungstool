@@ -41,6 +41,7 @@ export default async function AdminSeite() {
               <th>E-Mail</th>
               <th>Rolle</th>
               <th>Monatsansicht</th>
+              <th>Pensum</th>
               <th>Passwort</th>
               <th></th>
             </tr>
@@ -61,6 +62,9 @@ export default async function AdminSeite() {
                   <Link href={`/mitarbeiter/${u.id}/${jetzt.getFullYear()}/${jetzt.getMonth() + 1}`}>
                     öffnen
                   </Link>
+                </td>
+                <td className="label-cell">
+                  <Link href={`/admin/pensum/${u.id}`}>ändern</Link>
                 </td>
                 <td className="label-cell">
                   <ResetPasswordButton userId={u.id} name={u.name} />

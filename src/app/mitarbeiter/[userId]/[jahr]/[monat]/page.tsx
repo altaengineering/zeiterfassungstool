@@ -7,9 +7,12 @@ import {
   berechneFerienGuthaben,
   berechneFerienuebertragNaechstesJahr,
   berechneTagesReihe,
+  pensumFuerDatum,
   sollProTag,
+  sollProTagFuerDatum,
   type DailyEntryInput,
   type Feiertag,
+  type PensumPeriode,
   type StempelPaar,
 } from "@/lib/calc";
 import { EntryForm } from "./EntryForm";
@@ -62,28 +65,30 @@ export default async function MonatsAnsicht({ params }: Props) {
   const session = await auth();
   const binAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
 
-  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, monatsAbschluss] = await Promise.all([
-    prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
-    prisma.companySettings.findUnique({
-      where: { companyId_year: { companyId: user.companyId, year: jahr } },
-    }),
-    prisma.holiday.findMany({
-      where: {
-        companyId: user.companyId,
-        date: { gte: new Date(Date.UTC(jahr, 0, 1)), lt: new Date(Date.UTC(jahr + 1, 0, 1)) },
-      },
-    }),
-    prisma.dailyEntry.findMany({
-      where: {
-        userId,
-        date: { gte: new Date(Date.UTC(jahr, 0, 1)), lt: new Date(Date.UTC(jahr + 1, 0, 1)) },
-      },
-      include: { bookings: true },
-    }),
-    prisma.monthClose.findUnique({
-      where: { companyId_year_month: { companyId: user.companyId, year: jahr, month: monat } },
-    }),
-  ]);
+  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, monatsAbschluss, pensumWechselDb] =
+    await Promise.all([
+      prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
+      prisma.companySettings.findUnique({
+        where: { companyId_year: { companyId: user.companyId, year: jahr } },
+      }),
+      prisma.holiday.findMany({
+        where: {
+          companyId: user.companyId,
+          date: { gte: new Date(Date.UTC(jahr, 0, 1)), lt: new Date(Date.UTC(jahr + 1, 0, 1)) },
+        },
+      }),
+      prisma.dailyEntry.findMany({
+        where: {
+          userId,
+          date: { gte: new Date(Date.UTC(jahr, 0, 1)), lt: new Date(Date.UTC(jahr + 1, 0, 1)) },
+        },
+        include: { bookings: true },
+      }),
+      prisma.monthClose.findUnique({
+        where: { companyId_year_month: { companyId: user.companyId, year: jahr, month: monat } },
+      }),
+      prisma.pensumWechsel.findMany({ where: { userId }, orderBy: { gueltigAb: "asc" } }),
+    ]);
 
   // Mitarbeitende dürfen einen abgeschlossenen Monat nicht mehr bearbeiten, Admins schon
   // (siehe CLAUDE.md, Feature "Monatsabschluss" — die Server Action prüft das zusätzlich).
@@ -105,7 +110,22 @@ export default async function MonatsAnsicht({ params }: Props) {
   }));
 
   const entriesByDate = new Map(entriesDb.map((e) => [iso(e.date), e]));
-  const sollProTagWert = sollProTag(jahresStammdaten.wochenstunden, jahresStammdaten.anstellungPct);
+
+  // Pensumwechsel mitten im Jahr (App-eigenes Feature, siehe /admin/pensum): ab `gueltigAb` gilt
+  // ein neuer Anstellungsgrad/Wochenstunden-Wert für den Tages-Soll. Basis = die Jahres-
+  // Stammdaten (gelten bis zum ersten Wechsel bzw. wenn es keinen gibt).
+  const pensumBasis = { anstellungPct: jahresStammdaten.anstellungPct, wochenstunden: jahresStammdaten.wochenstunden };
+  const pensumWechsel: PensumPeriode[] = pensumWechselDb.map((w) => ({
+    gueltigAb: iso(w.gueltigAb),
+    anstellungPct: w.anstellungPct,
+    wochenstunden: w.wochenstunden,
+  }));
+  const sollProTagWertFuerDatum = (date: string) => sollProTagFuerDatum(date, pensumBasis, pensumWechsel);
+
+  // Für die Kopfzeile: das am 1. des angezeigten Monats gültige Pensum.
+  const ersterTagMonat = `${jahr}-${String(monat).padStart(2, "0")}-01`;
+  const pensumFuerMonat = pensumFuerDatum(ersterTagMonat, pensumBasis, pensumWechsel);
+  const sollProTagWert = sollProTag(pensumFuerMonat.wochenstunden, pensumFuerMonat.anstellungPct);
 
   // Tage vor dem individuellen Startdatum zählen nicht (CLAUDE.md §7 "leere Startphase") — der
   // Override hat Vorrang vor einem evtl. vorhandenen DB-Wert, damit der Saldo bis zum Startdatum
@@ -154,7 +174,7 @@ export default async function MonatsAnsicht({ params }: Props) {
 
   const ergebnisse = berechneTagesReihe(
     entryInputs,
-    sollProTagWert,
+    sollProTagWertFuerDatum,
     feiertage,
     jahresStammdaten.stundenuebertragAltesJahr,
   );
@@ -177,7 +197,12 @@ export default async function MonatsAnsicht({ params }: Props) {
     jahresStammdaten.arbeitsmonate,
     jahresferientage,
   );
-  const ferienBezogen = berechneFerienBezogen(ferienStundenProMonat, sollProTagWert);
+  // Pro Monat der jeweils gültige Soll-pro-Tag-Wert (bei einem Pensumwechsel mitten im Jahr
+  // unterscheiden sich die Monate vor/nach dem Wechsel, siehe pensum.ts).
+  const sollProTagProMonat = Array.from({ length: 12 }, (_, m) =>
+    sollProTagWertFuerDatum(`${jahr}-${String(m + 1).padStart(2, "0")}-01`),
+  );
+  const ferienBezogen = berechneFerienBezogen(ferienStundenProMonat, sollProTagProMonat);
   const ferienUebertrag = berechneFerienuebertragNaechstesJahr(ferienGuthaben, ferienBezogen);
 
   const entriesByDateFull = entriesByDate; // bookings/labels for display
@@ -187,7 +212,7 @@ export default async function MonatsAnsicht({ params }: Props) {
       <h1>{user.name}</h1>
       <p className="subtitle">
         {user.company.name} — {MONATSNAMEN[monat - 1]} {jahr} — Anstellung{" "}
-        {(jahresStammdaten.anstellungPct * 100).toFixed(0)}%, {jahresStammdaten.wochenstunden}{" "}
+        {(pensumFuerMonat.anstellungPct * 100).toFixed(0)}%, {pensumFuerMonat.wochenstunden}{" "}
         h/Woche (Soll/Tag {formatStunden(sollProTagWert)} h)
       </p>
 

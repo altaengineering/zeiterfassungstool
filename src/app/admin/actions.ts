@@ -106,6 +106,7 @@ export async function nutzerLoeschen(formData: FormData) {
   await prisma.booking.deleteMany({ where: { dailyEntry: { userId } } });
   await prisma.dailyEntry.deleteMany({ where: { userId } });
   await prisma.jahresStammdaten.deleteMany({ where: { userId } });
+  await prisma.pensumWechsel.deleteMany({ where: { userId } });
   await prisma.user.delete({ where: { id: userId } });
   revalidatePath("/admin");
 }
