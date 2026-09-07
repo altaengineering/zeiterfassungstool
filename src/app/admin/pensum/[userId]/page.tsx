@@ -63,8 +63,8 @@ export default async function PensumSeite({ params }: Props) {
           <thead>
             <tr>
               <th>Gültig ab</th>
-              <th>Anstellung %</th>
-              <th>Wochenstunden</th>
+              <th className="label-cell">Anstellung %</th>
+              <th className="label-cell">Wochenstunden</th>
               <th></th>
             </tr>
           </thead>

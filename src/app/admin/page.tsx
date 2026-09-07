@@ -38,11 +38,11 @@ export default async function AdminSeite() {
           <thead>
             <tr>
               <th>Name</th>
-              <th>E-Mail</th>
-              <th>Rolle</th>
-              <th>Monatsansicht</th>
-              <th>Pensum</th>
-              <th>Passwort</th>
+              <th className="label-cell">E-Mail</th>
+              <th className="label-cell">Rolle</th>
+              <th className="label-cell">Monatsansicht</th>
+              <th className="label-cell">Pensum</th>
+              <th className="label-cell">Passwort</th>
               <th></th>
             </tr>
           </thead>

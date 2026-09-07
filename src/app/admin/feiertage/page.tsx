@@ -52,8 +52,8 @@ export default async function FeiertageSeite() {
           <thead>
             <tr>
               <th>Datum</th>
-              <th>Bezeichnung</th>
-              <th>Bezahlt</th>
+              <th className="label-cell">Bezeichnung</th>
+              <th className="label-cell">Bezahlt</th>
               <th></th>
             </tr>
           </thead>

@@ -49,7 +49,7 @@ export default async function MonatsabschlussSeite({
           <thead>
             <tr>
               <th>Monat</th>
-              <th>Status</th>
+              <th className="label-cell">Status</th>
               <th></th>
             </tr>
           </thead>

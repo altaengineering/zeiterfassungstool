@@ -279,7 +279,7 @@ export default async function MonatsAnsicht({ params }: Props) {
         <thead>
           <tr>
             <th>Datum</th>
-            <th>Projekte / Kategorien</th>
+            <th className="label-cell">Projekte / Kategorien</th>
             <th>Soll</th>
             <th>Ist</th>
             <th>+/-</th>
