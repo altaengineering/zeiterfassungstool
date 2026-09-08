@@ -44,3 +44,30 @@ export async function einrichtungSpeichern(
 
   return { success: true };
 }
+
+// Self-Service-Rückgängig, falls jemand die Einrichtung fälschlicherweise ausgefüllt hat, obwohl
+// bereits echte historische Tageseinträge bestehen (Soll wird sonst für alle Tage vor dem
+// eingetragenen Startdatum auf 0 gezwungen — das verfälscht dann einen bereits korrekten Saldo).
+export async function einrichtungZuruecksetzen(
+  _bisher: EinrichtungState,
+  _formData: FormData,
+): Promise<EinrichtungState> {
+  const session = await auth();
+  if (!session?.user) return { error: "Sitzung abgelaufen. Bitte Seite neu laden." };
+
+  const userId = (session.user as { id: string }).id;
+  const jahr = new Date().getFullYear();
+
+  try {
+    await prisma.jahresStammdaten.update({
+      where: { userId_year: { userId, year: jahr } },
+      data: { erfassungStartDatum: null, stundenuebertragAltesJahr: 0, ferienuebertragAltesJahr: 0 },
+    });
+  } catch {
+    return {
+      error: `Keine Jahres-Stammdaten für ${jahr} gefunden. Bitte bei einem Admin melden.`,
+    };
+  }
+
+  return { success: true };
+}

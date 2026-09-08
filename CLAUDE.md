@@ -116,6 +116,25 @@ Noch offen:
   Erwähnung von KI/Claude/Anthropic (Kundenanforderung) — bei künftigen Änderungen daran
   festhalten, falls das Dokument erneut generiert wird.
 
+**Einrichtung: Selbst-Service-Reset ergänzt (2026-09-08):** Michael hatte auf der Live-Seite selbst
+die "Einrichtung" ausgefüllt (Startdatum = Folgetag), obwohl er für Juni-September bereits echte
+Tageseinträge hatte — dadurch wurde `sollOverride=0` für alle diese Tage erzwungen und sein
+korrekt berechneter Saldo verfälscht (siehe §7 "leere Startphase"-Mechanik, die genau das für Tage
+vor dem Startdatum tut). Es gab bisher keine Möglichkeit, `erfassungStartDatum` wieder auf `null`
+zu setzen (`einrichtungSpeichern` verlangt zwingend ein Datum). Behoben durch eine neue Server
+Action `einrichtungZuruecksetzen` (`src/app/konto/einrichtung/actions.ts`) + Button "Einrichtung
+zurücksetzen" (nur sichtbar, wenn bereits eingerichtet) in `EinrichtungForm.tsx` — setzt
+`erfassungStartDatum: null, stundenuebertragAltesJahr: 0, ferienuebertragAltesJahr: 0` für die
+eigene Person zurück (self-service, jede Person nur für sich selbst). Zusätzlich zeigt
+`/konto/einrichtung` jetzt einen Warnhinweis ("nur ausfüllen, wenn keine echten Einträge vor dem
+Startdatum bestehen") und die Zahlenfelder laden beim erneuten Öffnen die zuletzt gespeicherten
+Werte statt immer bei 0 zu starten. Lokal verifiziert: Einrichtung mit Startdatum "morgen" gesetzt
+→ Juli-Stand verfälscht, "Einrichtung zurücksetzen" geklickt → Stand exakt wieder korrekt
+(Stand Vormonat 2.49h / Stand Ende Monat -4.36h, identisch zum Ausgangswert). **Michael muss auf
+der Live-Seite unter „Einrichtung“ einmal auf „Einrichtung zurücksetzen“ klicken, sobald dieses
+Deployment live ist**, um seinen eigenen Saldo zu reparieren — dafür wird keine Datenbank-
+Direktbearbeitung benötigt.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
