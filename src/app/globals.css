@@ -242,6 +242,14 @@ tbody tr:hover {
   background: var(--surface-alt);
 }
 
+.zeile-klickbar {
+  cursor: pointer;
+}
+
+.zeile-klickbar:hover td {
+  color: var(--text);
+}
+
 th:first-child,
 td:first-child {
   text-align: left;
