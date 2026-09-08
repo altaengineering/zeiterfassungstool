@@ -16,6 +16,7 @@ import {
   type StempelPaar,
 } from "@/lib/calc";
 import { EntryForm, type BestehenderEintrag } from "./EntryForm";
+import { TagesZeile } from "./TagesZeile";
 
 const MONATSNAMEN = [
   "Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
@@ -308,7 +309,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
             ].filter(Boolean);
 
             return (
-              <tr key={tag.date} className={rowClass}>
+              <TagesZeile key={tag.date} userId={userId} jahr={jahr} monat={monat} datum={tag.date} className={rowClass}>
                 <td>
                   {tag.date.slice(8, 10)}.{tag.date.slice(5, 7)}.
                   {feiertag ? ` (${feiertag.label.trim()})` : istWochenende ? " (WE)" : ""}
@@ -328,7 +329,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                   {dbEntry?.start2 != null ? `, ${formatMinuten(dbEntry.start2)}–${formatMinuten(dbEntry.stop2)}` : ""}
                 </td>
                 <td>{Math.abs(tag.aufteilungIstzeit) > 0.01 ? formatStunden(tag.aufteilungIstzeit) : "✓"}</td>
-              </tr>
+              </TagesZeile>
             );
           })}
         </tbody>
@@ -337,7 +338,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
 
       {istGesperrt ? (
         <>
-          <h2>Tageseintrag erfassen / bearbeiten</h2>
+          <h2 id="tageseintrag-formular">Tageseintrag erfassen / bearbeiten</h2>
           <p className="form-message error" style={{ maxWidth: 520 }}>
             🔒 {MONATSNAMEN[monat - 1]} {jahr} ist abgeschlossen (Monatsabschluss) und kann nicht
             mehr bearbeitet werden. Bei Korrekturbedarf bitte an einen Admin wenden.
@@ -382,7 +383,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
 
           return (
             <>
-              <h2>
+              <h2 id="tageseintrag-formular">
                 {bestehenderEintrag ? "Tageseintrag bearbeiten" : "Tageseintrag erfassen"} —{" "}
                 {ausgewaehltesDatum.slice(8, 10)}.{ausgewaehltesDatum.slice(5, 7)}.{jahr}
               </h2>
