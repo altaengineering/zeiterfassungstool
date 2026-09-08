@@ -219,7 +219,10 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
         h/Woche (Soll/Tag {formatStunden(sollProTagWert)} h)
       </p>
 
-      {!startDatumIso && (
+      {/* Nur zeigen, wenn wirklich noch KEIN einziger Tageseintrag existiert — hat jemand
+          bereits echte Daten (z.B. aus dem alten Excel übernommen), ist der Saldo längst
+          korrekt und der Hinweis wäre irreführend (siehe CLAUDE.md, Einrichtung-Reset-Fix). */}
+      {!startDatumIso && entriesDb.length === 0 && (
         <p className="form-message error" style={{ maxWidth: 520 }}>
           Noch nicht eingerichtet: Ohne Startdatum zählt das Tool ab dem 1. Januar, auch für Tage
           ohne Eintrag. Bitte einmalig unter{" "}

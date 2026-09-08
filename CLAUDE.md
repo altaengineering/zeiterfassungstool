@@ -135,6 +135,17 @@ der Live-Seite unter „Einrichtung“ einmal auf „Einrichtung zurücksetzen�
 Deployment live ist**, um seinen eigenen Saldo zu reparieren — dafür wird keine Datenbank-
 Direktbearbeitung benötigt.
 
+**Nachtrag (2026-09-08):** Michael fragte danach, wie er dann den roten Banner trotzdem loswird,
+ohne wieder seinen Saldo zu verfälschen — der Banner erschien bei ihm nur, weil `erfassungStart
+Datum` null war, unabhängig davon, ob schon echte Daten existieren. Behoben in
+`mitarbeiter/[userId]/[jahr]/[monat]/page.tsx`: Banner-Bedingung von `!startDatumIso` auf
+`!startDatumIso && entriesDb.length === 0` verschärft — er erscheint jetzt nur noch, wenn wirklich
+noch **kein einziger** Tageseintrag im Jahr existiert. Für Personen mit bereits vorhandenen
+Tageseinträgen (wie Michael) verschwindet der Banner dauerhaft von selbst, ohne dass „Einrichtung“
+je ausgefüllt werden muss — für Personen ganz ohne Daten bleibt er wie gehabt sichtbar. Lokal
+gegengetestet: Michael (mit Juli-Daten) → kein Banner mehr; Andrit Stojkaj (keine Einträge) →
+Banner weiterhin sichtbar.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
