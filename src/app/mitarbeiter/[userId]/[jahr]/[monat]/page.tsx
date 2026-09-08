@@ -15,7 +15,7 @@ import {
   type PensumPeriode,
   type StempelPaar,
 } from "@/lib/calc";
-import { EntryForm } from "./EntryForm";
+import { EntryForm, type BestehenderEintrag } from "./EntryForm";
 
 const MONATSNAMEN = [
   "Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
@@ -52,10 +52,12 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ userId: string; jahr: string; monat: string }>;
+  searchParams: Promise<{ tag?: string }>;
 };
 
-export default async function MonatsAnsicht({ params }: Props) {
+export default async function MonatsAnsicht({ params, searchParams }: Props) {
   const { userId, jahr: jahrStr, monat: monatStr } = await params;
+  const { tag: tagParam } = await searchParams;
   const jahr = Number(jahrStr);
   const monat = Number(monatStr); // 1-12
 
@@ -342,15 +344,60 @@ export default async function MonatsAnsicht({ params }: Props) {
           </p>
         </>
       ) : (
-        <>
-          <h2>Tageseintrag erfassen / bearbeiten</h2>
-          <EntryForm
-            userId={userId}
-            jahr={jahr}
-            monat={monat}
-            defaultDatum={`${jahr}-${String(monat).padStart(2, "0")}-01`}
-          />
-        </>
+        (() => {
+          // Ausgewählter Tag fürs Formular: aus der URL (?tag=...), sonst der 1. des Monats.
+          // Muss innerhalb des angezeigten Monats liegen, sonst würde ein Soll-Wert aus einem
+          // anderen Monat verwendet — Auswahl per EntryForm navigiert bei Bedarf ohnehin auf den
+          // passenden Monat.
+          const gueltig = tagParam && monatErgebnisse.some((e) => e.date === tagParam);
+          const ausgewaehltesDatum = gueltig ? tagParam! : `${jahr}-${String(monat).padStart(2, "0")}-01`;
+          const sollFuerAusgewaehltenTag =
+            monatErgebnisse.find((e) => e.date === ausgewaehltesDatum)?.soll ?? 0;
+          const bestehenderDbEintrag = entriesByDateFull.get(ausgewaehltesDatum);
+          const bestehenderEintrag: BestehenderEintrag | null = bestehenderDbEintrag
+            ? {
+                krank: bestehenderDbEintrag.krank,
+                reisezeit: bestehenderDbEintrag.reisezeit,
+                ferien: bestehenderDbEintrag.ferien,
+                cad: bestehenderDbEintrag.cad,
+                ausbildung: bestehenderDbEintrag.ausbildung,
+                buero: bestehenderDbEintrag.buero,
+                spesenFr: bestehenderDbEintrag.spesenFr,
+                km: bestehenderDbEintrag.km,
+                sollOverride: bestehenderDbEintrag.sollOverride,
+                start1: bestehenderDbEintrag.start1,
+                stop1: bestehenderDbEintrag.stop1,
+                start2: bestehenderDbEintrag.start2,
+                stop2: bestehenderDbEintrag.stop2,
+                start3: bestehenderDbEintrag.start3,
+                stop3: bestehenderDbEintrag.stop3,
+                start4: bestehenderDbEintrag.start4,
+                stop4: bestehenderDbEintrag.stop4,
+                projekt1Label: bestehenderDbEintrag.bookings[0]?.label ?? "",
+                projekt1Stunden: bestehenderDbEintrag.bookings[0]?.hours ?? null,
+                projekt2Label: bestehenderDbEintrag.bookings[1]?.label ?? "",
+                projekt2Stunden: bestehenderDbEintrag.bookings[1]?.hours ?? null,
+              }
+            : null;
+
+          return (
+            <>
+              <h2>
+                {bestehenderEintrag ? "Tageseintrag bearbeiten" : "Tageseintrag erfassen"} —{" "}
+                {ausgewaehltesDatum.slice(8, 10)}.{ausgewaehltesDatum.slice(5, 7)}.{jahr}
+              </h2>
+              <EntryForm
+                key={ausgewaehltesDatum}
+                userId={userId}
+                jahr={jahr}
+                monat={monat}
+                datum={ausgewaehltesDatum}
+                sollFuerTag={sollFuerAusgewaehltenTag}
+                bestehenderEintrag={bestehenderEintrag}
+              />
+            </>
+          );
+        })()
       )}
     </main>
   );

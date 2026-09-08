@@ -1,6 +1,6 @@
 # Zeiterfassung Alta Engineering AG – Projekt-Referenz
 
-**Status (Stand 2026-09-07): Live und in Nutzung.**
+**Status (Stand 2026-09-08): Live und in Nutzung.**
 URL: https://zeiterfassungstool-psi.vercel.app — GitHub: https://github.com/altaengineering/zeiterfassungstool
 (privates Repo). Login mit E-Mail + Passwort für alle 14 Mitarbeitenden, Rollen MITARBEITER/ADMIN
 (Stefan Herger + Michael Küng sind Admin; in der Anzeige heisst Michaels Rolle aus Spass „sudo“,
@@ -41,6 +41,37 @@ konstanten Jahres-Basiswert Summen!$B$9) — analog zum bestehenden `sollOverrid
 Testdaten verifiziert (Michael Küng, Wechsel 1.8.2026 auf 80%: Juli zeigt weiterhin Soll/Tag 8.40h,
 August korrekt 6.72h, Kopfzeile passt sich pro Monat an; Excel-Export mit aktivem Wechsel läuft ohne
 Fehler durch).
+
+**Tageserfassung überarbeitet — modernisiert + Bearbeiten-Funktion (2026-09-08):**
+`EntryForm.tsx`/`page.tsx` im Monatsansicht-Ordner grundlegend erneuert:
+- **Bearbeiten statt nur Erfassen:** Die Seite akzeptiert jetzt `?tag=YYYY-MM-DD` (`searchParams`
+  in `page.tsx`). Ändert man das Datum im Formular, navigiert `EntryForm` (`router.push`) auf
+  `/mitarbeiter/[userId]/[jahr]/[monat]?tag=...` (ggf. auch in einen anderen Monat); `page.tsx`
+  lädt dafür den bestehenden `DailyEntry` (falls vorhanden) und reicht ihn als
+  `bestehenderEintrag`-Prop rein. Wichtig: `<EntryForm key={ausgewaehltesDatum} .../>` — der
+  `key`-Wechsel erzwingt einen Remount, sonst würden uncontrolled Felder (`defaultValue`) beim
+  Datumswechsel nicht auf die neuen Werte zurückgesetzt.
+- **Krank = Toggle, Ferien = keine/halbtags/ganztags:** Beide sind rein UI-seitig (Checkbox/Pill-
+  Gruppe), die tatsächlichen DB-Felder `krank`/`ferien` bleiben Float-Stunden — ein verstecktes
+  Input rechnet beim Rendern `sollFuerTag` (bzw. die Hälfte) in die Stunden um. `sollFuerTag` ist
+  der `soll`-Wert des gewählten Tages aus `berechneTagesReihe` (an Wochenenden/bezahlten
+  Feiertagen 0 — Krank/Ferien ergeben dort also bewusst 0 Stunden Gutschrift).
+- **Stempelzeiten → automatische Stundenzahl bei Projekt 1/2:** Bei jeder Änderung von
+  Start/Stopp wird die Gesamtzeit berechnet und in „Projekt 1 – Stunden“ eingetragen; ist
+  „Projekt 2 – Name“ befüllt, wird 50/50 aufgeteilt. Weiterhin manuell überschreibbar (nur bei
+  erneuter Stempelzeit-Änderung wird wieder überschrieben).
+- **CAD/Ausbildung/Büro** stehen jetzt unter „Spesen & Sonstiges“ statt bei „Kategorien“.
+- ⚠ **Gefundene und behobene Stolperfalle:** `<form action={fn}>` (React-19-Form-Actions) setzt
+  nach erfolgreicher Aktion automatisch alle Formularfelder zurück — auch kontrollierte
+  Checkbox/Radio-Zustände (DOM-`checked` wird durch den nativen Reset verändert, React merkt es
+  nicht, weil kein `onChange` gefeuert wird → Desync). Das hätte die gerade gespeicherten
+  Krank/Ferien-Auswahl nach dem Speichern optisch wieder gelöscht. Behoben durch
+  `onSubmit`+`e.preventDefault()`+manuelles `new FormData(e.currentTarget)` statt der
+  `action`-Prop — bei künftigen Formularen mit kontrollierten Feldern, die nach dem Speichern
+  sichtbar bleiben sollen, denselben Ansatz verwenden, nicht `<form action={...}>`.
+- Mit Testdaten verifiziert (Stempelzeiten → exakte Stundenzahl inkl. 50/50-Split, Krank-Toggle an
+  einem Wochentag → korrekt `krank = Soll-Tag` in DB, Bearbeiten-Modus lädt bestehende Werte
+  inkl. Stempelzeiten/Projekte korrekt beim Datumswechsel).
 
 Noch offen:
 - Domain: Nutzer wollte ggf. `zeit.alta-engineering.ch` statt der Vercel-URL einrichten (Anleitung
