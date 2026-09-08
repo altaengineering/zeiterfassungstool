@@ -29,8 +29,18 @@ export default async function EinrichtungSeite() {
         (kein künstliches Minus, weil vorher nichts erfasst wurde). Du kannst das jederzeit
         anpassen.
       </p>
+      <p className="form-message small" style={{ maxWidth: 520 }}>
+        Wichtig: Nur ausfüllen, wenn für Tage vor dem Startdatum <b>keine</b> echten Einträge
+        bestehen. Hast du bereits erfasste Arbeitstage (z.B. übernommene Daten aus Excel), zählt
+        dein Saldo für diese bereits korrekt — die Einrichtung würde sie sonst auf 0 überschreiben.
+      </p>
       <div className="konto-card">
-        <EinrichtungForm defaultDatum={defaultDatum} />
+        <EinrichtungForm
+          defaultDatum={defaultDatum}
+          defaultStundenSaldo={stammdaten?.stundenuebertragAltesJahr ?? 0}
+          defaultFerienGuthaben={stammdaten?.ferienuebertragAltesJahr ?? 0}
+          istEingerichtet={stammdaten?.erfassungStartDatum != null}
+        />
       </div>
     </main>
   );
