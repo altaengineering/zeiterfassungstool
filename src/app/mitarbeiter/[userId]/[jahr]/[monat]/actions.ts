@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { sendeKrankmeldung } from "@/lib/email";
 
 function minuten(formData: FormData, feld: string): number | null {
   const zeit = formData.get(feld);
@@ -34,10 +35,11 @@ export async function tageseintragSpeichern(formData: FormData) {
     throw new Error("Nicht autorisiert");
   }
 
+  const betroffenerUser = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+
   // Monatsabschluss: Mitarbeitende dürfen abgeschlossene Monate nicht mehr ändern, Admins schon
   // (z.B. für nachträgliche Korrekturen) — siehe CLAUDE.md, Feature "Monatsabschluss".
   if (rolle !== "ADMIN") {
-    const betroffenerUser = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
     const geschlossen = await prisma.monthClose.findUnique({
       where: {
         companyId_year_month: {
@@ -51,6 +53,12 @@ export async function tageseintragSpeichern(formData: FormData) {
       throw new Error("Dieser Monat ist abgeschlossen und kann nicht mehr bearbeitet werden.");
     }
   }
+
+  // Für die Krankmeldungs-Benachrichtigung: nur beim Wechsel von "nicht krank" auf "krank"
+  // versenden, nicht bei jedem erneuten Speichern desselben Tages (siehe CLAUDE.md).
+  const bisherigerEintrag = await prisma.dailyEntry.findUnique({ where: { userId_date: { userId, date } } });
+  const warVorherKrank = (bisherigerEintrag?.krank ?? 0) > 0;
+  const istJetztKrank = zahl(formData, "krank") > 0;
 
   const sollOverrideRaw = formData.get("sollOverride");
   const sollOverride =
@@ -112,4 +120,16 @@ export async function tageseintragSpeichern(formData: FormData) {
   }
 
   revalidatePath(`/mitarbeiter/${userId}/${jahr}/${monat}`);
+
+  if (!warVorherKrank && istJetztKrank) {
+    const admins = await prisma.user.findMany({
+      where: { companyId: betroffenerUser.companyId, role: "ADMIN", id: { not: userId } },
+      select: { email: true },
+    });
+    await sendeKrankmeldung({
+      mitarbeiterName: betroffenerUser.name,
+      datumIso: datumStr,
+      empfaengerEmails: admins.map((a) => a.email),
+    });
+  }
 }

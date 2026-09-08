@@ -320,7 +320,7 @@ td.override {
   padding: 3px 10px;
 }
 
-form.entry-form {
+.entry-form {
   padding: 20px 20px 24px;
   display: flex;
   flex-direction: column;
@@ -487,7 +487,7 @@ form.entry-form {
   gap: 10px;
 }
 
-form.entry-form label {
+.entry-form label {
   display: flex;
   flex-direction: column;
   font-size: 0.78rem;
@@ -495,8 +495,8 @@ form.entry-form label {
   gap: 3px;
 }
 
-form.entry-form input,
-form.entry-form select {
+.entry-form input,
+.entry-form select {
   padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: 5px;
@@ -506,7 +506,7 @@ form.entry-form select {
   color: var(--text);
 }
 
-form.entry-form input:focus {
+.entry-form input:focus {
   outline: 2px solid var(--accent);
   outline-offset: -1px;
 }
@@ -549,7 +549,7 @@ form.entry-form input:focus {
   padding-top: 16px;
 }
 
-form.entry-form button[type="submit"] {
+.entry-form button[type="submit"] {
   padding: 9px 24px;
   background: var(--accent);
   color: #fff;
@@ -560,7 +560,7 @@ form.entry-form button[type="submit"] {
   font-weight: 600;
 }
 
-form.entry-form button[type="submit"]:hover {
+.entry-form button[type="submit"]:hover {
   background: var(--accent-dark);
 }
 

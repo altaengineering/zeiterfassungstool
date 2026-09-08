@@ -72,6 +72,36 @@ Fehler durch).
 - Mit Testdaten verifiziert (Stempelzeiten → exakte Stundenzahl inkl. 50/50-Split, Krank-Toggle an
   einem Wochentag → korrekt `krank = Soll-Tag` in DB, Bearbeiten-Modus lädt bestehende Werte
   inkl. Stempelzeiten/Projekte korrekt beim Datumswechsel).
+- ⚠ **Zweite gefundene und behobene Stolperfalle (2026-09-08):** Die Formular-Felder waren trotz
+  vorhandenem CSS nur mit Browser-Standardstyling sichtbar (kein Rahmen, falsches Grau, Label und
+  Feld nebeneinander statt gestapelt) — Ursache: `globals.css` hatte die Regeln als
+  `form.entry-form label/input/...` (verlangt ein `<form>`-Element mit dieser Klasse), tatsächlich
+  trägt aber ein innerer `<div className="entry-form">` diese Klasse, das `<form>` selbst hat gar
+  keine Klasse. Der Selektor hat daher NIE gegriffen (auch nicht vor dem heutigen Redesign — war
+  vermutlich schon immer so, ist bei den bisherigen schmalen Test-Viewports nur nicht aufgefallen,
+  weil ungestylte Inputs mit `width:100%` bei wenig Platz zufällig trotzdem umbrachen). Fix: alle
+  `form.entry-form ...`-Selektoren in `globals.css` zu `.entry-form ...` verkürzt (passt jetzt auf
+  den tatsächlichen div). Bei künftigem CSS für dieses Formular immer mit `getComputedStyle(...)`
+  im Browser gegenprüfen, ob die Klasse wirklich am erwarteten Element sitzt — sieht in schmalen
+  Testfenstern leicht "zufällig richtig" aus, obwohl der Selektor gar nicht matcht.
+
+**E-Mail-Benachrichtigung bei Krankmeldung (2026-09-08):** Neues Modul `src/lib/email.ts`
+(`sendeKrankmeldung`) über die Bibliothek `resend` (in `package.json`). `tageseintragSpeichern`
+(`src/app/mitarbeiter/[userId]/[jahr]/[monat]/actions.ts`) vergleicht vor dem Upsert den
+bisherigen `krank`-Wert mit dem neuen — nur beim Wechsel von 0 auf >0 wird eine E-Mail an alle
+`ADMIN`-Nutzer:innen der Firma (ausser die betroffene Person selbst, falls sie z.B. selbst Admin
+ist) geschickt, nicht bei jedem erneuten Speichern desselben Tages. Braucht die Umgebungsvariable
+`RESEND_API_KEY` (siehe `.env.example`) — **ist aktuell noch NICHT gesetzt**, weder lokal noch auf
+Vercel; ohne sie wird nur eine Konsolen-Warnung ausgegeben, das Speichern selbst funktioniert
+trotzdem einwandfrei (siehe `email.ts`, bewusst so gebaut, damit ein fehlender/falscher Versand nie
+einen Tageseintrag blockiert). **Für den Nutzer offen, um die Mails tatsächlich zu verschicken:**
+1) Konto auf resend.com anlegen (kostenlos für dieses Volumen), 2) API-Key erzeugen und als
+`RESEND_API_KEY` in Vercel → Settings → Environment Variables UND lokal in `.env` eintragen,
+3) für zuverlässigen Versand an beliebige Empfänger (nicht nur die eigene Resend-Kontoadresse)
+die Domain `alta-engineering.ch` bei Resend verifizieren (DNS-Einträge, dauert etwas) und danach
+`RESEND_FROM_EMAIL` auf eine Adresse dieser Domain setzen (z.B.
+`zeiterfassung@alta-engineering.ch`) — ohne Domain-Verifizierung liefert der Resend-Sandbox-Absender
+`onboarding@resend.dev` nur zuverlässig an die E-Mail-Adresse des Resend-Kontoinhabers selbst.
 
 Noch offen:
 - Domain: Nutzer wollte ggf. `zeit.alta-engineering.ch` statt der Vercel-URL einrichten (Anleitung
