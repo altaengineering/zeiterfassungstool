@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { tageseintragSpeichern } from "./actions";
 
+export const MAX_PROJEKTE = 6;
+
 export interface BestehenderEintrag {
   krank: number;
   reisezeit: number;
@@ -22,10 +24,7 @@ export interface BestehenderEintrag {
   stop3: number | null;
   start4: number | null;
   stop4: number | null;
-  projekt1Label: string;
-  projekt1Stunden: number | null;
-  projekt2Label: string;
-  projekt2Stunden: number | null;
+  bookings: { label: string; hours: number }[];
 }
 
 function zeitZuMinuten(wert: string | undefined): number | null {
@@ -50,6 +49,14 @@ function ferienModusVon(ferien: number, soll: number): "keine" | "halbtags" | "g
   if (ferien <= 0) return "keine";
   if (soll > 0 && Math.abs(ferien - soll / 2) < 0.05) return "halbtags";
   return "ganztags";
+}
+
+function gesamtStundenAusPaaren(paare: Array<[number | null, number | null]>): number {
+  let totalMinuten = 0;
+  for (const [start, stop] of paare) {
+    if (start !== null && stop !== null && stop > start) totalMinuten += stop - start;
+  }
+  return rund2(totalMinuten / 60);
 }
 
 export function EntryForm({
@@ -81,11 +88,25 @@ export function EntryForm({
     ferienModusVon(bestehenderEintrag?.ferien ?? 0, sollFuerTag),
   );
 
-  const [projekt1Stunden, setProjekt1Stunden] = useState(
-    bestehenderEintrag?.projekt1Stunden != null ? String(bestehenderEintrag.projekt1Stunden) : "",
+  const bestehendeBookings = bestehenderEintrag?.bookings ?? [];
+  const [projektAnzahl, setProjektAnzahl] = useState(
+    Math.max(2, Math.min(MAX_PROJEKTE, bestehendeBookings.length || 2)),
   );
-  const [projekt2Stunden, setProjekt2Stunden] = useState(
-    bestehenderEintrag?.projekt2Stunden != null ? String(bestehenderEintrag.projekt2Stunden) : "",
+  const [projektStunden, setProjektStunden] = useState<string[]>(
+    Array.from({ length: MAX_PROJEKTE }, (_, i) => {
+      const h = bestehendeBookings[i]?.hours;
+      return h != null ? String(h) : "";
+    }),
+  );
+  const projektLabelRefs = useRef<Array<HTMLInputElement | null>>([]);
+
+  const [stempelGesamt, setStempelGesamt] = useState(
+    gesamtStundenAusPaaren([
+      [bestehenderEintrag?.start1 ?? null, bestehenderEintrag?.stop1 ?? null],
+      [bestehenderEintrag?.start2 ?? null, bestehenderEintrag?.stop2 ?? null],
+      [bestehenderEintrag?.start3 ?? null, bestehenderEintrag?.stop3 ?? null],
+      [bestehenderEintrag?.start4 ?? null, bestehenderEintrag?.stop4 ?? null],
+    ]),
   );
 
   const start1Ref = useRef<HTMLInputElement>(null);
@@ -96,9 +117,8 @@ export function EntryForm({
   const stop3Ref = useRef<HTMLInputElement>(null);
   const start4Ref = useRef<HTMLInputElement>(null);
   const stop4Ref = useRef<HTMLInputElement>(null);
-  const projekt2LabelRef = useRef<HTMLInputElement>(null);
 
-  function stundenAusStempelzeitenNeuBerechnen() {
+  function berechneGesamtStunden(): number {
     const paare = [
       [start1Ref, stop1Ref],
       [start2Ref, stop2Ref],
@@ -113,17 +133,59 @@ export function EntryForm({
         totalMinuten += stopMin - startMin;
       }
     }
-    const totalStunden = rund2(totalMinuten / 60);
-    const zweitesProjektBefuellt = (projekt2LabelRef.current?.value ?? "").trim() !== "";
+    return rund2(totalMinuten / 60);
+  }
 
-    if (zweitesProjektBefuellt) {
-      const haelfte = rund2(totalStunden / 2);
-      setProjekt1Stunden(haelfte > 0 ? String(haelfte) : "");
-      setProjekt2Stunden(haelfte > 0 ? String(haelfte) : "");
-    } else {
-      setProjekt1Stunden(totalStunden > 0 ? String(totalStunden) : "");
-      setProjekt2Stunden("0");
+  // Welches Projekt "absorbiert" den Rest: immer das letzte Projekt, das bereits einen Namen
+  // trägt (solange noch keines benannt ist, ist das Projekt 1, der übliche Fall für einen Tag mit
+  // nur einem Projekt). Wird ein Projekt VOR diesem manuell mit einer Stundenzahl befüllt, rechnet
+  // sich der Rest automatisch in dieses letzte Projekt um, so muss nur eine Zahl von Hand
+  // eingetragen werden, nicht beide.
+  function absorberIndexBestimmen(): number {
+    for (let i = projektAnzahl - 1; i >= 0; i--) {
+      if ((projektLabelRefs.current[i]?.value ?? "").trim() !== "") return i;
     }
+    return 0;
+  }
+
+  // aktuelleWerte: die Projekt-Stunden, ggf. mit einem gerade getippten neuen Wert für
+  // geaenderterIndex ueberschrieben. Wird dieser Index selbst zum "Rest-Projekt", greifen wir
+  // nicht ein, sonst könnte man das letzte Feld nie von Hand überschreiben.
+  function projektStundenNeuVerteilen(aktuelleWerte: string[], geaenderterIndex: number | null) {
+    const gesamt = berechneGesamtStunden();
+    setStempelGesamt(gesamt);
+    const absorberIndex = absorberIndexBestimmen();
+
+    if (geaenderterIndex === absorberIndex) {
+      setProjektStunden(aktuelleWerte);
+      return;
+    }
+
+    const kopie = [...aktuelleWerte];
+    let summeAndere = 0;
+    for (let i = 0; i < projektAnzahl; i++) {
+      if (i === absorberIndex) continue;
+      if ((projektLabelRefs.current[i]?.value ?? "").trim() === "") continue;
+      const wert = Number(kopie[i]);
+      if (Number.isFinite(wert)) summeAndere += wert;
+    }
+    const rest = rund2(Math.max(0, gesamt - summeAndere));
+    kopie[absorberIndex] = gesamt > 0 ? String(rest) : "";
+    setProjektStunden(kopie);
+  }
+
+  function beiStempelzeitAenderung() {
+    projektStundenNeuVerteilen(projektStunden, null);
+  }
+
+  function beiProjektLabelAenderung() {
+    projektStundenNeuVerteilen(projektStunden, null);
+  }
+
+  function beiProjektStundenAenderung(index: number, wert: string) {
+    const kopie = [...projektStunden];
+    kopie[index] = wert;
+    projektStundenNeuVerteilen(kopie, index);
   }
 
   const monatStr = String(monat).padStart(2, "0");
@@ -195,8 +257,9 @@ export function EntryForm({
           <div className="form-section">
             <div className="form-section-title">Stempelzeiten</div>
             <p className="form-hint">
-              Beim Eintragen wird die Stundenzahl automatisch bei „Projekte“ übernommen — bei zwei
-              benannten Projekten hälftig aufgeteilt.
+              Gesamt aus Stempelzeiten: <strong>{stempelGesamt.toFixed(2)} h</strong>, wird
+              automatisch beim letzten benannten Projekt eingetragen. Trägt man bei einem früheren
+              Projekt von Hand eine Stundenzahl ein, rechnet sich der Rest automatisch dorthin um.
             </p>
             <div className="zeitbloecke-grid">
               <div className="zeit-paar">
@@ -207,7 +270,7 @@ export function EntryForm({
                     name="start1"
                     ref={start1Ref}
                     defaultValue={minutenZuZeit(bestehenderEintrag?.start1)}
-                    onChange={stundenAusStempelzeitenNeuBerechnen}
+                    onChange={beiStempelzeitAenderung}
                   />
                 </label>
                 <label>
@@ -217,7 +280,7 @@ export function EntryForm({
                     name="stop1"
                     ref={stop1Ref}
                     defaultValue={minutenZuZeit(bestehenderEintrag?.stop1)}
-                    onChange={stundenAusStempelzeitenNeuBerechnen}
+                    onChange={beiStempelzeitAenderung}
                   />
                 </label>
               </div>
@@ -229,7 +292,7 @@ export function EntryForm({
                     name="start2"
                     ref={start2Ref}
                     defaultValue={minutenZuZeit(bestehenderEintrag?.start2)}
-                    onChange={stundenAusStempelzeitenNeuBerechnen}
+                    onChange={beiStempelzeitAenderung}
                   />
                 </label>
                 <label>
@@ -239,7 +302,7 @@ export function EntryForm({
                     name="stop2"
                     ref={stop2Ref}
                     defaultValue={minutenZuZeit(bestehenderEintrag?.stop2)}
-                    onChange={stundenAusStempelzeitenNeuBerechnen}
+                    onChange={beiStempelzeitAenderung}
                   />
                 </label>
               </div>
@@ -253,7 +316,7 @@ export function EntryForm({
                         name="start3"
                         ref={start3Ref}
                         defaultValue={minutenZuZeit(bestehenderEintrag?.start3)}
-                        onChange={stundenAusStempelzeitenNeuBerechnen}
+                        onChange={beiStempelzeitAenderung}
                       />
                     </label>
                     <label>
@@ -263,7 +326,7 @@ export function EntryForm({
                         name="stop3"
                         ref={stop3Ref}
                         defaultValue={minutenZuZeit(bestehenderEintrag?.stop3)}
-                        onChange={stundenAusStempelzeitenNeuBerechnen}
+                        onChange={beiStempelzeitAenderung}
                       />
                     </label>
                   </div>
@@ -275,7 +338,7 @@ export function EntryForm({
                         name="start4"
                         ref={start4Ref}
                         defaultValue={minutenZuZeit(bestehenderEintrag?.start4)}
-                        onChange={stundenAusStempelzeitenNeuBerechnen}
+                        onChange={beiStempelzeitAenderung}
                       />
                     </label>
                     <label>
@@ -285,7 +348,7 @@ export function EntryForm({
                         name="stop4"
                         ref={stop4Ref}
                         defaultValue={minutenZuZeit(bestehenderEintrag?.stop4)}
-                        onChange={stundenAusStempelzeitenNeuBerechnen}
+                        onChange={beiStempelzeitAenderung}
                       />
                     </label>
                   </div>
@@ -305,50 +368,42 @@ export function EntryForm({
 
           <div className="form-section">
             <div className="form-section-title">Projekte</div>
-            <div className="form-row-pair">
-              <label>
-                Projekt 1 – Name
-                <input
-                  type="text"
-                  name="projektLabel1"
-                  placeholder="z.B. Raytech AG"
-                  defaultValue={bestehenderEintrag?.projekt1Label ?? ""}
-                />
-              </label>
-              <label>
-                Stunden
-                <input
-                  type="number"
-                  step="any"
-                  name="projektStunden1"
-                  value={projekt1Stunden}
-                  onChange={(e) => setProjekt1Stunden(e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="form-row-pair">
-              <label>
-                Projekt 2 – Name
-                <input
-                  type="text"
-                  name="projektLabel2"
-                  placeholder="optional"
-                  ref={projekt2LabelRef}
-                  defaultValue={bestehenderEintrag?.projekt2Label ?? ""}
-                  onChange={stundenAusStempelzeitenNeuBerechnen}
-                />
-              </label>
-              <label>
-                Stunden
-                <input
-                  type="number"
-                  step="any"
-                  name="projektStunden2"
-                  value={projekt2Stunden}
-                  onChange={(e) => setProjekt2Stunden(e.target.value)}
-                />
-              </label>
-            </div>
+            {Array.from({ length: projektAnzahl }, (_, i) => (
+              <div className="form-row-pair" key={i}>
+                <label>
+                  Projekt {i + 1} – Name
+                  <input
+                    type="text"
+                    name={`projektLabel${i + 1}`}
+                    placeholder={i === 0 ? "z.B. Raytech AG" : "optional"}
+                    ref={(el) => {
+                      projektLabelRefs.current[i] = el;
+                    }}
+                    defaultValue={bestehendeBookings[i]?.label ?? ""}
+                    onChange={beiProjektLabelAenderung}
+                  />
+                </label>
+                <label>
+                  Stunden
+                  <input
+                    type="number"
+                    step="any"
+                    name={`projektStunden${i + 1}`}
+                    value={projektStunden[i] ?? ""}
+                    onChange={(e) => beiProjektStundenAenderung(i, e.target.value)}
+                  />
+                </label>
+              </div>
+            ))}
+            {projektAnzahl < MAX_PROJEKTE && (
+              <button
+                type="button"
+                className="zeitbloecke-toggle"
+                onClick={() => setProjektAnzahl((n) => Math.min(MAX_PROJEKTE, n + 1))}
+              >
+                + weiteres Projekt
+              </button>
+            )}
           </div>
 
           <div className="form-section">

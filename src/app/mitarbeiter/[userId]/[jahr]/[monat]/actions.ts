@@ -109,7 +109,10 @@ export async function tageseintragSpeichern(formData: FormData) {
   });
 
   await prisma.booking.deleteMany({ where: { dailyEntryId: entry.id } });
-  for (const i of [1, 2] as const) {
+  // Bis zu 6 Projekte pro Tag (siehe EntryForm.MAX_PROJEKTE, dort per "+ weiteres Projekt"
+  // erweiterbar). Nicht ausgefuellte Felder senden schlicht kein projektLabel<i>, daher reicht
+  // eine feste Obergrenze statt einer dynamischen Feldliste.
+  for (let i = 1; i <= 6; i++) {
     const label = formData.get(`projektLabel${i}`);
     const stunden = Number(formData.get(`projektStunden${i}`));
     if (typeof label === "string" && label.trim() !== "" && Number.isFinite(stunden) && stunden > 0) {
