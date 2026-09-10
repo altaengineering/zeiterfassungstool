@@ -146,6 +146,25 @@ je ausgefüllt werden muss — für Personen ganz ohne Daten bleibt er wie gehab
 gegengetestet: Michael (mit Juli-Daten) → kein Banner mehr; Andrit Stojkaj (keine Einträge) →
 Banner weiterhin sichtbar.
 
+**Excel-Export: Ist/+-/Stand zeigten 0 nach dem Export (behoben, 2026-09-10):** Michael meldete,
+dass sein Export für September komplett falsch war (`Ist` überall 0.00, obwohl `C`/`D` echte
+Projektstunden enthielten, `Stand` entsprechend stark negativ statt der echten, live im Tool
+korrekten Werte). Ursache: `exportExcel.ts` schreibt nur die Eingabezellen (`C:Q`, `V/W`, `Y:AF`),
+`Ist` (`S`), `+/-` (`T`) und `Stand` (`U`) bleiben als Formel aus der Vorlage stehen, siehe
+Modulkommentar. `exceljs` berechnet Formeln beim Schreiben aber nie neu, sondern lässt den alten,
+in der Vorlage gecachten `<v>`-Wert stehen (verifiziert: `S4` enthielt exakt `SUM(C4:Q4)` mit
+gecachtem `<v>0</v>`, obwohl `C4=3`/`D4=6` frisch geschrieben wurden). Für Monate, die in der
+Vorlage vorher leer waren (z.B. September, die Vorlage `Arbeitsrapport_2026_kum.xlsx` hat nur für
+Jun bis Aug echte, in echtem Excel gespeicherte Werte), bleibt der gecachte `0`-Wert stehen, bis
+irgendetwas eine Neuberechnung erzwingt. Fix: `workbook.calcProperties.fullCalcOnLoad = true;`
+direkt nach `workbook.xlsx.readFile(...)` gesetzt, das zwingt jedes Programm (Excel, LibreOffice,
+Google Sheets) beim Öffnen zu einer vollständigen Neuberechnung, unabhängig vom gecachten Wert.
+Lokal verifiziert per Testskript: `<calcPr fullCalcOnLoad="1"/>` landet korrekt in
+`xl/workbook.xml`, Formel-Text in `S4` unverändert `SUM(C4:Q4)`. **Betrifft alle bisherigen
+Exports, nicht nur Michaels** — jeder Export für einen Monat, der in der Vorlage vorher leer war,
+war von diesem Bug betroffen. Kein Datenverlust, nur eine Anzeige-/Berechnungsfalle beim Export
+selbst, die Datenbank war nie falsch.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
