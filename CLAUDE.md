@@ -165,6 +165,26 @@ Exports, nicht nur Michaels** — jeder Export für einen Monat, der in der Vorl
 war von diesem Bug betroffen. Kein Datenverlust, nur eine Anzeige-/Berechnungsfalle beim Export
 selbst, die Datenbank war nie falsch.
 
+**Projekte: Stundenzahl automatisch aus Stempelzeiten, beliebig viele Projekte (2026-09-10):**
+`EntryForm.tsx` zeigt jetzt live "Gesamt aus Stempelzeiten: X.XX h" (berechnet wie bisher aus
+Start/Stopp-Paaren, siehe `berechneGesamtStunden`). Neue Verteilungsregel in
+`projektStundenNeuVerteilen`: das jeweils LETZTE Projekt mit einem ausgefüllten Namen "absorbiert"
+den Rest, also Gesamt minus die Summe aller anderen benannten Projekte. Ist noch kein Projekt
+benannt, ist Projekt 1 der Absorber (der übliche Fall bei nur einem Projekt pro Tag). Trägt man von
+Hand eine Stundenzahl bei einem früheren Projekt ein, rechnet sich der Rest automatisch beim
+letzten Projekt nach, das Feld des Absorbers selbst wird beim direkten Bearbeiten nie
+überschrieben (sonst könnte man es nie manuell anpassen). Ausserdem: Projekt-Anzahl ist jetzt
+dynamisch statt fix auf 2 begrenzt, ein Button "+ weiteres Projekt" (analog zu "+ weitere
+Zeitblöcke") schaltet bis zu `MAX_PROJEKTE = 6` Projekte pro Tag frei. `BestehenderEintrag.bookings`
+(Array statt der vorherigen festen `projekt1Label`/`projekt1Stunden`/`projekt2Label`/
+`projekt2Stunden`-Felder) in `EntryForm.tsx`, entsprechend angepasst in `page.tsx`. In `actions.ts`
+läuft die Booking-Persistierung jetzt über `for (let i = 1; i <= 6; i++)` statt der harten
+`[1, 2]`-Schleife, das Datenmodell (`Booking`) brauchte keine Änderung, es unterstützte beliebig
+viele frei benannte Buchungen pro Tag schon immer. Lokal end-to-end getestet (separater
+SQLite-Testklon, nicht dieses Arbeitsverzeichnis): 3 Projekte angelegt, Rest-Verteilung bei
+Stempelzeit- und Label-Änderungen sowie manuellem Überschreiben verifiziert, gespeicherter
+Tageseintrag zeigte alle 3 Buchungen korrekt in der Tagesübersicht.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`

@@ -377,10 +377,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                 stop3: bestehenderDbEintrag.stop3,
                 start4: bestehenderDbEintrag.start4,
                 stop4: bestehenderDbEintrag.stop4,
-                projekt1Label: bestehenderDbEintrag.bookings[0]?.label ?? "",
-                projekt1Stunden: bestehenderDbEintrag.bookings[0]?.hours ?? null,
-                projekt2Label: bestehenderDbEintrag.bookings[1]?.label ?? "",
-                projekt2Stunden: bestehenderDbEintrag.bookings[1]?.hours ?? null,
+                bookings: bestehenderDbEintrag.bookings.map((b) => ({ label: b.label, hours: b.hours })),
               }
             : null;
 
