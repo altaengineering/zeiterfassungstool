@@ -91,6 +91,13 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.readFile(TEMPLATE_PATH);
 
+  // ExcelJS schreibt nur den Formel-Text zurueck, nicht das neu berechnete Ergebnis, und laesst
+  // den alten gecachten Zellwert aus der Vorlage stehen. Ohne dieses Flag zeigt Excel beim Oeffnen
+  // fuer Monate, die vorher leer waren (z.B. September), fuer Ist/+-/Stand/Ist-aus-Stempelzeiten
+  // weiterhin die alten, leeren Werte (0), obwohl C:Q und Y:AF frisch befuellt wurden. Mit
+  // fullCalcOnLoad rechnet Excel beim Oeffnen alle Formeln zwingend neu.
+  workbook.calcProperties.fullCalcOnLoad = true;
+
   // Die Original-Datei enthält bedingte Formatierungen mit einer Excel-Erweiterung (x14 extLst),
   // die exceljs beim Zurückschreiben nicht unterstützt (crasht in CfRuleXform). Rein optisch,
   // daher hier entfernt statt die ganze Export-Logik davon abhängig zu machen.
