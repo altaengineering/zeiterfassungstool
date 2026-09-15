@@ -9,17 +9,17 @@ export function MigrateButton() {
   const [state, formAction, pending] = useActionState(alteBuchungenMigrieren, initialState);
 
   return (
-    <div>
+    <div className="migrate-box">
       <form action={formAction}>
-        <button type="submit" className="link-btn-inline" disabled={pending}>
-          {pending ? "…" : "Alte Buchungen (freier Text) einmalig übernehmen"}
+        <button type="submit" className="migrate-btn" disabled={pending}>
+          {pending ? "Wird übernommen…" : "Ja, alte Einträge jetzt übernehmen"}
         </button>
       </form>
       {state.anzahl !== undefined && (
-        <p className="form-message success small">
+        <p className={"migrate-result" + (state.anzahl === 0 ? " migrate-result-neutral" : "")}>
           {state.anzahl === 0
-            ? "Keine offenen Altbuchungen gefunden, alles bereits verknüpft."
-            : `${state.anzahl} Buchung(en) verknüpft.`}
+            ? "Alles schon erledigt, nichts Neues gefunden."
+            : `Fertig: ${state.anzahl} alte Buchung${state.anzahl === 1 ? "" : "en"} übernommen.`}
         </p>
       )}
     </div>

@@ -112,7 +112,7 @@ export async function tageseintragSpeichern(formData: FormData) {
   // Bis zu 6 Projekte pro Tag (siehe EntryForm.MAX_PROJEKTE, dort per "+ weiteres Projekt"
   // erweiterbar). Nicht ausgefuellte Felder senden schlicht keine projektId<i>, daher reicht
   // eine feste Obergrenze statt einer dynamischen Feldliste. Projekt kommt aus der festen Liste
-  // (/admin/projekte), label wird nur noch als Anzeige-Fallback fuer Altbuchungen mitgefuehrt.
+  // (/projekte), label wird nur noch als Anzeige-Fallback fuer Altbuchungen mitgefuehrt.
   for (let i = 1; i <= 6; i++) {
     const projectId = formData.get(`projektId${i}`);
     const stunden = Number(formData.get(`projektStunden${i}`));
