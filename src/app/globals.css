@@ -1168,6 +1168,16 @@ main.login-hero {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px 16px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.projekt-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.projekt-card-inaktiv {
+  background: var(--surface-alt);
+  opacity: 0.75;
 }
 
 .projekt-card-info {
@@ -1177,25 +1187,31 @@ main.login-hero {
   flex-wrap: wrap;
 }
 
+.projekt-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
 .projekt-card-name {
   font-weight: 600;
   font-size: 0.95rem;
 }
 
-.projekt-card-status {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--pos) 16%, transparent);
-  color: var(--pos);
-}
-
-.projekt-card-status-inaktiv {
-  background: var(--surface-alt);
+.projekt-card-buchungen {
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--text-muted);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 9px;
 }
 
 .projekt-card-aktionen {
@@ -1227,6 +1243,39 @@ main.login-hero {
 
 .projekt-card-btn-primary:hover {
   background: var(--accent-dark);
+}
+
+.projekt-card-btn-entfernen {
+  color: var(--neg);
+  border-color: color-mix(in srgb, var(--neg) 40%, var(--border));
+}
+
+.projekt-card-btn-entfernen:hover {
+  background: color-mix(in srgb, var(--neg) 12%, transparent);
+}
+
+.projekt-abschnitt-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.projekt-abschnitt-punkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.projekt-abschnitt-punkt-aktiv {
+  background: var(--pos);
 }
 
 .projekt-card-bearbeiten {

@@ -36,6 +36,18 @@ export async function projektAktivSchalten(formData: FormData) {
   revalidatePath("/projekte");
 }
 
+export async function projektLoeschen(formData: FormData) {
+  const userId = await eigeneUserId();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+  // Nur deaktivierte, eigene Projekte duerfen geloescht werden (aktive muss man erst
+  // deaktivieren, damit man nicht aus Versehen ein gerade genutztes Projekt entfernt). Alte
+  // Buchungen auf diesem Projekt verlieren dabei nur ihre Verknuepfung (onDelete: SetNull im
+  // Schema), ihr Text (label) und die Stunden bleiben erhalten und sind weiterhin sichtbar.
+  await prisma.project.deleteMany({ where: { id, userId, aktiv: false } });
+  revalidatePath("/projekte");
+}
+
 export async function projektUmbenennen(formData: FormData) {
   const userId = await eigeneUserId();
   const id = String(formData.get("id") ?? "");

@@ -463,6 +463,32 @@ wenig wie die Tage danach, das Ergebnis ist effektiv der Stand von gestern. Spal
 Wert für die Testperson sank exakt um 8.40 h (einen Tages-Soll) gegenüber der vorherigen Anzeige,
 nachdem der 15.9. (heute im Test) als "noch nicht erfasst" mitgezählt hatte.
 
+**Projekte löschen (nur deaktivierte), /projekte optisch aufgewertet (2026-09-15, siebter
+Nachtrag):** Wunsch nach einer Möglichkeit, alte deaktivierte Projekte ganz zu entfernen (bisher
+nur deaktivierbar, siehe erster Nachtrag), plus allgemein mehr visuelle Gestaltung auf der Seite.
+
+- **`Booking.project`-Relation bekam explizit `onDelete: SetNull`** (beide Schema-Dateien): löscht
+  man ein Projekt, verlieren seine Buchungen nur die Verknüpfung (`projectId` wird `null`), `label`
+  (Projektname zum Zeitpunkt der Buchung) und `hours` bleiben unverändert erhalten, die Buchung
+  taucht danach wie eine noch nicht migrierte Altbuchung auf. Ohne diese explizite Angabe wäre das
+  DB-Standardverhalten nicht sicher garantiert gewesen. Lokal mit einem echten Testfall verifiziert
+  (Projekt mit einer Buchung angelegt, gelöscht, Buchung existierte danach weiter mit
+  `projectId: null`, `label`/`hours` unverändert).
+- **Neue Server Action `projektLoeschen`** (`src/app/projekte/actions.ts`): löscht nur, wenn
+  `aktiv: false` UND `userId` der eigenen Person entspricht (`deleteMany` mit beiden Bedingungen in
+  der WHERE-Klausel, damit weder ein aktives noch ein fremdes Projekt gelöscht werden kann, auch
+  nicht über eine manipulierte Projekt-ID). Der "Entfernen"-Knopf erscheint in `ProjektZeile.tsx`
+  nur bei deaktivierten Projekten, mit `confirm()`-Rückfrage (Text nennt die Anzahl betroffener
+  Buchungen, falls vorhanden), analog zum bestehenden `DeleteUserButton`-Muster.
+- **`/projekte` optisch überarbeitet:** drei Kennzahlen-Karten oben (Aktive Projekte, Deaktiviert,
+  Buchungen gesamt, gleicher `.card-accent`-Stil wie andere Seiten), Projekte in zwei Abschnitte
+  "Aktiv"/"Deaktiviert" gruppiert (statt einer einzigen Liste mit Status-Badge pro Zeile), jede
+  Projekt-Karte zeigt jetzt ein kleines Ordner-Icon und die Anzahl Buchungen als Badge, deaktivierte
+  Karten sind sichtbar abgedunkelt (`.projekt-card-inaktiv`). Bewusst weiterhin nur der eine
+  bestehende Blauton als Akzent (Ordner-Icon-Hintergrund, Abschnitts-Punkt bei "Aktiv" ist Grün wie
+  an anderer Stelle für positive Zustände), keine neue Farbvielfalt, siehe drittes Nachtrag-Feedback
+  "zu bunt".
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
