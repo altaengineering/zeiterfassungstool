@@ -29,14 +29,16 @@ export interface MonatsStand {
 
 export interface MonatsStandOptionen {
   /**
-   * Für Tage NACH heute wird Soll und Ist beide auf 0 gesetzt (= "als hätte man die geforderten
-   * 100% erledigt"), statt wie im echten Rapport eine Soll-Zeit ohne Gegenbuchung anzuhäufen.
-   * Ohne diese Option würde der Gleitzeitstand für den laufenden Monat immer stark negativ
-   * aussehen, einfach weil die restlichen Kalendertage noch gar nicht erfasst werden konnten, das
-   * sagt nichts darüber aus, ob die Person tatsächlich im Rückstand ist. Nur für die
-   * Chef-Übersicht gedacht (schneller Blick "wo stehen wir heute"), NICHT für den echten,
-   * rollierenden Saldo auf der persönlichen Monatsseite oder den Excel-Export, die bleiben exakt
-   * wie im Original-Rapport (zukünftige Tage zählen dort bewusst als offen/negativ, bis sie
+   * Für Tage AB heute (also auch der heutige Tag selbst) wird Soll und Ist beide auf 0 gesetzt
+   * (= "als hätte man die geforderten 100% erledigt"), statt wie im echten Rapport eine Soll-Zeit
+   * ohne Gegenbuchung anzuhäufen. Der heutige Tag zählt bewusst mit dazu (nicht erst "morgen"):
+   * am Vormittag ist der Tag noch nicht vorbei, ein Tages-Soll ohne Buchung sagt an diesem Punkt
+   * noch nichts über einen Rückstand aus, das Ergebnis ist praktisch immer "Stand von gestern".
+   * Ohne diese Option würde der Gleitzeitstand für den laufenden Monat (und speziell für den noch
+   * laufenden heutigen Tag) immer stark negativ aussehen, einfach weil der Tag noch nicht erfasst
+   * werden konnte. Nur für die Chef-Übersicht gedacht (schneller Blick "wo stehen wir"), NICHT für
+   * den echten, rollierenden Saldo auf der persönlichen Monatsseite oder den Excel-Export, die
+   * bleiben exakt wie im Original-Rapport (offene Tage zählen dort bewusst als Rückstand, bis sie
    * erfasst sind).
    */
   nichtInDieZukunftProjizieren?: boolean;
@@ -102,9 +104,10 @@ export async function berechneMonatsStand(
   const entryInputs: DailyEntryInput[] = alleTage.map((date) => {
     const e = entriesByDate.get(date);
     const vorStart = startDatumIso !== null && date < startDatumIso;
-    // Siehe MonatsStandOptionen.nichtInDieZukunftProjizieren: Tage nach heute zaehlen dann weder
-    // als Soll noch als Ist, sie beeinflussen den Stand also gar nicht erst.
-    const inDerZukunft = optionen.nichtInDieZukunftProjizieren === true && date > heuteIso;
+    // Siehe MonatsStandOptionen.nichtInDieZukunftProjizieren: heute und alle Tage danach zaehlen
+    // dann weder als Soll noch als Ist, sie beeinflussen den Stand also gar nicht erst (Ergebnis:
+    // "Stand von gestern").
+    const inDerZukunft = optionen.nichtInDieZukunftProjizieren === true && date >= heuteIso;
     if (!e || inDerZukunft) {
       const leer: StempelPaar = { start: null, stop: null };
       return {

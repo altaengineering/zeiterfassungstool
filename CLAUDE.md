@@ -453,6 +453,16 @@ Kalender sollte sichtbar sein, wer eine Notiz geschrieben hat.
   Seiten mit `document.documentElement.scrollWidth`/`window.innerWidth` nachgemessen, kein
   Überlauf mehr.
 
+**Gleitzeit-Chef-Übersicht: heute zählt auch nicht mehr mit (2026-09-15, sechster Nachtrag):**
+Der laufende Tag selbst wurde in `berechneMonatsStand` mit `nichtInDieZukunftProjizieren` bisher
+noch normal gerechnet (Bedingung war `date > heuteIso`, nicht `>=`). Ist er noch nicht erfasst
+(z.B. vormittags, bevor jemand seinen Tag einträgt), zeigte die Chef-Übersicht trotzdem ein volles
+Minus für diesen einen Tag. Bedingung auf `date >= heuteIso` geändert: heute zählt jetzt genauso
+wenig wie die Tage danach, das Ergebnis ist effektiv der Stand von gestern. Spalte entsprechend von
+„Gleitzeit (heute)" zu „Gleitzeit (Stand gestern)" umbenannt (Tooltip ergänzt). Lokal verifiziert:
+Wert für die Testperson sank exakt um 8.40 h (einen Tages-Soll) gegenüber der vorherigen Anzeige,
+nachdem der 15.9. (heute im Test) als "noch nicht erfasst" mitgezählt hatte.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
