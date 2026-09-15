@@ -22,23 +22,25 @@ model Company {
   holidays     Holiday[]
   settings     CompanySettings[]
   monthCloses  MonthClose[]
-  projects     Project[]
 }
 
-// Feste, firmenweite Projektliste (löst zwei Probleme auf einmal: freies Getippe führt zu
-// Tippfehler-Varianten derselben Projekte, und der Excel-Export bekam dadurch pro Monat/Person
-// unterschiedliche, inkonsistente Spalten, siehe CLAUDE.md). Admins pflegen die Liste unter
-// /admin/projekte, im Tageseintrag wird nur noch aus dieser Liste ausgewählt statt frei getippt.
+// Persönliche Projektliste (bewusst PRO PERSON, nicht firmenweit, siehe CLAUDE.md): löst zwei
+// Probleme auf einmal, freies Getippe führt zu Tippfehler-Varianten desselben Projekts, und der
+// Excel-Export bekam dadurch pro Monat inkonsistente Spalten. Jede Person pflegt ihre eigene Liste
+// unter /projekte, im Tageseintrag wird nur noch aus der eigenen Liste ausgewählt statt frei
+// getippt. `userId` ist bewusst optional: bestehende Projekte aus der Zeit vor dieser Umstellung
+// (companyId-basiert) landen mit `userId = null`, bis die betroffene Person sie unter /projekte per
+// Migrations-Knopf für sich beansprucht (siehe src/lib/projects.ts).
 model Project {
   id        String    @id @default(cuid())
-  company   Company   @relation(fields: [companyId], references: [id])
-  companyId String
+  user      User?     @relation(fields: [userId], references: [id])
+  userId    String?
   name      String
   aktiv     Boolean   @default(true)
   createdAt DateTime  @default(now())
   bookings  Booking[]
 
-  @@unique([companyId, name])
+  @@unique([userId, name])
 }
 
 // Monatsabschluss: sobald ein Monat abgeschlossen ist, können Mitarbeitende ihre Tageseinträge
@@ -91,6 +93,7 @@ model User {
   jahresStammdaten JahresStammdaten[]
   dailyEntries     DailyEntry[]
   pensumWechsel    PensumWechsel[]
+  projekte         Project[]
 }
 
 // App-eigenes Feature (nicht aus dem Original-Excel, das pro Jahr nur einen konstanten

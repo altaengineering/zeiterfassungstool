@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const MONATSNAMEN = [
   "Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
 ] as const;
-const WOCHENTAGE = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+const WOCHENTAGE_KURZ = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
 function iso(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -16,6 +16,16 @@ function iso(date: Date): string {
 
 function formatStunden(h: number): string {
   return h.toFixed(2).replace(/\.00$/, "");
+}
+
+function initialen(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((teil) => teil[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 type Props = {
@@ -28,6 +38,7 @@ export default async function KalenderSeite({ searchParams }: Props) {
 
   const { jahr: jahrParam, monat: monatParam } = await searchParams;
   const heute = new Date();
+  const heuteIso = iso(heute);
   const jahr = Number(jahrParam) || heute.getUTCFullYear();
   const monat = Number(monatParam) || heute.getUTCMonth() + 1;
 
@@ -54,7 +65,7 @@ export default async function KalenderSeite({ searchParams }: Props) {
   ]);
 
   const feiertageByDate = new Map(feiertageDb.map((f) => [iso(f.date), f]));
-  const abwesendByDate = new Map<string, { name: string; art: string; stunden: number }[]>();
+  const abwesendByDate = new Map<string, { name: string; art: "Ferien" | "Krank"; stunden: number }[]>();
   for (const e of entriesDb) {
     const datum = iso(e.date);
     const liste = abwesendByDate.get(datum) ?? [];
@@ -66,17 +77,23 @@ export default async function KalenderSeite({ searchParams }: Props) {
   const vorMonat = monat === 1 ? { jahr: jahr - 1, monat: 12 } : { jahr, monat: monat - 1 };
   const naechMonat = monat === 12 ? { jahr: jahr + 1, monat: 1 } : { jahr, monat: monat + 1 };
 
+  const ersterWochentag = new Date(Date.UTC(jahr, monat - 1, 1)).getUTCDay(); // 0=So
+  const fuehrendeLeerzellen = (ersterWochentag + 6) % 7; // Woche beginnt Montag
+
   const tage = Array.from({ length: letzterTagMonat }, (_, i) => {
     const tag = i + 1;
     const datum = `${jahr}-${String(monat).padStart(2, "0")}-${String(tag).padStart(2, "0")}`;
     const wochentag = new Date(`${datum}T00:00:00Z`).getUTCDay();
     return {
+      tag,
       datum,
       wochentag,
       feiertag: feiertageByDate.get(datum) ?? null,
       abwesend: abwesendByDate.get(datum) ?? [],
     };
   });
+
+  const feiertageDiesenMonat = tage.filter((t) => t.feiertag);
 
   return (
     <main>
@@ -97,36 +114,72 @@ export default async function KalenderSeite({ searchParams }: Props) {
         </Link>
       </div>
 
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Datum</th>
-              <th className="label-cell">Feiertag</th>
-              <th className="label-cell">Abwesend</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tage.map((t) => {
-              const istWochenende = t.wochentag === 0 || t.wochentag === 6;
-              const rowClass = t.feiertag ? "holiday" : istWochenende ? "weekend" : "";
-              return (
-                <tr key={t.datum} className={rowClass}>
-                  <td>
-                    {WOCHENTAGE[t.wochentag]?.slice(0, 2)}, {t.datum.slice(8, 10)}.{t.datum.slice(5, 7)}.
-                  </td>
-                  <td className="label-cell">{t.feiertag?.label.trim() ?? "—"}</td>
-                  <td className="label-cell">
-                    {t.abwesend.length > 0
-                      ? t.abwesend.map((a) => `${a.name} (${a.art}, ${formatStunden(a.stunden)}h)`).join(", ")
-                      : "—"}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="kalender-legende">
+        <span className="kalender-legende-item">
+          <span className="kalender-chip kalender-chip-ferien">AB</span> Ferien
+        </span>
+        <span className="kalender-legende-item">
+          <span className="kalender-chip kalender-chip-krank">AB</span> Krank
+        </span>
+        <span className="kalender-legende-item">
+          <span className="kalender-tag-swatch kalender-tag-feiertag" /> Feiertag
+        </span>
+        <span className="kalender-legende-item">
+          <span className="kalender-tag-swatch kalender-tag-wochenende" /> Wochenende
+        </span>
       </div>
+
+      <div className="kalender-grid">
+        {WOCHENTAGE_KURZ.map((w) => (
+          <div key={w} className="kalender-kopf">
+            {w}
+          </div>
+        ))}
+        {Array.from({ length: fuehrendeLeerzellen }, (_, i) => (
+          <div key={`leer-${i}`} className="kalender-tag kalender-tag-leer" />
+        ))}
+        {tage.map((t) => {
+          const istWochenende = t.wochentag === 0 || t.wochentag === 6;
+          const istHeute = t.datum === heuteIso;
+          const klassen = [
+            "kalender-tag",
+            t.feiertag ? "kalender-tag-feiertag" : istWochenende ? "kalender-tag-wochenende" : "",
+            istHeute ? "kalender-tag-heute" : "",
+          ]
+            .filter(Boolean)
+            .join(" ");
+
+          return (
+            <div key={t.datum} className={klassen}>
+              <span className="kalender-tag-nummer">{t.tag}</span>
+              {t.feiertag && <span className="kalender-tag-label">{t.feiertag.label.trim()}</span>}
+              {t.abwesend.length > 0 && (
+                <div className="kalender-chips">
+                  {t.abwesend.map((a, i) => (
+                    <span
+                      key={i}
+                      className={"kalender-chip " + (a.art === "Ferien" ? "kalender-chip-ferien" : "kalender-chip-krank")}
+                      title={`${a.name}, ${a.art}, ${formatStunden(a.stunden)}h`}
+                    >
+                      {initialen(a.name)}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {feiertageDiesenMonat.length > 0 && (
+        <div className="kalender-feiertagsliste">
+          {feiertageDiesenMonat.map((t) => (
+            <span key={t.datum} className="kalender-feiertagsliste-item">
+              {t.tag}. {MONATSNAMEN[monat - 1]}: {t.feiertag?.label.trim()}
+            </span>
+          ))}
+        </div>
+      )}
     </main>
   );
 }

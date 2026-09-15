@@ -250,6 +250,81 @@ Feiertagen und Abwesenheiten (Ferien/Krank).
   Kommentar gespeichert und in Tagesübersicht + Chef-Übersicht sichtbar, Ferien-Eintrag erscheint im
   Kalender mit korrektem Namen/Stunden.
 
+**Projekte auf privat umgestellt, Chef-Übersicht/Kalender neu gestaltet, Header mit Logo
+(2026-09-15, Nachtrag):** Direktes Feedback von Michael auf die firmenweite Projektliste vom
+selben Tag: Projekte sollen NICHT firmenweit geteilt sein, sondern jede Person pflegt ihre eigene,
+private Liste ("jeder selber festlegen"). Ausserdem war die Migrations-Box auf der alten
+`/admin/projekte`-Seite visuell kaputt (überlappender Text, kaum lesbar, siehe Screenshot),
+Chef-Übersicht war als lose Karten-Liste unübersichtlich, Kalender wirkte leer, und der Header
+sollte ein Logo bekommen sowie Admin-Funktionen in eine einklappbare Konsole verschieben statt sie
+immer sichtbar zu zeigen.
+
+- **`Project` von firmenweit auf pro Person umgestellt:** `companyId` ersetzt durch `userId`
+  (optional, `String?`, siehe unten warum). Alte Seite `/admin/projekte` entfernt, neu:
+  **`/projekte`** (für ALLE eingeloggten Personen, nicht nur Admins). Jede Person sieht und
+  bearbeitet ausschliesslich ihre eigene Liste (`where: { userId: eigeneId }` in jeder Server
+  Action, plus `updateMany` statt `update` bei Rename/Aktiv-Schalten, damit niemand über eine
+  fremde Projekt-ID ein Projekt einer anderen Person verändern kann).
+- **Schema-Sicherheit wie beim ersten Anlauf:** `userId` ist bewusst weiterhin optional (nicht
+  required), aus demselben Grund wie zuvor `projectId` auf `Booking` optional war. `vercel-build`
+  pusht das Schema automatisch gegen die echte Produktions-DB, in der zu diesem Zeitpunkt bereits 3
+  Projekte samt 88 damit verknüpften Buchungen existierten (Michael hatte den Migrieren-Button vom
+  Vormittag bereits erfolgreich geklickt). Ein required `userId` ohne Wert auf bestehenden Zeilen
+  hätte den Deploy riskiert. Lokal verifiziert, dass `prisma db push` das companyId-Feld anstandslos
+  fallen lässt (`⚠️ dropping companyId column, still contains 3 non-null values`, nur ein Hinweis,
+  kein Abbruch, da eine Spalte zu entfernen nie einen Default braucht).
+- **`src/lib/projects.ts` (`migriereEigeneBuchungenZuProjekten`) neu geschrieben:** läuft jetzt pro
+  Person statt pro Firma. Findet offene Buchungen (kein `projectId`, ODER `projectId` zeigt auf ein
+  noch "herrenloses" Project mit `userId = null`, z.B. die 3 alten firmenweiten Projekte von heute
+  Vormittag). Ein herrenloses Project mit passendem Namen wird direkt übernommen (`userId` gesetzt),
+  statt dupliziert zu werden, dadurch beansprucht die erste Person, die auf `/projekte` den
+  Migrieren-Button klickt, das bestehende Project für sich; eine zweite Person mit zufällig gleichem
+  Projektnamen bekäme danach ein eigenes, separates Project. Lokal verifiziert: Test-Company hatte
+  nach dem alten Lauf 3 herrenlose Projekte (companyId entfernt, userId noch `null`), ein Klick auf
+  "Ja, alte Einträge jetzt übernehmen" als "Test Person" hat alle 3 korrekt übernommen, Formular
+  zeigt sie danach wie gewohnt vorselektiert.
+- **`/projekte`-Seite komplett neu gebaut** (statt die alte Tabelle zu reparieren): Projekte als
+  Karten (`ProjektZeile.tsx`, Client-Komponente) statt Tabellenzeilen mit ineinander verschachtelten
+  Formularen, das war die Ursache für den "verbuggt/kaum lesbar"-Eindruck (mehrere `<form>`s pro
+  Tabellenzelle ohne ausreichend Abstand, bei schmaler Breite lief alles ineinander). Umbenennen
+  klappt jetzt sauber in einen Bearbeiten-Modus um (eigener State, kein Layout-Sprung), Migrations-
+  Box ist nur noch sichtbar, wenn tatsächlich offene Altbuchungen existieren (`hatOffeneAltbuchungen`
+  Zähler serverseitig ermittelt), und der komplette Text ist bewusst in einfachen, kurzen Sätzen
+  gehalten ("Das hier ist deine ganz persönliche Liste, niemand sonst sieht oder verändert sie.").
+- **Chef-Übersicht (`/admin/uebersicht`) umgebaut:** von einer Karte pro Mitarbeitendem mit
+  eingebetteter Tabelle zu einer einzigen Tabelle (Name/Tage erfasst/Status/Link) mit Klick-zum-
+  Aufklappen (`MitarbeiterZeile.tsx`, Client-Komponente mit lokalem Auf/Zu-State, öffnet eine zweite
+  `<tr>` mit der Detail-Tabelle darunter). Zusätzlich drei Kennzahlen-Karten oben (Mitarbeitende,
+  erwartete Arbeitstage, Anzahl im Rückstand) im selben Stil wie die Monatsansicht.
+- **Kalender (`/kalender`) von Liste zu echtem Monatsraster:** CSS-Grid mit 7 Spalten (Woche
+  beginnt Montag, `fuehrendeLeerzellen = (ersterWochentag + 6) % 7` füllt die Tage vor dem 1. auf),
+  jeder Tag eine Karte mit Nummer, Feiertagsname direkt in der Kachel, und runden Initialen-Chips
+  pro abwesender Person (blau = Ferien, rot = Krank, Hover/`title` zeigt Name + Stunden). Heutiges
+  Datum bekommt einen Rahmen in Akzentfarbe. Wochenend-/Feiertags-Hintergrund bewusst mit
+  `color-mix()` deutlich stärker abgesetzt als die vorherige Tabellen-Variante (die bestehenden
+  `--bg-weekend`/`--bg-holiday`-Variablen waren im Dark Mode zu nah an der Kartenfarbe, kaum
+  erkennbar), auf Mobile (`max-width: 640px`) wird der Feiertagsname in der Kachel ausgeblendet,
+  bleibt aber unten in der Liste sichtbar, damit die Kacheln nicht überlaufen.
+- **Header/Topbar neu gestaltet:** Logo (`public/alta-logo.png`, Original aus dem Website-Repo
+  `altaengineering-website/logo.png`) links neben dem Markennamen, ein dünner Farbverlauf-Streifen
+  oben am Topbar-Rand (`::before`, Grün/Gelb/Blau, greift die Marken-Idee des Logos auf ohne exakte
+  Pixelfarben daraus zu kopieren, nutzt stattdessen die bereits vorhandenen `--pos`/`--accent-2`/
+  `--accent`-Variablen). Neue wiederverwendbare Client-Komponente `TopbarMenu.tsx` (Button + Panel,
+  schliesst bei Klick ausserhalb via `mousedown`-Listener auf einem Wrapper-`ref`) für zwei
+  Dropdowns: **"Admin"** (nur für Admins sichtbar, enthält Nutzerverwaltung/Chef-Übersicht/
+  Feiertage/Monatsabschluss, vorher einzeln nebeneinander in der Navigation) und ein Konto-Menü
+  unter dem eigenen Namen (Passwort ändern/Einrichtung/Abmelden, vorher ebenfalls einzeln sichtbar).
+  Dadurch sieht die Kopfzeile für normale Mitarbeitende und Admins bis auf den zusätzlichen
+  "Admin"-Button jetzt identisch aus, statt wie vorher mit vier zusätzlichen, immer sichtbaren
+  Admin-Links. Serverseitige Actions (insbesondere `signOut`) werden als bereits gebundene Server-
+  Aktion via `children`-Prop in die Client-Komponente durchgereicht (funktioniert in Next.js
+  App Router ohne Weiteres), `TopbarMenu` selbst kennt keine Server-Logik.
+- Lokal end-to-end getestet (Desktop und Mobile-Breite via `resize_window`): Login als Mitarbeiter
+  UND als Admin, beide Dropdown-Menüs geöffnet/geschlossen, Chef-Übersicht aufgeklappt, Kalender mit
+  Testfeiertag und vorhandenem Ferien-Eintrag geprüft (Chip + Tooltip korrekt), Hell/Dunkel-Modus
+  auf allen neuen Seiten gegengeprüft, `next build` lief fehlerfrei durch, neue Routen `/projekte`
+  und `/admin/uebersicht` erscheinen korrekt in der Build-Ausgabe, `/admin/projekte` ist weg.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`

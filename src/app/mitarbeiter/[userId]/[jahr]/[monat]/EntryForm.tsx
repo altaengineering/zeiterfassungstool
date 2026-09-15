@@ -118,7 +118,7 @@ export function EntryForm({
   const projektSelectRefs = useRef<Array<HTMLSelectElement | null>>([]);
 
   // Alte Buchungen ohne projectId (vor der festen Projektliste erfasst, noch nicht via
-  // /admin/projekte migriert): bestmöglich anhand des Namens vorbelegen, sonst leer lassen.
+  // /projekte migriert): bestmöglich anhand des Namens vorbelegen, sonst leer lassen.
   function anfangsProjektId(index: number): string {
     const booking = bestehendeBookings[index];
     if (!booking) return "";

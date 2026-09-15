@@ -974,3 +974,446 @@ main.login-hero {
 .konto-card button[type="submit"]:hover {
   background: var(--accent-dark);
 }
+
+/* ---------- Topbar-Redesign: Logo, Brand-Streifen, Dropdown-Menüs ---------- */
+
+.topbar {
+  position: relative;
+  padding-top: 13px;
+}
+
+.topbar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--pos), var(--accent-2), var(--accent));
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-logo {
+  height: 26px;
+  width: auto;
+  border-radius: 3px;
+  display: block;
+}
+
+.topbar-brand-text {
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+.topbar-menu {
+  position: relative;
+}
+
+.topbar-menu-trigger {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: var(--topbar-text);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-menu-trigger:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.topbar-menu-trigger-accent {
+  border-color: color-mix(in srgb, var(--accent-2) 55%, transparent);
+  color: var(--accent-2);
+}
+
+.topbar-menu-caret {
+  font-size: 0.6rem;
+}
+
+.topbar-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  min-width: 190px;
+  z-index: 50;
+}
+
+.topbar-menu-item {
+  display: block;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: var(--text) !important;
+  font-weight: 500;
+  font-size: 0.85rem;
+  text-decoration: none !important;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.topbar-menu-item:hover {
+  background: var(--surface-alt);
+}
+
+.topbar-menu-item-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--neg) !important;
+  font: inherit;
+}
+
+/* ---------- Meine Projekte ---------- */
+
+.projekt-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.projekt-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.projekt-card-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.projekt-card-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.projekt-card-status {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pos) 16%, transparent);
+  color: var(--pos);
+}
+
+.projekt-card-status-inaktiv {
+  background: var(--surface-alt);
+  color: var(--text-muted);
+}
+
+.projekt-card-aktionen {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.projekt-card-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.projekt-card-btn:hover {
+  background: var(--surface-alt);
+}
+
+.projekt-card-btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.projekt-card-btn-primary:hover {
+  background: var(--accent-dark);
+}
+
+.projekt-card-bearbeiten {
+  align-items: center;
+}
+
+.projekt-card-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 0.9rem;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.migrate-card {
+  border-color: color-mix(in srgb, var(--accent-2) 50%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-2) 6%, var(--surface)), var(--surface));
+}
+
+.migrate-btn {
+  padding: 10px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.migrate-btn:hover {
+  background: var(--accent-dark);
+}
+
+.migrate-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.migrate-result {
+  margin-top: 10px;
+  font-weight: 600;
+  color: var(--pos);
+}
+
+.migrate-result-neutral {
+  color: var(--text-muted);
+}
+
+/* ---------- Chef-Übersicht ---------- */
+
+.card .value.neg {
+  color: var(--neg);
+}
+
+.uebersicht-zeile {
+  cursor: pointer;
+}
+
+.uebersicht-caret {
+  display: inline-block;
+  width: 12px;
+  color: var(--text-muted);
+}
+
+.uebersicht-status {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--pos);
+}
+
+.uebersicht-status-warn {
+  color: var(--neg);
+}
+
+.uebersicht-detail-zeile:hover {
+  background: none;
+}
+
+.uebersicht-detail-zeile td {
+  background: var(--surface-alt);
+  padding: 12px 16px 16px 34px;
+}
+
+.uebersicht-detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.uebersicht-detail-table th,
+.uebersicht-detail-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 6px 10px;
+}
+
+.uebersicht-detail-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---------- Kalender ---------- */
+
+.kalender-legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-bottom: 16px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.kalender-legende-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kalender-tag-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+  border: 1px solid var(--border);
+}
+
+.kalender-tag-swatch.kalender-tag-feiertag {
+  background: var(--bg-holiday);
+}
+
+.kalender-tag-swatch.kalender-tag-wochenende {
+  background: var(--bg-weekend);
+}
+
+.kalender-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.kalender-kopf {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding-bottom: 4px;
+}
+
+.kalender-tag {
+  min-height: 84px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.kalender-tag-leer {
+  background: none;
+  border: none;
+}
+
+.kalender-tag-wochenende {
+  background: color-mix(in srgb, var(--text-muted) 12%, var(--surface));
+}
+
+.kalender-tag-feiertag {
+  background: var(--bg-holiday);
+  border-color: color-mix(in srgb, var(--accent-2) 55%, var(--border));
+}
+
+.kalender-tag-heute {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.kalender-tag-nummer {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.kalender-tag-heute .kalender-tag-nummer {
+  color: var(--accent);
+}
+
+.kalender-tag-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+.kalender-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: auto;
+}
+
+.kalender-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: default;
+}
+
+.kalender-chip-ferien {
+  background: var(--accent);
+}
+
+.kalender-chip-krank {
+  background: var(--neg);
+}
+
+.kalender-feiertagsliste {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.kalender-feiertagsliste-item {
+  padding: 6px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+@media (max-width: 640px) {
+  .kalender-grid {
+    gap: 4px;
+  }
+  .kalender-tag {
+    min-height: 58px;
+    padding: 4px 4px;
+  }
+  .kalender-tag-label {
+    display: none;
+  }
+}

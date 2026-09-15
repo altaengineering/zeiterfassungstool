@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { MitarbeiterZeile } from "./MitarbeiterZeile";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +12,6 @@ const MONATSNAMEN = [
 
 function iso(date: Date): string {
   return date.toISOString().slice(0, 10);
-}
-
-function formatStunden(h: number): string {
-  return h.toFixed(2).replace(/\.00$/, "");
 }
 
 // Arbeitstage (Mo-Fr, ohne bezahlte Feiertage) im Monat bis einschliesslich `bisDatum`, Basis für
@@ -81,12 +78,16 @@ export default async function UebersichtSeite({ searchParams }: Props) {
   const vorMonat = monat === 1 ? { jahr: jahr - 1, monat: 12 } : { jahr, monat: monat - 1 };
   const naechMonat = monat === 12 ? { jahr: jahr + 1, monat: 1 } : { jahr, monat: monat + 1 };
 
+  const anzahlImRueckstand = users.filter(
+    (u) => (entriesByUser.get(u.id) ?? []).length < erwarteteArbeitstage,
+  ).length;
+
   return (
     <main>
       <h1>Chef-Übersicht</h1>
       <p className="subtitle">
         Wer hat an welchen Projekten gearbeitet, mit welchem Kommentar, und wer hinkt bei der
-        Erfassung hinterher. Nur für Admins sichtbar.
+        Erfassung hinterher. Zeile anklicken zum Aufklappen. Nur für Admins sichtbar.
       </p>
 
       <div className="month-nav">
@@ -101,58 +102,64 @@ export default async function UebersichtSeite({ searchParams }: Props) {
         </Link>
       </div>
 
-      {users.map((u) => {
-        const entries = entriesByUser.get(u.id) ?? [];
-        const erfassteTage = entries.length;
-        const hinterher = erfassteTage < erwarteteArbeitstage;
-        const zeilen = entries.flatMap((e) =>
-          e.bookings.length > 0
-            ? e.bookings.map((b) => ({ datum: iso(e.date), label: b.label, hours: b.hours, kommentar: b.kommentar }))
-            : [{ datum: iso(e.date), label: "—", hours: 0, kommentar: "" }],
-        );
+      <div className="card-row">
+        <div className="card">
+          <div className="label">Mitarbeitende</div>
+          <div className="value">{users.length}</div>
+        </div>
+        <div className="card">
+          <div className="label">Erwartete Arbeitstage bisher</div>
+          <div className="value">{erwarteteArbeitstage}</div>
+        </div>
+        <div className="card">
+          <div className="label">Im Rückstand</div>
+          <div className={"value" + (anzahlImRueckstand > 0 ? " neg" : "")}>{anzahlImRueckstand}</div>
+        </div>
+      </div>
 
-        return (
-          <div key={u.id} className="entry-form-card" style={{ marginBottom: 20 }}>
-            <div className="form-section-title" style={{ display: "flex", justifyContent: "space-between" }}>
-              <span>{u.name}</span>
-              <Link href={`/mitarbeiter/${u.id}/${jahr}/${monat}`} className="link-btn-inline">
-                Monatsansicht öffnen
-              </Link>
-            </div>
-            <p className={"form-hint" + (hinterher ? " form-hint-warn" : "")}>
-              {erfassteTage} von {erwarteteArbeitstage} Arbeitstagen erfasst
-              {hinterher ? " (noch nicht auf dem Laufenden)" : " ✓"}
-            </p>
+      <div className="table-wrap">
+        <table className="uebersicht-table">
+          <thead>
+            <tr>
+              <th className="label-cell">Mitarbeiter</th>
+              <th>Tage erfasst</th>
+              <th className="label-cell">Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => {
+              const entries = entriesByUser.get(u.id) ?? [];
+              const erfassteTage = entries.length;
+              const hinterher = erfassteTage < erwarteteArbeitstage;
+              const zeilen = entries.flatMap((e) =>
+                e.bookings.length > 0
+                  ? e.bookings.map((b) => ({
+                      datum: iso(e.date),
+                      label: b.label,
+                      hours: b.hours,
+                      kommentar: b.kommentar,
+                    }))
+                  : [{ datum: iso(e.date), label: "—", hours: 0, kommentar: "" }],
+              );
 
-            {zeilen.length > 0 ? (
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Datum</th>
-                      <th className="label-cell">Projekt</th>
-                      <th>Stunden</th>
-                      <th className="label-cell">Kommentar</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {zeilen.map((z, i) => (
-                      <tr key={i}>
-                        <td>{z.datum.slice(8, 10)}.{z.datum.slice(5, 7)}.</td>
-                        <td className="label-cell">{z.label}</td>
-                        <td>{z.hours > 0 ? formatStunden(z.hours) : "—"}</td>
-                        <td className="label-cell">{z.kommentar || "—"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="form-hint">Noch keine Einträge in diesem Monat.</p>
-            )}
-          </div>
-        );
-      })}
+              return (
+                <MitarbeiterZeile
+                  key={u.id}
+                  userId={u.id}
+                  jahr={jahr}
+                  monat={monat}
+                  name={u.name}
+                  erfassteTage={erfassteTage}
+                  erwarteteArbeitstage={erwarteteArbeitstage}
+                  hinterher={hinterher}
+                  zeilen={zeilen}
+                />
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </main>
   );
 }

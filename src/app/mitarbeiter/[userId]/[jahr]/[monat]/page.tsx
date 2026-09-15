@@ -92,7 +92,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
       }),
       prisma.pensumWechsel.findMany({ where: { userId }, orderBy: { gueltigAb: "asc" } }),
       prisma.project.findMany({
-        where: { companyId: user.companyId, aktiv: true },
+        where: { userId, aktiv: true },
         orderBy: { createdAt: "asc" },
       }),
     ]);

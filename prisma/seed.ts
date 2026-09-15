@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { STANDARD_JAHRESFERIENTAGE } from "../src/lib/calc";
-import { migriereBuchungenZuProjekten } from "../src/lib/projects";
+import { migriereEigeneBuchungenZuProjekten } from "../src/lib/projects";
 import feiertage2026 from "./seed-data/feiertage-2026.json";
 import juniDaten from "./seed-data/jun-2026-michael-kueng.json";
 import juliDaten from "./seed-data/jul-2026-michael-kueng.json";
@@ -158,10 +158,10 @@ async function main() {
     await seedTag(michael.id, tag);
   }
 
-  // Feste Projektliste (siehe /admin/projekte): aus den frei getippten Labels der Seed-Daten
-  // automatisch ableiten, damit die lokale Demo denselben Übernahme-Weg durchläuft wie die
-  // Produktionsdaten später über den Migrieren-Button.
-  const anzahlProjekteMigriert = await migriereBuchungenZuProjekten(company.id);
+  // Persönliche Projektliste (siehe /projekte): aus Michaels frei getippten Labels automatisch
+  // ableiten, damit die lokale Demo denselben Übernahme-Weg durchläuft wie später in Produktion
+  // über den Migrieren-Button auf /projekte.
+  const anzahlProjekteMigriert = await migriereEigeneBuchungenZuProjekten(michael.id);
 
   // Jan-Mai 2026: In der Original-Datei war der Tages-Soll für die Zeit VOR Live-Betrieb des
   // Tools manuell auf 0 überschrieben (siehe CLAUDE.md §7 Punkt 2). Für die Demo hier

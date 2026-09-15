@@ -83,11 +83,11 @@ export interface ExportInput {
   pensumWechsel?: PensumPeriode[];
   feiertage: Array<{ date: string; label: string; bezahlt: boolean }>;
   /**
-   * Feste, firmenweite Projektreihenfolge (siehe /admin/projekte), maximal 9 Einträge (Vorlage hat
-   * nur die Spalten C-K). Anders als früher NICHT mehr pro Monat/Person neu aus den vorkommenden
-   * Labels abgeleitet, das führte dazu, dass dieselbe Spalte in verschiedenen Monaten oder bei
-   * verschiedenen Personen für unterschiedliche Projekte stand, sobald die Reihenfolge des ersten
-   * Auftretens variierte (der ursprünglich gemeldete "immer eine neue Spalte"-Bug).
+   * Feste, persönliche Projektreihenfolge der exportierten Person (siehe /projekte), maximal 9
+   * Einträge (Vorlage hat nur die Spalten C-K). Anders als früher NICHT mehr pro Monat neu aus den
+   * vorkommenden Labels abgeleitet, das führte dazu, dass dieselbe Spalte in verschiedenen Monaten
+   * für unterschiedliche Projekte stand, sobald die Reihenfolge des ersten Auftretens variierte
+   * (der ursprünglich gemeldete "immer eine neue Spalte"-Bug).
    */
   projekte: ExportProjekt[];
   tage: ExportTag[];
@@ -181,7 +181,7 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
 
       // Projekt-Stunden gemäss fester Spaltenreihenfolge. Zuordnung primär über projectId, mit
       // Fallback auf den Namensvergleich für Altbuchungen, die noch nicht migriert wurden (siehe
-      // /admin/projekte, "Alte Buchungen übernehmen").
+      // /projekte, "Alte Einträge übernehmen").
       PROJEKT_SPALTEN.forEach((col, i) => {
         const projekt = projekte[i];
         const stunden = projekt
