@@ -36,6 +36,7 @@ export default async function KalenderSeite({ searchParams }: Props) {
 
   const userId = (session.user as { id: string }).id;
   const ich = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const binAdmin = ich.role === "ADMIN";
 
   const monatStart = new Date(Date.UTC(jahr, monat - 1, 1));
   const monatEnde = new Date(Date.UTC(jahr, monat, 1));
@@ -52,9 +53,14 @@ export default async function KalenderSeite({ searchParams }: Props) {
       where: {
         user: { companyId: ich.companyId },
         date: { gte: monatStart, lt: monatEnde },
-        // Krank ist sensibler als Ferien: vergangene Krank-Tage werden aus Datenschutzgruenden gar
-        // nicht erst geladen, nur heute und Zukunft (siehe Filter unten beim Aufbau der Chips).
-        OR: [{ ferien: { gt: 0 } }, { krank: { gt: 0 }, date: { gte: heuteUtcMitternacht } }],
+        // Krank ist sensibler als Ferien: fuer normale Mitarbeitende werden vergangene Krank-Tage
+        // aus Datenschutzgruenden gar nicht erst geladen, nur heute und Zukunft (siehe Filter unten
+        // beim Aufbau der Chips). Admins sehen weiterhin den vollen Verlauf (z.B. fuer Lohn-/
+        // Absenz-Fragen), daher hier ohne Datumsgrenze, wenn `binAdmin`.
+        OR: [
+          { ferien: { gt: 0 } },
+          { krank: { gt: 0 }, ...(binAdmin ? {} : { date: { gte: heuteUtcMitternacht } }) },
+        ],
       },
       include: { user: true },
       orderBy: { date: "asc" },
@@ -78,9 +84,12 @@ export default async function KalenderSeite({ searchParams }: Props) {
     const datum = iso(e.date);
     const liste = abwesendByDate.get(datum) ?? [];
     if (e.ferien > 0) liste.push({ name: e.user.name, art: "Ferien", stunden: e.ferien });
-    // Vergangene Krank-Tage sind hier oben schon gar nicht erst aus der DB geladen worden (siehe
-    // Query), dieser Check ist nur die zweite Absicherung direkt an der Stelle, wo der Chip entsteht.
-    if (e.krank > 0 && datum >= heuteIso) liste.push({ name: e.user.name, art: "Krank", stunden: e.krank });
+    // Fuer Nicht-Admins sind vergangene Krank-Tage hier oben schon gar nicht erst aus der DB
+    // geladen worden (siehe Query), dieser Check ist nur die zweite Absicherung direkt an der
+    // Stelle, wo der Chip entsteht. Admins sehen Krank-Tage unabhaengig vom Datum.
+    if (e.krank > 0 && (binAdmin || datum >= heuteIso)) {
+      liste.push({ name: e.user.name, art: "Krank", stunden: e.krank });
+    }
     abwesendByDate.set(datum, liste);
   }
 
@@ -125,6 +134,7 @@ export default async function KalenderSeite({ searchParams }: Props) {
       <h1>Kalender</h1>
       <p className="subtitle">
         Feiertage und wer in der Firma Ferien oder krank gemeldet ist, für alle einsehbar.
+        {!binAdmin && " Krankheitstage sind hier nur ab heute sichtbar, nicht rückwirkend."}
       </p>
 
       <div className="month-nav">
