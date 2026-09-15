@@ -12,16 +12,23 @@ export default async function ProjekteSeite() {
   if (!session?.user) redirect("/login");
 
   const userId = (session.user as { id: string }).id;
-  const projekte = await prisma.project.findMany({
-    where: { userId },
-    orderBy: { createdAt: "asc" },
-  });
-  const hatOffeneAltbuchungen = await prisma.booking.count({
-    where: {
-      dailyEntry: { userId },
-      OR: [{ projectId: null }, { project: { userId: null } }],
-    },
-  });
+  const [projekte, hatOffeneAltbuchungen] = await Promise.all([
+    prisma.project.findMany({
+      where: { userId },
+      orderBy: { createdAt: "asc" },
+      include: { _count: { select: { bookings: true } } },
+    }),
+    prisma.booking.count({
+      where: {
+        dailyEntry: { userId },
+        OR: [{ projectId: null }, { project: { userId: null } }],
+      },
+    }),
+  ]);
+
+  const aktiveProjekte = projekte.filter((p) => p.aktiv);
+  const deaktivierteProjekte = projekte.filter((p) => !p.aktiv);
+  const buchungenGesamt = projekte.reduce((summe, p) => summe + p._count.bookings, 0);
 
   return (
     <main>
@@ -32,6 +39,21 @@ export default async function ProjekteSeite() {
         einfach aus dieser Liste aus, statt jedes Mal von Hand einen Namen einzutippen, das
         vermeidet Tippfehler und macht den Excel-Export sauberer.
       </p>
+
+      <div className="card-row">
+        <div className="card card-accent card-accent-blau">
+          <div className="label">Aktive Projekte</div>
+          <div className="value">{aktiveProjekte.length}</div>
+        </div>
+        <div className="card card-accent card-accent-blau">
+          <div className="label">Deaktiviert</div>
+          <div className="value">{deaktivierteProjekte.length}</div>
+        </div>
+        <div className="card card-accent card-accent-blau">
+          <div className="label">Buchungen gesamt</div>
+          <div className="value">{buchungenGesamt}</div>
+        </div>
+      </div>
 
       <div className="entry-form-card" style={{ marginBottom: 24 }}>
         <form action={projektHinzufuegen} className="entry-form">
@@ -45,17 +67,54 @@ export default async function ProjekteSeite() {
         </form>
       </div>
 
-      <div className="projekt-liste">
-        {projekte.map((p) => (
-          <ProjektZeile key={p.id} id={p.id} name={p.name} aktiv={p.aktiv} />
-        ))}
-        {projekte.length === 0 && (
-          <p className="form-hint">
-            Noch keine Projekte angelegt. Trag oben dein erstes ein, zum Beispiel den Namen des
-            Kunden, an dem du gerade arbeitest.
-          </p>
-        )}
-      </div>
+      {projekte.length === 0 ? (
+        <p className="form-hint">
+          Noch keine Projekte angelegt. Trag oben dein erstes ein, zum Beispiel den Namen des
+          Kunden, an dem du gerade arbeitest.
+        </p>
+      ) : (
+        <>
+          <div className="projekt-abschnitt-title">
+            <span className="projekt-abschnitt-punkt projekt-abschnitt-punkt-aktiv" />
+            Aktiv ({aktiveProjekte.length})
+          </div>
+          {aktiveProjekte.length > 0 ? (
+            <div className="projekt-liste">
+              {aktiveProjekte.map((p) => (
+                <ProjektZeile
+                  key={p.id}
+                  id={p.id}
+                  name={p.name}
+                  aktiv={p.aktiv}
+                  anzahlBuchungen={p._count.bookings}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="form-hint">Keine aktiven Projekte, alle oben eingetragenen sind deaktiviert.</p>
+          )}
+
+          {deaktivierteProjekte.length > 0 && (
+            <>
+              <div className="projekt-abschnitt-title" style={{ marginTop: 24 }}>
+                <span className="projekt-abschnitt-punkt" />
+                Deaktiviert ({deaktivierteProjekte.length})
+              </div>
+              <div className="projekt-liste">
+                {deaktivierteProjekte.map((p) => (
+                  <ProjektZeile
+                    key={p.id}
+                    id={p.id}
+                    name={p.name}
+                    aktiv={p.aktiv}
+                    anzahlBuchungen={p._count.bookings}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
 
       {hatOffeneAltbuchungen > 0 && (
         <div className="entry-form-card migrate-card" style={{ marginTop: 24 }}>

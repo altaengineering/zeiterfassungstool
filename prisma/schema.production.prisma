@@ -159,7 +159,7 @@ model Booking {
   id           String     @id @default(cuid())
   dailyEntry   DailyEntry @relation(fields: [dailyEntryId], references: [id], onDelete: Cascade)
   dailyEntryId String
-  project      Project?   @relation(fields: [projectId], references: [id])
+  project      Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
   projectId    String?
   label        String
   hours        Float

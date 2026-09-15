@@ -1,9 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { projektUmbenennen, projektAktivSchalten } from "./actions";
+import { projektUmbenennen, projektAktivSchalten, projektLoeschen } from "./actions";
 
-export function ProjektZeile({ id, name, aktiv }: { id: string; name: string; aktiv: boolean }) {
+export function ProjektZeile({
+  id,
+  name,
+  aktiv,
+  anzahlBuchungen,
+}: {
+  id: string;
+  name: string;
+  aktiv: boolean;
+  anzahlBuchungen: number;
+}) {
   const [bearbeiten, setBearbeiten] = useState(false);
 
   if (bearbeiten) {
@@ -36,11 +46,12 @@ export function ProjektZeile({ id, name, aktiv }: { id: string; name: string; ak
   }
 
   return (
-    <div className="projekt-card">
+    <div className={"projekt-card" + (aktiv ? "" : " projekt-card-inaktiv")}>
       <div className="projekt-card-info">
+        <span className="projekt-card-icon">📁</span>
         <span className="projekt-card-name">{name}</span>
-        <span className={"projekt-card-status" + (aktiv ? "" : " projekt-card-status-inaktiv")}>
-          {aktiv ? "aktiv" : "deaktiviert"}
+        <span className="projekt-card-buchungen">
+          {anzahlBuchungen} Buchung{anzahlBuchungen === 1 ? "" : "en"}
         </span>
       </div>
       <div className="projekt-card-aktionen">
@@ -54,6 +65,23 @@ export function ProjektZeile({ id, name, aktiv }: { id: string; name: string; ak
             {aktiv ? "Deaktivieren" : "Aktivieren"}
           </button>
         </form>
+        {!aktiv && (
+          <form
+            action={projektLoeschen}
+            onSubmit={(e) => {
+              const frage =
+                anzahlBuchungen > 0
+                  ? `„${name}" endgültig entfernen? ${anzahlBuchungen} alte Buchung${anzahlBuchungen === 1 ? "" : "en"} bleiben erhalten, verlieren aber die Verknüpfung zu diesem Projekt.`
+                  : `„${name}" endgültig entfernen?`;
+              if (!confirm(frage)) e.preventDefault();
+            }}
+          >
+            <input type="hidden" name="id" value={id} />
+            <button type="submit" className="projekt-card-btn projekt-card-btn-entfernen">
+              Entfernen
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

@@ -197,7 +197,10 @@ model Booking {
   id           String     @id @default(cuid())
   dailyEntry   DailyEntry @relation(fields: [dailyEntryId], references: [id], onDelete: Cascade)
   dailyEntryId String
-  project      Project?   @relation(fields: [projectId], references: [id])
+  // onDelete: SetNull, damit das Loeschen eines deaktivierten Projekts (siehe /projekte) alte
+  // Buchungen nicht mitreisst, sondern nur ihre Verknuepfung verliert. label bleibt als Text
+  // erhalten, die Buchung ist danach wie eine noch nicht migrierte Altbuchung zu behandeln.
+  project      Project?   @relation(fields: [projectId], references: [id], onDelete: SetNull)
   projectId    String?
   label        String
   hours        Float
