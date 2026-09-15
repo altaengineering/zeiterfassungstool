@@ -17,7 +17,6 @@ import {
 } from "@/lib/calc";
 import { EntryForm, type BestehenderEintrag } from "./EntryForm";
 import { TagesZeile } from "./TagesZeile";
-import { paletteIndex } from "@/lib/colors";
 
 const MONATSNAMEN = [
   "Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
@@ -270,15 +269,15 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
             {formatStunden(monatErgebnisse[monatErgebnisse.length - 1]?.stand ?? standVorMonat)} h
           </div>
         </div>
-        <div className="card card-accent card-accent-teal">
+        <div className="card card-accent card-accent-blau">
           <div className="label">Ferien Guthaben {jahr}</div>
           <div className="value">{formatStunden(ferienGuthaben)} Tage</div>
         </div>
-        <div className="card card-accent card-accent-amber">
+        <div className="card card-accent card-accent-blau">
           <div className="label">Ferien bezogen</div>
           <div className="value">{formatStunden(ferienBezogen)} Tage</div>
         </div>
-        <div className="card card-accent card-accent-violett">
+        <div className="card card-accent card-accent-blau">
           <div className="label">Ferien-Übertrag {jahr + 1}</div>
           <div className="value">{formatStunden(ferienUebertrag)} Tage</div>
         </div>
@@ -325,7 +324,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                   {dbEntry?.bookings.length || kategorien.length ? (
                     <span className="buchungen-zelle">
                       {dbEntry?.bookings.map((b, i) => (
-                        <span key={i} className={"tag tag-klein farbe-" + paletteIndex(b.label)}>
+                        <span key={i} className="tag tag-klein">
                           {b.label} {formatStunden(b.hours)}h
                           {b.kommentar ? <span className="tag-kommentar"> · {b.kommentar}</span> : null}
                         </span>
