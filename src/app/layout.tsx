@@ -45,6 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
+        <div className="app-bg" aria-hidden="true" />
         <div className="topbar">
           <div className="topbar-inner">
             <Link href="/" className="topbar-brand">

@@ -69,12 +69,53 @@ body {
   font-family: "Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif;
   color: var(--text);
   background-color: var(--bg);
-  /* Dezenter Glanz statt flacher Fläche, eine einzelne Akzentfarbe, kein Muster, keine weiteren
-     Farbtöne. Bleibt bewusst zurückhaltend (minimalistisch), nicht dekorativ. */
-  background-image: radial-gradient(1100px 480px at 50% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 65%);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Fixierte Hintergrund-Ebene fuer die ganze App, gleiche Formensprache wie die Login-Seite
+   (Gitter + Glanz), nur deutlich zurueckhaltender in der Bewegung, damit es beim Arbeiten mit
+   Tabellen nicht ablenkt. z-index:-1 reicht hier aus (siehe CSS-Stacking-Regeln: ein Kind mit
+   negativem z-index malt oberhalb des body-Hintergrunds, aber unterhalb des normalen Inhalts,
+   ohne dass main/.topbar selbst einen z-index brauchen). */
+.app-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(
+      1500px 820px at 50% -10%,
+      color-mix(in srgb, var(--accent) 32%, transparent),
+      transparent 65%
+    ),
+    linear-gradient(color-mix(in srgb, var(--accent) 11%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 11%, transparent) 1px, transparent 1px);
+  background-size: 100% 100%, 44px 44px, 44px 44px;
+  mask-image: radial-gradient(1350px 950px at 50% -4%, black 0%, transparent 82%);
+  -webkit-mask-image: radial-gradient(1350px 950px at 50% -4%, black 0%, transparent 82%);
+  animation: app-bg-atmen 12s ease-in-out infinite;
+}
+
+@keyframes app-bg-atmen {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-bg {
+    animation: none;
+  }
 }
 
 .topbar {
@@ -385,6 +426,18 @@ td.override {
   margin: -4px 0 0;
 }
 
+/* .form-section-title/.form-hint direkt in einer .entry-form-card (statt innerhalb eines
+   gepolsterten .form-section) brauchen ihr eigenes Padding, sonst kleben sie ohne Abstand am
+   Kartenrand (z.B. "Notiz hinzufügen" im Kalender, "Alte Einträge gefunden" auf /projekte). */
+.entry-form-card > .form-section-title {
+  padding: 18px 20px 0;
+}
+
+.entry-form-card > .form-hint {
+  padding: 4px 20px 0;
+  margin: 0;
+}
+
 .form-hint-warn {
   color: var(--neg);
   font-weight: 600;
@@ -475,11 +528,16 @@ td.override {
 }
 
 .pill-group {
+  position: relative;
   display: flex;
   gap: 6px;
 }
 
-.pill-group input {
+/* Spezifischer als ".entry-form input" (Zeile ~603, setzt width:100%), sonst gewinnt bei
+   gleicher Spezifitaet die spaetere Regel und die eigentlich unsichtbaren Radios blasen sich auf
+   Formularbreite auf, positioniert relativ zu body (da .pill-group vorher kein eigenes
+   position:relative hatte) - fuehrte zu echtem horizontalem Overflow der ganzen Seite. */
+.pill-group input[type="radio"] {
   position: absolute;
   opacity: 0;
   width: 1px;
@@ -1189,6 +1247,10 @@ main.login-hero {
 .migrate-card {
   border-color: color-mix(in srgb, var(--accent-2) 50%, var(--border));
   background: linear-gradient(180deg, color-mix(in srgb, var(--accent-2) 6%, var(--surface)), var(--surface));
+}
+
+.migrate-box {
+  padding: 14px 20px 18px;
 }
 
 .migrate-btn {
