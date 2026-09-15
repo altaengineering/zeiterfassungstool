@@ -59,6 +59,20 @@ function gesamtStundenAusPaaren(paare: Array<[number | null, number | null]>): n
   return rund2(totalMinuten / 60);
 }
 
+const WOCHENTAGE = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+
+// Das native <input type="date"> zeigt Datum/Format je nach Browser- bzw. Betriebssystem-Sprache
+// unterschiedlich an (z.B. amerikanisch statt schweizerisch), das können wir nicht beeinflussen.
+// Dieses Label daneben zeigt das gewählte Datum deshalb immer eindeutig im Format
+// "Wochentag, TT.MM.JJJJ" an, unabhängig von der Locale-Darstellung des Eingabefelds selbst.
+function formatDatumSchweiz(iso: string): string {
+  const [jahr, monat, tag] = iso.split("-").map(Number);
+  if (!jahr || !monat || !tag) return "";
+  const datum = new Date(Date.UTC(jahr, monat - 1, tag));
+  const wochentag = WOCHENTAGE[datum.getUTCDay()];
+  return `${wochentag}, ${String(tag).padStart(2, "0")}.${String(monat).padStart(2, "0")}.${jahr}`;
+}
+
 export function EntryForm({
   userId,
   jahr,
@@ -108,6 +122,16 @@ export function EntryForm({
       [bestehenderEintrag?.start4 ?? null, bestehenderEintrag?.stop4 ?? null],
     ]),
   );
+
+  // Live-Summe aller sichtbaren Projekt-Stunden-Felder, damit auf einen Blick ersichtlich ist, ob
+  // die Projekte zusammen mit den Stempelzeiten übereinstimmen (siehe "Summe Projekte" unten).
+  const projektStundenSumme = rund2(
+    Array.from({ length: projektAnzahl }, (_, i) => Number(projektStunden[i]) || 0).reduce(
+      (a, b) => a + b,
+      0,
+    ),
+  );
+  const projektSummeStimmt = Math.abs(projektStundenSumme - stempelGesamt) < 0.01;
 
   const start1Ref = useRef<HTMLInputElement>(null);
   const stop1Ref = useRef<HTMLInputElement>(null);
@@ -244,6 +268,7 @@ export function EntryForm({
               onChange={(e) => aufDatumWechseln(e.target.value)}
               required
             />
+            <span className="datum-lesbar">{formatDatumSchweiz(datum)}</span>
           </label>
           <span className="edit-badge">
             {bestehenderEintrag ? "✏️ bestehender Eintrag wird bearbeitet" : "neuer Eintrag"}
@@ -368,6 +393,10 @@ export function EntryForm({
 
           <div className="form-section">
             <div className="form-section-title">Projekte</div>
+            <p className={"form-hint" + (projektSummeStimmt ? "" : " form-hint-warn")}>
+              Summe Projekte: <strong>{projektStundenSumme.toFixed(2)} h</strong>
+              {projektSummeStimmt ? " ✓ stimmt mit den Stempelzeiten überein" : ` (Stempelzeiten: ${stempelGesamt.toFixed(2)} h, stimmt nicht überein)`}
+            </p>
             {Array.from({ length: projektAnzahl }, (_, i) => (
               <div className="form-row-pair" key={i}>
                 <label>

@@ -313,6 +313,12 @@ td.override {
   padding: 5px 8px;
 }
 
+.entry-form-card .datum-bar .datum-lesbar {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .entry-form-card .datum-bar .override-hint {
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -357,6 +363,11 @@ td.override {
   font-size: 0.76rem;
   color: var(--text-muted);
   margin: -4px 0 0;
+}
+
+.form-hint-warn {
+  color: var(--neg);
+  font-weight: 600;
 }
 
 .kategorien-row {
