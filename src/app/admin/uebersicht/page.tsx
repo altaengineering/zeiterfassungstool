@@ -139,8 +139,11 @@ export default async function UebersichtSeite({ searchParams }: Props) {
               <th className="label-cell">Mitarbeiter</th>
               <th>Tage erfasst</th>
               <th className="label-cell">Status</th>
-              <th className="label-cell" title="Stand ohne noch nicht erfasste Resttage dieses Monats">
-                Gleitzeit (heute)
+              <th
+                className="label-cell"
+                title="Stand von gestern: heute und noch nicht erfasste Resttage dieses Monats zaehlen nicht mit"
+              >
+                Gleitzeit (Stand gestern)
               </th>
               <th></th>
             </tr>
