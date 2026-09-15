@@ -365,6 +365,40 @@ immer sichtbar zu zeigen.
   Kalender-Chips gebaut werden (doppelt abgesichert). Ferien bleiben unverändert für den ganzen
   Monat sichtbar, das war nicht Teil des Feedbacks.
 
+**Design zurückgenommen: "zu bunt/RGB", Gleitzeit-Anzeige korrigiert (2026-09-15, dritter
+Nachtrag):** Direktes Feedback nach dem zweiten Nachtrag: die sechs Akzentfarben (blau/violett/
+teal/amber/pink/indigo) für Projekt-Tags, Avatare und Kennzahlen-Karten wirkten zusammen "zu sehr
+nach RGB", der Gelb-Grün-Balken oben im Header war störend, und die Gleitzeit-Zahl war
+irreführend negativ, weil noch nicht erreichte Kalendertage im laufenden Monat automatisch als
+volles Minus mitgezählt wurden.
+
+- **Farbpalette entfernt.** `paletteIndex` aus `src/lib/colors.ts` gestrichen (nur `initialen`
+  bleibt), `--farbe-0` bis `--farbe-5` und alle `.farbe-*`/`.tag.farbe-*`-Regeln aus `globals.css`
+  entfernt. `.avatar` ist jetzt einheitlich `var(--accent)` (Blau) mit weisser Schrift, `.tag`
+  (Projekt-Badges in Chef-Übersicht und Tagesübersicht) ein neutrales Pill mit
+  `var(--surface-alt)`-Hintergrund statt farbiger Füllung. `.card-accent-*` auf zwei Varianten
+  reduziert: `-blau` (neutral, fast alle Kennzahlen-Karten) und `-rot` (nur für einen echten
+  Warnzustand wie "im Rückstand"), keine gradient-Fläche mehr, nur ein dünner 2px-Rand oben.
+  Kalender-Chips (Ferien=blau, Krank=rot) und der Admin-Menü-Akzent (Amber) blieben unverändert
+  stehen, das ist gezielte Signalfarbe für genau eine Bedeutung, kein Regenbogen.
+- **`.topbar::before`-Gradient (Grün/Amber/Blau) entfernt**, ersetzt durch einen schlichten
+  1px-`border-bottom` in einem gedeckten Blauton (`color-mix` mit `--border`).
+- **Body bekam einen dezenten radialen Verlauf** statt der reinen Flächenfarbe
+  (`background-image: radial-gradient(...)` mit `var(--accent)` bei 10% Deckkraft, oben mittig,
+  `background-attachment: fixed`), damit der dunkle Hintergrund nicht komplett flach wirkt, ohne
+  ein weiteres Muster oder weitere Farbtöne einzuführen.
+- **Gleitzeitstand in der Chef-Übersicht korrigiert:** `berechneMonatsStand`
+  (`src/lib/monatsStand.ts`) bekam eine neue Option `nichtInDieZukunftProjizieren`. Ist sie
+  gesetzt, werden alle Tage NACH heute mit `sollOverride: 0` (Soll UND Ist = 0) statt mit echtem
+  Soll ohne Gegenbuchung gerechnet, sie beeinflussen den Stand also gar nicht erst. Nur
+  `/admin/uebersicht` nutzt diese Option (Spalte umbenannt in "Gleitzeit (heute)", mit Tooltip);
+  die persönliche Monatsseite und der Excel-Export bleiben bewusst unverändert bei der echten,
+  rollierenden Logik aus dem Original-Rapport (dort sollen unentschuldigt offene Tage weiterhin
+  als Rückstand zählen, das ist gerade der Sinn der Gleitzeit-Erfassung). Vorher zeigte die
+  Chef-Übersicht für den laufenden Monat immer einen stark negativen Wert und eine fast immer
+  fallende Tendenz, einfach weil die Resttage des Monats noch nicht erfasst werden konnten, das
+  hatte keine Aussagekraft darüber, ob jemand wirklich im Rückstand ist.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`

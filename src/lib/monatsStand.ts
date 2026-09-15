@@ -27,6 +27,21 @@ export interface MonatsStand {
   standEndeMonat: number;
 }
 
+export interface MonatsStandOptionen {
+  /**
+   * Für Tage NACH heute wird Soll und Ist beide auf 0 gesetzt (= "als hätte man die geforderten
+   * 100% erledigt"), statt wie im echten Rapport eine Soll-Zeit ohne Gegenbuchung anzuhäufen.
+   * Ohne diese Option würde der Gleitzeitstand für den laufenden Monat immer stark negativ
+   * aussehen, einfach weil die restlichen Kalendertage noch gar nicht erfasst werden konnten, das
+   * sagt nichts darüber aus, ob die Person tatsächlich im Rückstand ist. Nur für die
+   * Chef-Übersicht gedacht (schneller Blick "wo stehen wir heute"), NICHT für den echten,
+   * rollierenden Saldo auf der persönlichen Monatsseite oder den Excel-Export, die bleiben exakt
+   * wie im Original-Rapport (zukünftige Tage zählen dort bewusst als offen/negativ, bis sie
+   * erfasst sind).
+   */
+  nichtInDieZukunftProjizieren?: boolean;
+}
+
 // Reduzierte Variante derselben Stand-Berechnung wie in
 // mitarbeiter/[userId]/[jahr]/[monat]/page.tsx, nur auf die beiden Stand-Werte statt der ganzen
 // Tagesansicht (fuer die Chef-Uebersicht, wo pro Mitarbeitendem nur die Gleitzeit interessiert,
@@ -36,6 +51,7 @@ export async function berechneMonatsStand(
   userId: string,
   jahr: number,
   monat: number,
+  optionen: MonatsStandOptionen = {},
 ): Promise<MonatsStand | null> {
   const [jahresStammdaten, user] = await Promise.all([
     prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
@@ -80,12 +96,16 @@ export async function berechneMonatsStand(
   const startDatumIso = jahresStammdaten.erfassungStartDatum
     ? iso(jahresStammdaten.erfassungStartDatum)
     : null;
+  const heuteIso = iso(new Date());
 
   const alleTage = alleTageImJahr(jahr);
   const entryInputs: DailyEntryInput[] = alleTage.map((date) => {
     const e = entriesByDate.get(date);
     const vorStart = startDatumIso !== null && date < startDatumIso;
-    if (!e) {
+    // Siehe MonatsStandOptionen.nichtInDieZukunftProjizieren: Tage nach heute zaehlen dann weder
+    // als Soll noch als Ist, sie beeinflussen den Stand also gar nicht erst.
+    const inDerZukunft = optionen.nichtInDieZukunftProjizieren === true && date > heuteIso;
+    if (!e || inDerZukunft) {
       const leer: StempelPaar = { start: null, stop: null };
       return {
         date,
@@ -96,7 +116,7 @@ export async function berechneMonatsStand(
         ausbildung: 0,
         buero: 0,
         ferien: 0,
-        sollOverride: vorStart ? 0 : null,
+        sollOverride: inDerZukunft ? 0 : vorStart ? 0 : null,
         stempelzeiten: [leer, leer, leer, leer],
       };
     }

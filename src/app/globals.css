@@ -68,7 +68,12 @@ body {
   margin: 0;
   font-family: "Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif;
   color: var(--text);
-  background: var(--bg);
+  background-color: var(--bg);
+  /* Dezenter Glanz statt flacher Fläche, eine einzelne Akzentfarbe, kein Muster, keine weiteren
+     Farbtöne. Bleibt bewusst zurückhaltend (minimalistisch), nicht dekorativ. */
+  background-image: radial-gradient(1100px 480px at 50% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 65%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -207,39 +212,19 @@ a {
   font-weight: 600;
 }
 
+/* Bewusst zurückhaltend: nur ein dünner Rand oben, keine bunten Flächen. Nur zwei Varianten, blau
+   für neutrale Kennzahlen, rot ausschliesslich für einen echten Warnzustand (z.B. "im Rückstand") -
+   Farbe hier ist ein Signal, kein Dekor. */
 .card-accent {
-  border-top: 3px solid transparent;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--akzentfarbe) 7%, var(--surface)), var(--surface) 60%);
+  border-top: 2px solid var(--border);
 }
 
 .card-accent-blau {
-  --akzentfarbe: var(--accent);
-  border-top-color: var(--accent);
-}
-
-.card-accent-amber {
-  --akzentfarbe: var(--accent-2);
-  border-top-color: var(--accent-2);
+  border-top-color: color-mix(in srgb, var(--accent) 55%, var(--border));
 }
 
 .card-accent-rot {
-  --akzentfarbe: var(--neg);
   border-top-color: var(--neg);
-}
-
-.card-accent-gruen {
-  --akzentfarbe: var(--pos);
-  border-top-color: var(--pos);
-}
-
-.card-accent-violett {
-  --akzentfarbe: var(--farbe-1);
-  border-top-color: var(--farbe-1);
-}
-
-.card-accent-teal {
-  --akzentfarbe: var(--farbe-2);
-  border-top-color: var(--farbe-2);
 }
 
 .table-wrap {
@@ -1014,17 +999,7 @@ main.login-hero {
 
 .topbar {
   position: relative;
-  padding-top: 13px;
-}
-
-.topbar::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--pos), var(--accent-2), var(--accent));
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
 }
 
 .topbar-brand {
@@ -1246,16 +1221,7 @@ main.login-hero {
   color: var(--text-muted);
 }
 
-/* ---------- Farbpalette für Namens-/Projekt-Badges (src/lib/colors.ts) ---------- */
-
-:root {
-  --farbe-0: #3b82f6;
-  --farbe-1: #8b5cf6;
-  --farbe-2: #14b8a6;
-  --farbe-3: #f59e0b;
-  --farbe-4: #ec4899;
-  --farbe-5: #6366f1;
-}
+/* ---------- Namens-Avatare und Tags: bewusst einfarbig (ein Akzentton), kein Regenbogen ---------- */
 
 .avatar {
   display: inline-flex;
@@ -1264,6 +1230,7 @@ main.login-hero {
   width: 26px;
   height: 26px;
   border-radius: 50%;
+  background: var(--accent);
   color: #fff;
   font-size: 0.68rem;
   font-weight: 700;
@@ -1273,17 +1240,13 @@ main.login-hero {
 .tag {
   display: inline-block;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: 6px;
   font-size: 0.78rem;
   font-weight: 600;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
-
-.farbe-0 { background: var(--farbe-0); }
-.farbe-1 { background: var(--farbe-1); }
-.farbe-2 { background: var(--farbe-2); }
-.farbe-3 { background: var(--farbe-3); }
-.farbe-4 { background: var(--farbe-4); }
-.farbe-5 { background: var(--farbe-5); }
 
 .tag-klein {
   padding: 2px 8px;
@@ -1307,13 +1270,6 @@ main.login-hero {
   color: var(--text-muted);
   font-size: 0.78rem;
 }
-
-.tag.farbe-0 { background: color-mix(in srgb, var(--farbe-0) 18%, var(--surface)); color: var(--farbe-0); }
-.tag.farbe-1 { background: color-mix(in srgb, var(--farbe-1) 18%, var(--surface)); color: var(--farbe-1); }
-.tag.farbe-2 { background: color-mix(in srgb, var(--farbe-2) 20%, var(--surface)); color: var(--farbe-2); }
-.tag.farbe-3 { background: color-mix(in srgb, var(--farbe-3) 20%, var(--surface)); color: var(--farbe-3); }
-.tag.farbe-4 { background: color-mix(in srgb, var(--farbe-4) 18%, var(--surface)); color: var(--farbe-4); }
-.tag.farbe-5 { background: color-mix(in srgb, var(--farbe-5) 18%, var(--surface)); color: var(--farbe-5); }
 
 /* ---------- Chef-Übersicht ---------- */
 

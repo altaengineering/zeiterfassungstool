@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { paletteIndex, initialen } from "@/lib/colors";
+import { initialen } from "@/lib/colors";
 
 export interface UebersichtBuchung {
   datum: string;
@@ -51,7 +51,7 @@ export function MitarbeiterZeile({
         <td className="label-cell">
           <span className="uebersicht-name">
             <span className="uebersicht-caret">{offen ? "▾" : "▸"}</span>
-            <span className={"avatar farbe-" + paletteIndex(name)}>{initialen(name)}</span>
+            <span className="avatar">{initialen(name)}</span>
             {name}
           </span>
         </td>
@@ -121,7 +121,7 @@ export function MitarbeiterZeile({
                       </td>
                       <td className="label-cell">
                         {z.label !== "—" ? (
-                          <span className={"tag farbe-" + paletteIndex(z.label)}>{z.label}</span>
+                          <span className="tag">{z.label}</span>
                         ) : (
                           "—"
                         )}

@@ -85,9 +85,15 @@ export default async function UebersichtSeite({ searchParams }: Props) {
 
   // Gleitzeitstand pro Person, parallel berechnet (jede Berechnung braucht die volle Jahresreihe
   // dieser Person, siehe berechneMonatsStand). Nur fuer Admins, daher hier der Mehraufwand okay.
+  // Mit nichtInDieZukunftProjizieren: der Stand hier ist ein "wo stehen wir heute"-Blick, nicht
+  // der rollierende Saldo aus dem echten Rapport (der zaehlt noch nicht erfasste Resttage des
+  // Monats bewusst als offen) - siehe Kommentar in monatsStand.ts.
   const standByUser = new Map(
     await Promise.all(
-      users.map(async (u) => [u.id, await berechneMonatsStand(u.id, jahr, monat)] as const),
+      users.map(
+        async (u) =>
+          [u.id, await berechneMonatsStand(u.id, jahr, monat, { nichtInDieZukunftProjizieren: true })] as const,
+      ),
     ),
   );
 
@@ -116,7 +122,7 @@ export default async function UebersichtSeite({ searchParams }: Props) {
           <div className="label">Mitarbeitende</div>
           <div className="value">{users.length}</div>
         </div>
-        <div className="card card-accent card-accent-amber">
+        <div className="card card-accent card-accent-blau">
           <div className="label">Erwartete Arbeitstage bisher</div>
           <div className="value">{erwarteteArbeitstage}</div>
         </div>
@@ -133,7 +139,9 @@ export default async function UebersichtSeite({ searchParams }: Props) {
               <th className="label-cell">Mitarbeiter</th>
               <th>Tage erfasst</th>
               <th className="label-cell">Status</th>
-              <th className="label-cell">Gleitzeit</th>
+              <th className="label-cell" title="Stand ohne noch nicht erfasste Resttage dieses Monats">
+                Gleitzeit (heute)
+              </th>
               <th></th>
             </tr>
           </thead>
