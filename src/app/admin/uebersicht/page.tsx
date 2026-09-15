@@ -16,8 +16,18 @@ function iso(date: Date): string {
 }
 
 // Arbeitstage (Mo-Fr, ohne bezahlte Feiertage) im Monat bis einschliesslich `bisDatum`, Basis für
-// "wer hat diesen Monat noch nichts erfasst" (CLAUDE.md-Backlog).
-function arbeitstageBisher(jahr: number, monat: number, bisDatum: Date, feiertage: Set<string>): number {
+// "wer hat diesen Monat noch nichts erfasst" (CLAUDE.md-Backlog). Mit `nurMitEintrag` gezaehlt
+// werden nur die dieser Teilmenge an Arbeitstagen, die zusaetzlich einen Eintrag haben, so bleibt
+// "erfasste Tage" IMMER eine Teilmenge von "erwartete Arbeitstage" und kann sie nie uebersteigen
+// (frueher zaehlte "erfasst" alle DailyEntry-Zeilen des ganzen Monats, auch Wochenenden und Tage
+// in der Zukunft, dadurch stand z.B. "30/9" da, was wie ein Fehler aussah).
+function arbeitstageBisher(
+  jahr: number,
+  monat: number,
+  bisDatum: Date,
+  feiertage: Set<string>,
+  nurMitEintrag?: Set<string>,
+): number {
   let anzahl = 0;
   const letzterTagMonat = new Date(Date.UTC(jahr, monat, 0)).getUTCDate();
   const bisIso = iso(bisDatum);
@@ -27,6 +37,7 @@ function arbeitstageBisher(jahr: number, monat: number, bisDatum: Date, feiertag
     const wochentag = new Date(`${dateStr}T00:00:00Z`).getUTCDay();
     if (wochentag === 0 || wochentag === 6) continue;
     if (feiertage.has(dateStr)) continue;
+    if (nurMitEintrag && !nurMitEintrag.has(dateStr)) continue;
     anzahl += 1;
   }
   return anzahl;
@@ -67,7 +78,8 @@ export default async function UebersichtSeite({ searchParams }: Props) {
   const feiertage = new Set(feiertageDb.map((f) => iso(f.date)));
   const istAktuellerMonat = jahr === heute.getUTCFullYear() && monat === heute.getUTCMonth() + 1;
   const stichtag = istAktuellerMonat ? heute : monatEnde;
-  const erwarteteArbeitstage = arbeitstageBisher(jahr, monat, new Date(stichtag.getTime() - 86400000), feiertage);
+  const stichtagBisGestern = new Date(stichtag.getTime() - 86400000);
+  const erwarteteArbeitstage = arbeitstageBisher(jahr, monat, stichtagBisGestern, feiertage);
 
   const entriesByUser = new Map<string, typeof entriesDb>();
   for (const e of entriesDb) {
@@ -79,8 +91,13 @@ export default async function UebersichtSeite({ searchParams }: Props) {
   const vorMonat = monat === 1 ? { jahr: jahr - 1, monat: 12 } : { jahr, monat: monat - 1 };
   const naechMonat = monat === 12 ? { jahr: jahr + 1, monat: 1 } : { jahr, monat: monat + 1 };
 
+  function erfassteArbeitstage(userId: string): number {
+    const entryDatesSet = new Set((entriesByUser.get(userId) ?? []).map((e) => iso(e.date)));
+    return arbeitstageBisher(jahr, monat, stichtagBisGestern, feiertage, entryDatesSet);
+  }
+
   const anzahlImRueckstand = users.filter(
-    (u) => (entriesByUser.get(u.id) ?? []).length < erwarteteArbeitstage,
+    (u) => erfassteArbeitstage(u.id) < erwarteteArbeitstage,
   ).length;
 
   // Gleitzeitstand pro Person, parallel berechnet (jede Berechnung braucht die volle Jahresreihe
@@ -151,7 +168,7 @@ export default async function UebersichtSeite({ searchParams }: Props) {
           <tbody>
             {users.map((u) => {
               const entries = entriesByUser.get(u.id) ?? [];
-              const erfassteTage = entries.length;
+              const erfassteTage = erfassteArbeitstage(u.id);
               const hinterher = erfassteTage < erwarteteArbeitstage;
               const zeilen = entries.flatMap((e) =>
                 e.bookings.length > 0

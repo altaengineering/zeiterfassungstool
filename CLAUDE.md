@@ -489,6 +489,32 @@ nur deaktivierbar, siehe erster Nachtrag), plus allgemein mehr visuelle Gestaltu
   an anderer Stelle für positive Zustände), keine neue Farbvielfalt, siehe drittes Nachtrag-Feedback
   "zu bunt".
 
+**Hintergrund nochmal ausgebaut, Kalender-Legende bereinigt, Chef-Übersicht-Zähler korrigiert
+(2026-09-15, achter Nachtrag):** Drei kleinere Punkte aus direktem Feedback.
+
+- **`.app-bg` reicht jetzt über die ganze Seite statt nur oben:** zweiter, leiserer Glanzpunkt
+  unten rechts dazu (asymmetrisch zum oberen, wirkt weniger wie ein einzelner "Klecks"), plus eine
+  sehr dezente diagonale Linie als zusätzlicher Akzent. Die Maske (`mask-image`) wurde deutlich
+  vergrössert (`1900px 1500px`, `transparent 94%` statt `82%`), vorher liess sie das Gitter nur im
+  oberen Seitenbereich durchscheinen, jetzt über praktisch die ganze Seite, nur an den äussersten
+  Rändern noch ein sanftes Ausblenden. Weiterhin nur `var(--accent)` (ein Blauton), keine weitere
+  Farbe, und weiterhin die langsame 14s-Atem-Animation (`prefers-reduced-motion` respektiert).
+- **Kalender-Legende zeigte bei Ferien/Krank den Platzhaltertext "AB"** (ein Test-Initialen-Rest
+  aus der ersten Kalender-Version, nie durch etwas Sinnvolles ersetzt). Legende zeigt jetzt einen
+  reinen Farbpunkt (`.kalender-chip-swatch`, 12px, keine Buchstaben), so wie es Feiertag/Wochenende
+  schon immer taten.
+- **"Tage erfasst" in der Chef-Übersicht konnte grösser als "erwartete Arbeitstage" sein** (z.B.
+  "30/9"), weil `erfassteTage` bisher schlicht alle `DailyEntry`-Zeilen des ganzen Monats zählte,
+  auch Wochenenden und (bei Personen mit im Voraus vorhandenen Zeilen, z.B. aus der "leere
+  Startphase"-Vorbefüllung) Tage in der Zukunft, während "erwartete Arbeitstage" nur Werktage bis
+  gestern zählt. `arbeitstageBisher()` (`src/app/admin/uebersicht/page.tsx`) bekam einen neuen,
+  optionalen Parameter `nurMitEintrag: Set<string>` und läuft für "Tage erfasst" jetzt über exakt
+  dieselbe Tagesmenge wie für "erwartete Arbeitstage", zählt davon aber nur die Tage mit
+  tatsächlichem Eintrag. Dadurch ist "Tage erfasst" jetzt rechnerisch immer eine Teilmenge von
+  "erwartete Arbeitstage" und kann sie nicht mehr übersteigen. Lokal mit künstlich für den ganzen
+  Monat vorbefüllten Testdaten nachgestellt (vorher hätte das "28/10" angezeigt, danach korrekt
+  "10/10").
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`

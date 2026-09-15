@@ -89,23 +89,38 @@ textarea {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: radial-gradient(
-      1500px 820px at 50% -10%,
-      color-mix(in srgb, var(--accent) 32%, transparent),
-      transparent 65%
+  background-image:
+    /* Hauptglanz oben, etwas asymmetrisch statt exakt mittig (wirkt weniger "clip-art"-artig) */
+    radial-gradient(
+      1400px 760px at 42% -12%,
+      color-mix(in srgb, var(--accent) 34%, transparent),
+      transparent 64%
     ),
-    linear-gradient(color-mix(in srgb, var(--accent) 11%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 11%, transparent) 1px, transparent 1px);
-  background-size: 100% 100%, 44px 44px, 44px 44px;
-  mask-image: radial-gradient(1350px 950px at 50% -4%, black 0%, transparent 82%);
-  -webkit-mask-image: radial-gradient(1350px 950px at 50% -4%, black 0%, transparent 82%);
-  animation: app-bg-atmen 12s ease-in-out infinite;
+    /* Zweiter, leiserer Glanz unten rechts, gibt der Flaeche Tiefe statt einer einzelnen Kugel */
+    radial-gradient(
+      1000px 620px at 96% 92%,
+      color-mix(in srgb, var(--accent) 20%, transparent),
+      transparent 68%
+    ),
+    /* Feine Diagonale, sehr dezent, als zusaetzlicher "sleek" Akzent */
+    linear-gradient(
+      128deg,
+      transparent 40%,
+      color-mix(in srgb, var(--accent) 5%, transparent) 52%,
+      transparent 64%
+    ),
+    linear-gradient(color-mix(in srgb, var(--accent) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 12%, transparent) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+  mask-image: radial-gradient(1900px 1500px at 50% 25%, black 0%, transparent 94%);
+  -webkit-mask-image: radial-gradient(1900px 1500px at 50% 25%, black 0%, transparent 94%);
+  animation: app-bg-atmen 14s ease-in-out infinite;
 }
 
 @keyframes app-bg-atmen {
   0%,
   100% {
-    opacity: 0.82;
+    opacity: 0.85;
   }
   50% {
     opacity: 1;
@@ -1614,6 +1629,13 @@ main.login-hero {
 
 .kalender-chip-krank {
   background: var(--neg);
+}
+
+.kalender-chip-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
 }
 
 .kalender-notizen {

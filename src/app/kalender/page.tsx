@@ -151,10 +151,10 @@ export default async function KalenderSeite({ searchParams }: Props) {
 
       <div className="kalender-legende">
         <span className="kalender-legende-item">
-          <span className="kalender-chip kalender-chip-ferien">AB</span> Ferien
+          <span className="kalender-chip-swatch kalender-chip-ferien" /> Ferien
         </span>
         <span className="kalender-legende-item">
-          <span className="kalender-chip kalender-chip-krank">AB</span> Krank
+          <span className="kalender-chip-swatch kalender-chip-krank" /> Krank
         </span>
         <span className="kalender-legende-item">
           <span className="kalender-tag-swatch kalender-tag-feiertag" /> Feiertag
