@@ -399,6 +399,16 @@ volles Minus mitgezählt wurden.
   fallende Tendenz, einfach weil die Resttage des Monats noch nicht erfasst werden konnten, das
   hatte keine Aussagekraft darüber, ob jemand wirklich im Rückstand ist.
 
+**Krank-Sichtbarkeit im Kalender: Ausnahme für Admins (2026-09-15, vierter Nachtrag):** Die
+Einschränkung aus dem zweiten Nachtrag (Krank-Tage im Kalender nur ab heute sichtbar) galt bisher
+für alle, auch Admins. Auf Wunsch sehen Admins jetzt weiterhin den vollen Verlauf inkl.
+Vergangenheit (z.B. für Lohn-/Absenzfragen), normale Mitarbeitende weiterhin nur ab heute. Sowohl
+die Datenbank-Abfrage als auch der zweite Check beim Bauen der Kalender-Chips in
+`src/app/kalender/page.tsx` prüfen dafür `ich.role === "ADMIN"` (`binAdmin`). Der Hinweistext unter
+der Kalender-Überschrift ("Krankheitstage sind hier nur ab heute sichtbar...") erscheint dafür nur
+noch für Nicht-Admins. Lokal mit zwei Accounts gegengetestet: Admin sieht einen absichtlich in die
+Vergangenheit gesetzten Krank-Tag, derselbe Tag ist für den normalen Testaccount unsichtbar.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
