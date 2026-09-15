@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { STANDARD_JAHRESFERIENTAGE } from "../src/lib/calc";
+import { migriereBuchungenZuProjekten } from "../src/lib/projects";
 import feiertage2026 from "./seed-data/feiertage-2026.json";
 import juniDaten from "./seed-data/jun-2026-michael-kueng.json";
 import juliDaten from "./seed-data/jul-2026-michael-kueng.json";
@@ -157,6 +158,11 @@ async function main() {
     await seedTag(michael.id, tag);
   }
 
+  // Feste Projektliste (siehe /admin/projekte): aus den frei getippten Labels der Seed-Daten
+  // automatisch ableiten, damit die lokale Demo denselben Übernahme-Weg durchläuft wie die
+  // Produktionsdaten später über den Migrieren-Button.
+  const anzahlProjekteMigriert = await migriereBuchungenZuProjekten(company.id);
+
   // Jan-Mai 2026: In der Original-Datei war der Tages-Soll für die Zeit VOR Live-Betrieb des
   // Tools manuell auf 0 überschrieben (siehe CLAUDE.md §7 Punkt 2). Für die Demo hier
   // nachgebildet, damit der rollierende Saldo nicht künstlich ins Minus läuft, nur weil vor Juni
@@ -176,7 +182,8 @@ async function main() {
   console.log(
     `Seed fertig: Firma "${company.name}", ${mitarbeitende.length} Mitarbeitende angelegt/` +
       `aktualisiert, ${feiertage2026.length} Feiertage, ${alleMonatsDaten.length} Tageseinträge ` +
-      `Jun-Sep 2026 für ${michael.name}.`,
+      `Jun-Sep 2026 für ${michael.name}, ${anzahlProjekteMigriert} Buchungen einem Projekt ` +
+      `zugeordnet.`,
   );
 }
 

@@ -40,8 +40,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <span className="topbar-user">
                 <span className="topbar-nav">
                   {istAdmin && <Link href="/admin">Nutzerverwaltung</Link>}
+                  {istAdmin && <Link href="/admin/projekte">Projekte</Link>}
+                  {istAdmin && <Link href="/admin/uebersicht">Chef-Übersicht</Link>}
                   {istAdmin && <Link href="/admin/feiertage">Feiertage</Link>}
                   {istAdmin && <Link href="/admin/monatsabschluss">Monatsabschluss</Link>}
+                  <Link href="/kalender">Kalender</Link>
                   <Link href="/konto/passwort">Passwort ändern</Link>
                   <Link href="/konto/einrichtung">Einrichtung</Link>
                 </span>

@@ -68,7 +68,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
   const session = await auth();
   const binAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
 
-  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, monatsAbschluss, pensumWechselDb] =
+  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, monatsAbschluss, pensumWechselDb, projekteDb] =
     await Promise.all([
       prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
       prisma.companySettings.findUnique({
@@ -91,6 +91,10 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
         where: { companyId_year_month: { companyId: user.companyId, year: jahr, month: monat } },
       }),
       prisma.pensumWechsel.findMany({ where: { userId }, orderBy: { gueltigAb: "asc" } }),
+      prisma.project.findMany({
+        where: { companyId: user.companyId, aktiv: true },
+        orderBy: { createdAt: "asc" },
+      }),
     ]);
 
   // Mitarbeitende dürfen einen abgeschlossenen Monat nicht mehr bearbeiten, Admins schon
@@ -302,7 +306,10 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
             const istWochenende = wochentag === 0 || wochentag === 6;
             const rowClass = feiertag ? "holiday" : istWochenende ? "weekend" : "";
             const buchungen = [
-              ...(dbEntry?.bookings.map((b) => `${b.label} ${formatStunden(b.hours)}h`) ?? []),
+              ...(dbEntry?.bookings.map(
+                (b) =>
+                  `${b.label} ${formatStunden(b.hours)}h${b.kommentar ? ` (${b.kommentar})` : ""}`,
+              ) ?? []),
               dbEntry && dbEntry.krank ? `krank ${formatStunden(dbEntry.krank)}h` : null,
               dbEntry && dbEntry.reisezeit ? `Reisezeit ${formatStunden(dbEntry.reisezeit)}h` : null,
               dbEntry && dbEntry.cad ? `CAD ${formatStunden(dbEntry.cad)}h` : null,
@@ -377,7 +384,12 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                 stop3: bestehenderDbEintrag.stop3,
                 start4: bestehenderDbEintrag.start4,
                 stop4: bestehenderDbEintrag.stop4,
-                bookings: bestehenderDbEintrag.bookings.map((b) => ({ label: b.label, hours: b.hours })),
+                bookings: bestehenderDbEintrag.bookings.map((b) => ({
+                  projectId: b.projectId,
+                  label: b.label,
+                  hours: b.hours,
+                  kommentar: b.kommentar,
+                })),
               }
             : null;
 
@@ -395,6 +407,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                 datum={ausgewaehltesDatum}
                 sollFuerTag={sollFuerAusgewaehltenTag}
                 bestehenderEintrag={bestehenderEintrag}
+                projekte={projekteDb.map((p) => ({ id: p.id, name: p.name }))}
               />
             </>
           );

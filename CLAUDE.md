@@ -185,6 +185,71 @@ SQLite-Testklon, nicht dieses Arbeitsverzeichnis): 3 Projekte angelegt, Rest-Ver
 Stempelzeit- und Label-Änderungen sowie manuellem Überschreiben verifiziert, gespeicherter
 Tageseintrag zeigte alle 3 Buchungen korrekt in der Tagesübersicht.
 
+**Feste Projektliste + Kommentar, Chef-Übersicht, Kalender (2026-09-15):** Michael meldete, dass
+freies Getippe bei den Projekten dazu verleitet, für dasselbe Projekt leicht unterschiedliche Namen
+zu tippen, und dass das im Excel-Export zu inkonsistenten Spalten führte (der ursprünglich als
+"Excel Export Bug ... immer eine neue Spalte angelegt" gemeldete Punkt), gewünscht war eine feste,
+firmenweite Projektliste plus ein Kommentarfeld pro Projekt-Buchung ("was wurde heute gemacht").
+Zusätzlich gewünscht: eine Admin-Übersicht, wer an welchen Projekten gearbeitet hat (mit
+Kommentaren) und wer mit der Erfassung hinterherhinkt, sowie ein für alle einsehbarer Kalender mit
+Feiertagen und Abwesenheiten (Ferien/Krank).
+
+- **Neues Modell `Project`** (companyId, name, `aktiv: Boolean`, in beiden Schema-Dateien).
+  `Booking` bekommt `projectId: String?` (nullable!) und `kommentar: String @default("")`. `label`
+  bleibt als Feld bestehen (wird beim Speichern weiterhin auf den Namen des gewählten Projekts
+  gesetzt), bewusst NICHT entfernt, und `projectId` bewusst NICHT als required/NOT NULL modelliert:
+  `vercel-build` läuft bei jedem Deploy automatisch `prisma db push --accept-data-loss` gegen die
+  echte Produktions-DB mit Michaels und ggf. weiteren Mitarbeitenden echten, bereits erfassten
+  Buchungen (freier Text). Ein required `projectId` ohne bestehende Werte hätte den Deploy riskiert
+  (Spalte kann nicht NOT NULL werden, solange Zeilen ohne Wert existieren) bzw. im schlimmsten Fall
+  Datenverlust bedeutet. Migration alter Buchungen läuft stattdessen **über die laufende App**, die
+  bereits gültigen Zugriff auf die Produktions-DB hat (nicht über einen direkten DB-Zugriff dieser
+  Session, der nicht besteht): `src/lib/projects.ts` (`migriereBuchungenZuProjekten`) legt für jedes
+  bisher unbekannte `label` automatisch ein `Project` an und verknüpft die Buchung per `projectId`,
+  idempotent, beliebig oft aufrufbar. Admin-seitig als Button unter `/admin/projekte` ("Alte
+  Buchungen übernehmen"). **Nach diesem Deploy einmal von einem Admin auf der Live-Seite klicken**,
+  damit Michaels bestehende Juni-September-Buchungen (Website/Zeiterfassung/CAD-Support/…) ihre
+  `projectId` bekommen, sonst tauchen sie im Bearbeiten-Formular zwar weiterhin korrekt an (Fallback
+  über Namensvergleich, siehe `EntryForm.anfangsProjektId`), zählen aber im Export erst nach der
+  Migration zuverlässig über `projectId` statt nur über Namensvergleich.
+- **`/admin/projekte`:** Projekte anlegen/umbenennen/(de)aktivieren. Kein Löschen (nur Deaktivieren),
+  damit bestehende Buchungen ihre Zuordnung nicht verlieren. Warnt, wenn mehr als 9 aktive Projekte
+  existieren (Excel-Vorlage hat nur die Spalten C–K).
+- **`EntryForm.tsx`:** Projekt-Textfeld durch `<select>` ersetzt (befüllt aus den aktiven Projekten
+  der Firma, als Prop von `page.tsx` durchgereicht), plus ein neues Kommentar-Textfeld pro
+  Projektzeile. Die Absorber-/Rest-Verteilungslogik (`absorberIndexBestimmen`,
+  `projektStundenNeuVerteilen`) blieb inhaltlich unverändert, nur `projektLabelRefs` (Text-Input-Refs)
+  wurde zu `projektSelectRefs` (Select-Refs). `actions.ts` liest jetzt `projektId<i>` statt
+  `projektLabel<i>` und `projektKommentar<i>` zusätzlich, löst den Projektnamen für das Legacy-Feld
+  `label` beim Speichern auf.
+- **Export-Fix (der eigentliche "neue Spalte"-Bug):** `exportExcel.ts` bestimmte die
+  Projekt-Spaltenreihenfolge (C–K) bisher **pro Monat neu**, aus der Reihenfolge des ersten
+  Auftretens der Labels in diesem Monat, dadurch stand dieselbe Spalte in unterschiedlichen Monaten
+  (oder bei unterschiedlichen Personen) für unterschiedliche Projekte, sobald sich die
+  Erstauftritts-Reihenfolge unterschied. Jetzt: `ExportInput.projekte` (feste, nach `createdAt`
+  sortierte Liste, max. 9) wird von `route.ts` mitgegeben und für **alle** Monatsblätter gleich
+  verwendet; die Zuordnung pro Buchung läuft über `projectId` (mit Namens-Fallback für noch nicht
+  migrierte Altbuchungen). Lokal end-to-end verifiziert: Export erzeugt, `xl/worksheets/sheet9.xml`
+  (September) per Skript inspiziert, Spalten C/D/E enthalten exakt Website/Zeiterfassung/CAD-Support
+  in der erwarteten festen Reihenfolge mit den korrekten Stunden.
+- **`/admin/uebersicht` (Chef-Übersicht, nur Admins):** Monatsansicht über alle Mitarbeitenden:
+  erfasste Arbeitstage vs. erwartete Arbeitstage bis heute (flaggt, wer hinterherhinkt), darunter pro
+  Person eine Tabelle Datum/Projekt/Stunden/Kommentar. Bewusst **kein** rollierender Stand/Saldo pro
+  Person in dieser Übersicht (das gibt es bereits auf der persönlichen Monatsseite, verlinkt via
+  "Monatsansicht öffnen"), hätte die komplette Pensum-/Feiertags-Berechnungskette pro Mitarbeitendem
+  dupliziert, für den eigentlichen Zweck ("wer hat woran gearbeitet, wer ist im Rückstand") nicht
+  nötig.
+- **`/kalender` (für alle Mitarbeitenden sichtbar, nicht nur Admins):** Monatsliste mit Feiertagen
+  (aus `Holiday`) und, pro Tag, wer in der Firma Ferien oder krank gemeldet ist (aus `DailyEntry.
+  ferien`/`krank` aller Mitarbeitenden der Firma, nicht nur der eigenen Einträge). Zeigt die reinen
+  Stunden (z.B. "Ferien, 8.40h"), keine Halbtags-/Ganztags-Umrechnung (dafür bräuchte es den
+  Pensum-Wert pro Person und Tag, für eine reine Übersicht nicht nötig).
+- Lokal end-to-end getestet (separater SQLite-Testklon `L:\zft_check`, nicht dieses Verzeichnis):
+  Migration von 3 Altbuchungen verifiziert (Website/Zeiterfassung/CAD-Support korrekt als Projekte
+  angelegt und verknüpft), Auswahl im Formular zeigt die migrierten Buchungen korrekt vorselektiert,
+  Kommentar gespeichert und in Tagesübersicht + Chef-Übersicht sichtbar, Ferien-Eintrag erscheint im
+  Kalender mit korrektem Namen/Stunden.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`

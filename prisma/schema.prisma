@@ -22,6 +22,23 @@ model Company {
   holidays     Holiday[]
   settings     CompanySettings[]
   monthCloses  MonthClose[]
+  projects     Project[]
+}
+
+// Feste, firmenweite Projektliste (löst zwei Probleme auf einmal: freies Getippe führt zu
+// Tippfehler-Varianten derselben Projekte, und der Excel-Export bekam dadurch pro Monat/Person
+// unterschiedliche, inkonsistente Spalten, siehe CLAUDE.md). Admins pflegen die Liste unter
+// /admin/projekte, im Tageseintrag wird nur noch aus dieser Liste ausgewählt statt frei getippt.
+model Project {
+  id        String    @id @default(cuid())
+  company   Company   @relation(fields: [companyId], references: [id])
+  companyId String
+  name      String
+  aktiv     Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  bookings  Booking[]
+
+  @@unique([companyId, name])
 }
 
 // Monatsabschluss: sobald ein Monat abgeschlossen ist, können Mitarbeitende ihre Tageseinträge
@@ -153,11 +170,18 @@ model DailyEntry {
   @@unique([userId, date])
 }
 
-// Freie Projekt-/Kategorie-Buchung (Spalten C-K, pro Monat/User frei benennbar — CLAUDE.md §2).
+// Projekt-/Kategorie-Buchung (Spalten C-K, CLAUDE.md §2). `label` ist historisch (freier Text,
+// aus der Zeit vor der festen Projektliste) und wird beim Speichern weiterhin auf den Namen des
+// gewählten Projekts gesetzt (Anzeige-Fallback für Altbuchungen ohne projectId). `projectId` ist
+// die eigentliche Quelle der Wahrheit für neue Buchungen, siehe /admin/projekte und
+// src/lib/projects.ts (Migration alter Buchungen anhand von `label`).
 model Booking {
   id           String     @id @default(cuid())
   dailyEntry   DailyEntry @relation(fields: [dailyEntryId], references: [id], onDelete: Cascade)
   dailyEntryId String
+  project      Project?   @relation(fields: [projectId], references: [id])
+  projectId    String?
   label        String
   hours        Float
+  kommentar    String     @default("")
 }
