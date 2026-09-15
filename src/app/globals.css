@@ -207,6 +207,41 @@ a {
   font-weight: 600;
 }
 
+.card-accent {
+  border-top: 3px solid transparent;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--akzentfarbe) 7%, var(--surface)), var(--surface) 60%);
+}
+
+.card-accent-blau {
+  --akzentfarbe: var(--accent);
+  border-top-color: var(--accent);
+}
+
+.card-accent-amber {
+  --akzentfarbe: var(--accent-2);
+  border-top-color: var(--accent-2);
+}
+
+.card-accent-rot {
+  --akzentfarbe: var(--neg);
+  border-top-color: var(--neg);
+}
+
+.card-accent-gruen {
+  --akzentfarbe: var(--pos);
+  border-top-color: var(--pos);
+}
+
+.card-accent-violett {
+  --akzentfarbe: var(--farbe-1);
+  border-top-color: var(--farbe-1);
+}
+
+.card-accent-teal {
+  --akzentfarbe: var(--farbe-2);
+  border-top-color: var(--farbe-2);
+}
+
 .table-wrap {
   overflow-x: auto;
   border-radius: 8px;
@@ -1211,6 +1246,75 @@ main.login-hero {
   color: var(--text-muted);
 }
 
+/* ---------- Farbpalette für Namens-/Projekt-Badges (src/lib/colors.ts) ---------- */
+
+:root {
+  --farbe-0: #3b82f6;
+  --farbe-1: #8b5cf6;
+  --farbe-2: #14b8a6;
+  --farbe-3: #f59e0b;
+  --farbe-4: #ec4899;
+  --farbe-5: #6366f1;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.farbe-0 { background: var(--farbe-0); }
+.farbe-1 { background: var(--farbe-1); }
+.farbe-2 { background: var(--farbe-2); }
+.farbe-3 { background: var(--farbe-3); }
+.farbe-4 { background: var(--farbe-4); }
+.farbe-5 { background: var(--farbe-5); }
+
+.tag-klein {
+  padding: 2px 8px;
+  font-size: 0.7rem;
+}
+
+.buchungen-zelle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  white-space: normal;
+}
+
+.tag-kommentar {
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+.buchungen-kategorien {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.tag.farbe-0 { background: color-mix(in srgb, var(--farbe-0) 18%, var(--surface)); color: var(--farbe-0); }
+.tag.farbe-1 { background: color-mix(in srgb, var(--farbe-1) 18%, var(--surface)); color: var(--farbe-1); }
+.tag.farbe-2 { background: color-mix(in srgb, var(--farbe-2) 20%, var(--surface)); color: var(--farbe-2); }
+.tag.farbe-3 { background: color-mix(in srgb, var(--farbe-3) 20%, var(--surface)); color: var(--farbe-3); }
+.tag.farbe-4 { background: color-mix(in srgb, var(--farbe-4) 18%, var(--surface)); color: var(--farbe-4); }
+.tag.farbe-5 { background: color-mix(in srgb, var(--farbe-5) 18%, var(--surface)); color: var(--farbe-5); }
+
 /* ---------- Chef-Übersicht ---------- */
 
 .card .value.neg {
@@ -1221,9 +1325,15 @@ main.login-hero {
   cursor: pointer;
 }
 
+.uebersicht-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .uebersicht-caret {
   display: inline-block;
-  width: 12px;
+  width: 10px;
   color: var(--text-muted);
 }
 
@@ -1248,6 +1358,7 @@ main.login-hero {
 
 .uebersicht-detail-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.82rem;
   background: var(--surface);
@@ -1256,14 +1367,63 @@ main.login-hero {
   overflow: hidden;
 }
 
+.uebersicht-col-datum {
+  width: 11%;
+}
+
+.uebersicht-col-projekt {
+  width: 22%;
+}
+
+.uebersicht-col-stunden {
+  width: 11%;
+}
+
+.uebersicht-col-kommentar {
+  width: 56%;
+}
+
 .uebersicht-detail-table th,
 .uebersicht-detail-table td {
   border-bottom: 1px solid var(--border);
-  padding: 6px 10px;
+  padding: 7px 10px;
 }
 
 .uebersicht-detail-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+.pos {
+  color: var(--pos);
+}
+
+.neg {
+  color: var(--neg);
+}
+
+.uebersicht-gleitzeit {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.uebersicht-trend {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.uebersicht-trend-auf {
+  color: var(--pos);
+}
+
+.uebersicht-trend-ab {
+  color: var(--neg);
+}
+
+.uebersicht-kommentar {
+  white-space: normal;
+  overflow-wrap: break-word;
+  color: var(--text-muted);
 }
 
 /* ---------- Kalender ---------- */
@@ -1387,6 +1547,22 @@ main.login-hero {
 
 .kalender-chip-krank {
   background: var(--neg);
+}
+
+.kalender-notizen {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.kalender-notiz-zeile {
+  font-size: 0.66rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
 }
 
 .kalender-feiertagsliste {

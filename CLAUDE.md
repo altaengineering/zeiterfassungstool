@@ -325,6 +325,46 @@ immer sichtbar zu zeigen.
   auf allen neuen Seiten gegengeprüft, `next build` lief fehlerfrei durch, neue Routen `/projekte`
   und `/admin/uebersicht` erscheinen korrekt in der Build-Ausgabe, `/admin/projekte` ist weg.
 
+**Kalender-Notizen (privat/öffentlich), Gleitzeit in der Chef-Übersicht, Farbpalette
+(2026-09-15, zweiter Nachtrag):**
+
+- **Neues Modell `KalenderNotiz`** (userId, date, text, `oeffentlich: Boolean`). Auf `/kalender`
+  kann jede Person Notizen zu einem Tag im angezeigten Monat anlegen (Formular unten auf der
+  Seite, Pill-Auswahl "Privat"/"Öffentlich" analog zur Ferien-Auswahl im Tageseintrag). Privat =
+  nur die eigene Person sieht sie (Datenbankabfrage filtert `userId = eigene ID`), öffentlich = alle
+  in der Firma (`companyId` über die Relation). Löschen nur für die eigene Notiz möglich
+  (`deleteMany` mit `userId` in der WHERE-Klausel, wie bei den Projekt-Actions). In den
+  Tages-Kacheln als kleine Zeile mit 🔒/🌐-Symbol, unten zusätzlich eine Tabelle "Meine Notizen" mit
+  Lösch-Button. Lokal als zwei verschiedene Personen gegengetestet: private Notiz von Person A
+  taucht bei Person B nirgends auf, öffentliche Notiz von Person B ist für Person A sichtbar,
+  beide sehen jeweils ihre eigene Notiz in der "Meine Notizen"-Liste.
+- **Gleitzeitstand in der Chef-Übersicht:** neue Datei `src/lib/monatsStand.ts`
+  (`berechneMonatsStand`), eine verkleinerte Kopie derselben Stand-Berechnung wie in
+  `mitarbeiter/[userId]/[jahr]/[monat]/page.tsx` (dieselben `calc`-Funktionen, nur auf
+  `standVorMonat`/`standEndeMonat` reduziert statt der ganzen Tagesansicht). Bewusst als eigene
+  Funktion statt die bestehende, gut getestete Seite umzubauen, um deren Verhalten für die
+  Kernansicht nicht zu riskieren. `/admin/uebersicht` ruft das für alle Mitarbeitenden parallel auf
+  und zeigt pro Person den aktuellen Stand sowie die Veränderung seit Monatsbeginn mit
+  Pfeil (▲ grün / ▼ rot). Lokal gegen die bekannten Testwerte verifiziert (Stand Ende Monat
+  -1618.60h, Veränderung -165.40h stimmt exakt mit Stand Vormonat -1453.20h auf der persönlichen
+  Monatsseite überein).
+- **Kleine Farbpalette ergänzt** (`src/lib/colors.ts`, `paletteIndex`/`initialen`, sechs Farbtöne
+  als CSS-Variablen `--farbe-0` bis `--farbe-5`): derselbe Name/Projekttext bekommt in der ganzen
+  App immer dieselbe Farbe, per einfachem String-Hash statt einer gepflegten Zuordnungstabelle.
+  Verwendet für: farbige Avatar-Kreise mit Initialen in der Chef-Übersicht, farbige Projekt-Tags in
+  der Chef-Übersicht UND in der normalen Tagesübersicht (vorher reiner Fliesstext), sowie farbige
+  Akzent-Ränder auf den Kennzahlen-Karten (`.card-accent-*`). Grund: Feedback, das Design sei "zu
+  einfarbig" gewesen.
+- **Chef-Übersicht-Tabellenspalten neu proportioniert:** `table-layout: fixed` mit festen
+  Prozent-Breiten (`Datum` 11%, `Projekt` 22%, `Stunden` 11%, `Kommentar` 56%) statt automatischer
+  Spaltenbreite, dazu `white-space: normal` für die Kommentarspalte (vorher wie der Rest der Tabelle
+  `nowrap` geerbt). Grund: Feedback, Projekt-Spalte sei zu breit, Kommentar zu eng.
+- **Krank-Sichtbarkeit im Kalender auf heute+Zukunft eingeschränkt** (Datenschutz-Feedback):
+  sowohl in der Datenbank-Abfrage selbst (`krank`-Bedingung bekommt zusätzlich `date: { gte: heute
+  }`, vergangene Krank-Tage werden gar nicht erst geladen) als auch nochmal an der Stelle, wo die
+  Kalender-Chips gebaut werden (doppelt abgesichert). Ferien bleiben unverändert für den ganzen
+  Monat sichtbar, das war nicht Teil des Feedbacks.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`

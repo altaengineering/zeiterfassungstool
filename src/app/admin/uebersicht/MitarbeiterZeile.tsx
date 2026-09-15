@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { paletteIndex, initialen } from "@/lib/colors";
 
 export interface UebersichtBuchung {
   datum: string;
@@ -14,6 +15,11 @@ function formatStunden(h: number): string {
   return h.toFixed(2).replace(/\.00$/, "");
 }
 
+function formatStandDelta(delta: number): string {
+  const vorzeichen = delta > 0 ? "+" : "";
+  return `${vorzeichen}${formatStunden(delta)}`;
+}
+
 export function MitarbeiterZeile({
   userId,
   jahr,
@@ -23,6 +29,8 @@ export function MitarbeiterZeile({
   erwarteteArbeitstage,
   hinterher,
   zeilen,
+  standEndeMonat,
+  standVeraenderung,
 }: {
   userId: string;
   jahr: number;
@@ -32,6 +40,8 @@ export function MitarbeiterZeile({
   erwarteteArbeitstage: number;
   hinterher: boolean;
   zeilen: UebersichtBuchung[];
+  standEndeMonat: number | null;
+  standVeraenderung: number | null;
 }) {
   const [offen, setOffen] = useState(false);
 
@@ -39,7 +49,11 @@ export function MitarbeiterZeile({
     <>
       <tr className="uebersicht-zeile" onClick={() => setOffen((v) => !v)}>
         <td className="label-cell">
-          <span className="uebersicht-caret">{offen ? "▾" : "▸"}</span> {name}
+          <span className="uebersicht-name">
+            <span className="uebersicht-caret">{offen ? "▾" : "▸"}</span>
+            <span className={"avatar farbe-" + paletteIndex(name)}>{initialen(name)}</span>
+            {name}
+          </span>
         </td>
         <td>
           {erfassteTage} / {erwarteteArbeitstage}
@@ -50,6 +64,25 @@ export function MitarbeiterZeile({
           >
             {hinterher ? "im Rückstand" : "auf dem Laufenden"}
           </span>
+        </td>
+        <td className="label-cell">
+          {standEndeMonat !== null ? (
+            <span className="uebersicht-gleitzeit">
+              <strong className={standEndeMonat < 0 ? "neg" : "pos"}>
+                {formatStunden(standEndeMonat)} h
+              </strong>
+              {standVeraenderung !== null && Math.abs(standVeraenderung) > 0.01 && (
+                <span
+                  className={"uebersicht-trend " + (standVeraenderung > 0 ? "uebersicht-trend-auf" : "uebersicht-trend-ab")}
+                  title={`${formatStandDelta(standVeraenderung)} h seit Monatsbeginn`}
+                >
+                  {standVeraenderung > 0 ? "▲" : "▼"} {formatStandDelta(standVeraenderung)} h
+                </span>
+              )}
+            </span>
+          ) : (
+            "—"
+          )}
         </td>
         <td className="label-cell">
           <Link
@@ -63,9 +96,15 @@ export function MitarbeiterZeile({
       </tr>
       {offen && (
         <tr className="uebersicht-detail-zeile">
-          <td colSpan={4}>
+          <td colSpan={5}>
             {zeilen.length > 0 ? (
               <table className="uebersicht-detail-table">
+                <colgroup>
+                  <col className="uebersicht-col-datum" />
+                  <col className="uebersicht-col-projekt" />
+                  <col className="uebersicht-col-stunden" />
+                  <col className="uebersicht-col-kommentar" />
+                </colgroup>
                 <thead>
                   <tr>
                     <th>Datum</th>
@@ -80,9 +119,15 @@ export function MitarbeiterZeile({
                       <td>
                         {z.datum.slice(8, 10)}.{z.datum.slice(5, 7)}.
                       </td>
-                      <td className="label-cell">{z.label}</td>
+                      <td className="label-cell">
+                        {z.label !== "—" ? (
+                          <span className={"tag farbe-" + paletteIndex(z.label)}>{z.label}</span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
                       <td>{z.hours > 0 ? formatStunden(z.hours) : "—"}</td>
-                      <td className="label-cell">{z.kommentar || "—"}</td>
+                      <td className="label-cell uebersicht-kommentar">{z.kommentar || "—"}</td>
                     </tr>
                   ))}
                 </tbody>

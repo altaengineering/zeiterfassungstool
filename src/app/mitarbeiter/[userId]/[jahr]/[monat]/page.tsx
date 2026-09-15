@@ -17,6 +17,7 @@ import {
 } from "@/lib/calc";
 import { EntryForm, type BestehenderEintrag } from "./EntryForm";
 import { TagesZeile } from "./TagesZeile";
+import { paletteIndex } from "@/lib/colors";
 
 const MONATSNAMEN = [
   "Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
@@ -259,25 +260,25 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
       </div>
 
       <div className="card-row">
-        <div className="card">
+        <div className="card card-accent card-accent-blau">
           <div className="label">Stand Vormonat</div>
           <div className="value">{formatStunden(standVorMonat)} h</div>
         </div>
-        <div className="card">
+        <div className="card card-accent card-accent-blau">
           <div className="label">Stand Ende Monat</div>
           <div className="value">
             {formatStunden(monatErgebnisse[monatErgebnisse.length - 1]?.stand ?? standVorMonat)} h
           </div>
         </div>
-        <div className="card">
+        <div className="card card-accent card-accent-teal">
           <div className="label">Ferien Guthaben {jahr}</div>
           <div className="value">{formatStunden(ferienGuthaben)} Tage</div>
         </div>
-        <div className="card">
+        <div className="card card-accent card-accent-amber">
           <div className="label">Ferien bezogen</div>
           <div className="value">{formatStunden(ferienBezogen)} Tage</div>
         </div>
-        <div className="card">
+        <div className="card card-accent card-accent-violett">
           <div className="label">Ferien-Übertrag {jahr + 1}</div>
           <div className="value">{formatStunden(ferienUebertrag)} Tage</div>
         </div>
@@ -305,11 +306,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
             const wochentag = new Date(`${tag.date}T00:00:00Z`).getUTCDay();
             const istWochenende = wochentag === 0 || wochentag === 6;
             const rowClass = feiertag ? "holiday" : istWochenende ? "weekend" : "";
-            const buchungen = [
-              ...(dbEntry?.bookings.map(
-                (b) =>
-                  `${b.label} ${formatStunden(b.hours)}h${b.kommentar ? ` (${b.kommentar})` : ""}`,
-              ) ?? []),
+            const kategorien = [
               dbEntry && dbEntry.krank ? `krank ${formatStunden(dbEntry.krank)}h` : null,
               dbEntry && dbEntry.reisezeit ? `Reisezeit ${formatStunden(dbEntry.reisezeit)}h` : null,
               dbEntry && dbEntry.cad ? `CAD ${formatStunden(dbEntry.cad)}h` : null,
@@ -324,7 +321,23 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                   {tag.date.slice(8, 10)}.{tag.date.slice(5, 7)}.
                   {feiertag ? ` (${feiertag.label.trim()})` : istWochenende ? " (WE)" : ""}
                 </td>
-                <td className="label-cell">{buchungen.join(", ") || "—"}</td>
+                <td className="label-cell">
+                  {dbEntry?.bookings.length || kategorien.length ? (
+                    <span className="buchungen-zelle">
+                      {dbEntry?.bookings.map((b, i) => (
+                        <span key={i} className={"tag tag-klein farbe-" + paletteIndex(b.label)}>
+                          {b.label} {formatStunden(b.hours)}h
+                          {b.kommentar ? <span className="tag-kommentar"> · {b.kommentar}</span> : null}
+                        </span>
+                      ))}
+                      {kategorien.length > 0 && (
+                        <span className="buchungen-kategorien">{kategorien.join(", ")}</span>
+                      )}
+                    </span>
+                  ) : (
+                    "—"
+                  )}
+                </td>
                 <td className={dbEntry?.sollOverride != null ? "override" : ""}>
                   {formatStunden(tag.soll)}
                 </td>
