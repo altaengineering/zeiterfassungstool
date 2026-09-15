@@ -81,6 +81,17 @@ model User {
   dailyEntries     DailyEntry[]
   pensumWechsel    PensumWechsel[]
   projekte         Project[]
+  notizen          KalenderNotiz[]
+}
+
+model KalenderNotiz {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  date        DateTime
+  text        String
+  oeffentlich Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
 
 model PensumWechsel {

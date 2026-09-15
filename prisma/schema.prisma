@@ -94,6 +94,21 @@ model User {
   dailyEntries     DailyEntry[]
   pensumWechsel    PensumWechsel[]
   projekte         Project[]
+  notizen          KalenderNotiz[]
+}
+
+// Freie Notiz zu einem Tag im geteilten Kalender (/kalender). Privat = nur für die eigene Person
+// sichtbar (z.B. "Zahnarzttermin"), öffentlich = für alle in der Firma sichtbar (z.B. "Homeoffice",
+// "im Kundentermin"). Bewusst kein eigener Bezug zu DailyEntry, eine Notiz ist unabhängig davon, ob
+// an dem Tag überhaupt Stunden erfasst wurden.
+model KalenderNotiz {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  date        DateTime
+  text        String
+  oeffentlich Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
 
 // App-eigenes Feature (nicht aus dem Original-Excel, das pro Jahr nur einen konstanten

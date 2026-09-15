@@ -3,6 +3,7 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { MitarbeiterZeile } from "./MitarbeiterZeile";
+import { berechneMonatsStand } from "@/lib/monatsStand";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +83,14 @@ export default async function UebersichtSeite({ searchParams }: Props) {
     (u) => (entriesByUser.get(u.id) ?? []).length < erwarteteArbeitstage,
   ).length;
 
+  // Gleitzeitstand pro Person, parallel berechnet (jede Berechnung braucht die volle Jahresreihe
+  // dieser Person, siehe berechneMonatsStand). Nur fuer Admins, daher hier der Mehraufwand okay.
+  const standByUser = new Map(
+    await Promise.all(
+      users.map(async (u) => [u.id, await berechneMonatsStand(u.id, jahr, monat)] as const),
+    ),
+  );
+
   return (
     <main>
       <h1>Chef-Übersicht</h1>
@@ -103,15 +112,15 @@ export default async function UebersichtSeite({ searchParams }: Props) {
       </div>
 
       <div className="card-row">
-        <div className="card">
+        <div className="card card-accent card-accent-blau">
           <div className="label">Mitarbeitende</div>
           <div className="value">{users.length}</div>
         </div>
-        <div className="card">
+        <div className="card card-accent card-accent-amber">
           <div className="label">Erwartete Arbeitstage bisher</div>
           <div className="value">{erwarteteArbeitstage}</div>
         </div>
-        <div className="card">
+        <div className="card card-accent card-accent-rot">
           <div className="label">Im Rückstand</div>
           <div className={"value" + (anzahlImRueckstand > 0 ? " neg" : "")}>{anzahlImRueckstand}</div>
         </div>
@@ -124,6 +133,7 @@ export default async function UebersichtSeite({ searchParams }: Props) {
               <th className="label-cell">Mitarbeiter</th>
               <th>Tage erfasst</th>
               <th className="label-cell">Status</th>
+              <th className="label-cell">Gleitzeit</th>
               <th></th>
             </tr>
           </thead>
@@ -143,6 +153,8 @@ export default async function UebersichtSeite({ searchParams }: Props) {
                   : [{ datum: iso(e.date), label: "—", hours: 0, kommentar: "" }],
               );
 
+              const stand = standByUser.get(u.id) ?? null;
+
               return (
                 <MitarbeiterZeile
                   key={u.id}
@@ -154,6 +166,8 @@ export default async function UebersichtSeite({ searchParams }: Props) {
                   erwarteteArbeitstage={erwarteteArbeitstage}
                   hinterher={hinterher}
                   zeilen={zeilen}
+                  standEndeMonat={stand?.standEndeMonat ?? null}
+                  standVeraenderung={stand ? stand.standEndeMonat - stand.standVorMonat : null}
                 />
               );
             })}

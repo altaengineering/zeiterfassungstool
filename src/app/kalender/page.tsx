@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { initialen } from "@/lib/colors";
+import { notizHinzufuegen, notizLoeschen } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -16,16 +18,6 @@ function iso(date: Date): string {
 
 function formatStunden(h: number): string {
   return h.toFixed(2).replace(/\.00$/, "");
-}
-
-function initialen(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((teil) => teil[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 }
 
 type Props = {
@@ -48,8 +40,11 @@ export default async function KalenderSeite({ searchParams }: Props) {
   const monatStart = new Date(Date.UTC(jahr, monat - 1, 1));
   const monatEnde = new Date(Date.UTC(jahr, monat, 1));
   const letzterTagMonat = new Date(Date.UTC(jahr, monat, 0)).getUTCDate();
+  const heuteUtcMitternacht = new Date(
+    Date.UTC(heute.getUTCFullYear(), heute.getUTCMonth(), heute.getUTCDate()),
+  );
 
-  const [feiertageDb, entriesDb] = await Promise.all([
+  const [feiertageDb, entriesDb, notizenDb] = await Promise.all([
     prisma.holiday.findMany({
       where: { companyId: ich.companyId, date: { gte: monatStart, lt: monatEnde } },
     }),
@@ -57,10 +52,23 @@ export default async function KalenderSeite({ searchParams }: Props) {
       where: {
         user: { companyId: ich.companyId },
         date: { gte: monatStart, lt: monatEnde },
-        OR: [{ ferien: { gt: 0 } }, { krank: { gt: 0 } }],
+        // Krank ist sensibler als Ferien: vergangene Krank-Tage werden aus Datenschutzgruenden gar
+        // nicht erst geladen, nur heute und Zukunft (siehe Filter unten beim Aufbau der Chips).
+        OR: [{ ferien: { gt: 0 } }, { krank: { gt: 0 }, date: { gte: heuteUtcMitternacht } }],
       },
       include: { user: true },
       orderBy: { date: "asc" },
+    }),
+    // Öffentliche Notizen von allen in der Firma, private Notizen nur die eigenen (siehe
+    // actions.ts, Datenbank-Constraint gibt es dafür nicht, der Filter hier ist die einzige Stelle,
+    // die private Notizen anderer Personen ausschliesst).
+    prisma.kalenderNotiz.findMany({
+      where: {
+        date: { gte: monatStart, lt: monatEnde },
+        OR: [{ oeffentlich: true, user: { companyId: ich.companyId } }, { userId: ich.id }],
+      },
+      include: { user: true },
+      orderBy: { createdAt: "asc" },
     }),
   ]);
 
@@ -70,9 +78,22 @@ export default async function KalenderSeite({ searchParams }: Props) {
     const datum = iso(e.date);
     const liste = abwesendByDate.get(datum) ?? [];
     if (e.ferien > 0) liste.push({ name: e.user.name, art: "Ferien", stunden: e.ferien });
-    if (e.krank > 0) liste.push({ name: e.user.name, art: "Krank", stunden: e.krank });
+    // Vergangene Krank-Tage sind hier oben schon gar nicht erst aus der DB geladen worden (siehe
+    // Query), dieser Check ist nur die zweite Absicherung direkt an der Stelle, wo der Chip entsteht.
+    if (e.krank > 0 && datum >= heuteIso) liste.push({ name: e.user.name, art: "Krank", stunden: e.krank });
     abwesendByDate.set(datum, liste);
   }
+
+  const notizenByDate = new Map<string, typeof notizenDb>();
+  for (const n of notizenDb) {
+    const datum = iso(n.date);
+    const liste = notizenByDate.get(datum) ?? [];
+    liste.push(n);
+    notizenByDate.set(datum, liste);
+  }
+  const eigeneNotizenDiesenMonat = notizenDb
+    .filter((n) => n.userId === ich.id)
+    .sort((a, b) => iso(a.date).localeCompare(iso(b.date)));
 
   const vorMonat = monat === 1 ? { jahr: jahr - 1, monat: 12 } : { jahr, monat: monat - 1 };
   const naechMonat = monat === 12 ? { jahr: jahr + 1, monat: 1 } : { jahr, monat: monat + 1 };
@@ -90,8 +111,12 @@ export default async function KalenderSeite({ searchParams }: Props) {
       wochentag,
       feiertag: feiertageByDate.get(datum) ?? null,
       abwesend: abwesendByDate.get(datum) ?? [],
+      notizen: notizenByDate.get(datum) ?? [],
     };
   });
+
+  const monatMinDatum = `${jahr}-${String(monat).padStart(2, "0")}-01`;
+  const monatMaxDatum = `${jahr}-${String(monat).padStart(2, "0")}-${String(letzterTagMonat).padStart(2, "0")}`;
 
   const feiertageDiesenMonat = tage.filter((t) => t.feiertag);
 
@@ -166,6 +191,19 @@ export default async function KalenderSeite({ searchParams }: Props) {
                   ))}
                 </div>
               )}
+              {t.notizen.length > 0 && (
+                <div className="kalender-notizen">
+                  {t.notizen.map((n) => (
+                    <span
+                      key={n.id}
+                      className="kalender-notiz-zeile"
+                      title={`${n.oeffentlich ? "Öffentlich" : "Privat"}, ${n.user.name}: ${n.text}`}
+                    >
+                      {n.oeffentlich ? "🌐" : "🔒"} {n.text}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
@@ -178,6 +216,76 @@ export default async function KalenderSeite({ searchParams }: Props) {
               {t.tag}. {MONATSNAMEN[monat - 1]}: {t.feiertag?.label.trim()}
             </span>
           ))}
+        </div>
+      )}
+
+      <div className="entry-form-card" style={{ marginTop: 24 }}>
+        <div className="form-section-title">Notiz hinzufügen</div>
+        <p className="form-hint">
+          Privat sieht nur du selbst, öffentlich sehen alle in der Firma (z.B. „Homeoffice“ oder
+          „im Kundentermin“).
+        </p>
+        <form action={notizHinzufuegen} className="entry-form">
+          <div className="form-row-pair">
+            <label>
+              Datum
+              <input
+                type="date"
+                name="datum"
+                defaultValue={heuteIso >= monatMinDatum && heuteIso <= monatMaxDatum ? heuteIso : monatMinDatum}
+                min={monatMinDatum}
+                max={monatMaxDatum}
+                required
+              />
+            </label>
+            <label>
+              Text
+              <input type="text" name="text" placeholder="z.B. Homeoffice" required />
+            </label>
+          </div>
+          <div className="pill-group">
+            <input type="radio" id="notiz-privat" name="sichtbarkeit" value="privat" defaultChecked />
+            <label htmlFor="notiz-privat">🔒 Privat</label>
+            <input type="radio" id="notiz-oeffentlich" name="sichtbarkeit" value="oeffentlich" />
+            <label htmlFor="notiz-oeffentlich">🌐 Öffentlich</label>
+          </div>
+          <div className="entry-form-footer">
+            <button type="submit">Notiz speichern</button>
+          </div>
+        </form>
+      </div>
+
+      {eigeneNotizenDiesenMonat.length > 0 && (
+        <div className="table-wrap" style={{ marginTop: 24 }}>
+          <table>
+            <thead>
+              <tr>
+                <th>Datum</th>
+                <th className="label-cell">Notiz</th>
+                <th className="label-cell">Sichtbarkeit</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {eigeneNotizenDiesenMonat.map((n) => (
+                <tr key={n.id}>
+                  <td>
+                    {iso(n.date).slice(8, 10)}.{iso(n.date).slice(5, 7)}.
+                  </td>
+                  <td className="label-cell">{n.text}</td>
+                  <td className="label-cell">{n.oeffentlich ? "🌐 Öffentlich" : "🔒 Privat"}</td>
+                  <td className="label-cell">
+                    <form action={notizLoeschen}>
+                      <input type="hidden" name="id" value={n.id} />
+                      <button type="submit" className="link-btn-inline">
+                        löschen
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </main>
