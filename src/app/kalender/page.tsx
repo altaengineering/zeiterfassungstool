@@ -209,7 +209,7 @@ export default async function KalenderSeite({ searchParams }: Props) {
                       className="kalender-notiz-zeile"
                       title={`${n.oeffentlich ? "Öffentlich" : "Privat"}, ${n.user.name}: ${n.text}`}
                     >
-                      {n.oeffentlich ? "🌐" : "🔒"} {n.text}
+                      {n.oeffentlich ? "🌐" : "🔒"} {n.user.name.split(" ")[0]}: {n.text}
                     </span>
                   ))}
                 </div>

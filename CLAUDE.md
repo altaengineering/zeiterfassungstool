@@ -409,6 +409,50 @@ der Kalender-Überschrift ("Krankheitstage sind hier nur ab heute sichtbar...") 
 noch für Nicht-Admins. Lokal mit zwei Accounts gegengetestet: Admin sieht einen absichtlich in die
 Vergangenheit gesetzten Krank-Tag, derselbe Tag ist für den normalen Testaccount unsichtbar.
 
+**Hintergrund-Ebene, Helvetica auf Formularelementen, Kartenabstände, Notiz-Autor (2026-09-15,
+fünfter Nachtrag):** Weiteres Feedback nach dem dritten Nachtrag: die Seite wirkte trotz des
+zurückgenommenen Farbsystems immer noch zu leer, in der Login-Seite gibt es bereits eine "coole"
+(aber nicht ablenkende) Optik, die als Vorbild dienen sollte, Formularelemente rendern nicht
+überall in Helvetica, die Überschrift "Notiz hinzufügen" klebte ohne Abstand am Kartenrand, und im
+Kalender sollte sichtbar sein, wer eine Notiz geschrieben hat.
+
+- **Neue fixierte Hintergrund-Ebene `.app-bg`:** ein `<div className="app-bg">` direkt nach
+  `<body>` in `layout.tsx`, `position: fixed; z-index: -1` (kein `z-index` an anderer Stelle
+  nötig). Zeigt ein feines Gitter plus einen weichen radialen Glanz oben, in derselben
+  Formensprache wie die Login-Seite (`.login-brand`, dort schon länger vorhanden: rotierender
+  `conic-gradient`, pulsierendes Uhr-Icon), aber deutlich zurückhaltender: keine schnelle Rotation,
+  nur eine sehr langsame Helligkeits-Animation (12s, respektiert `prefers-reduced-motion`), und nur
+  der eine bestehende Blauton (`var(--accent)`), keine weitere Farbe. Karten/Tabellen haben
+  weiterhin ihre eigene deckende Hintergrundfarbe und liegen sichtbar darüber.
+- **`button, input, select, textarea { font-family: inherit; }` ergänzt.** Formularelemente erben
+  `font-family` in vielen Browsern nicht automatisch von `body`, sie fallen sonst auf die
+  System-UI-Schrift zurück statt Helvetica zu zeigen, unabhängig von der auf `body` gesetzten
+  Schriftkette. Betraf praktisch jedes Eingabefeld und jeden Knopf in der ganzen App.
+- **Kartenabstand korrigiert:** `.form-section-title`/`.form-hint` als direkte Kinder einer
+  `.entry-form-card` (statt innerhalb eines bereits gepolsterten `.form-section`, z.B. "Notiz
+  hinzufügen" im Kalender, "Alte Einträge gefunden" auf `/projekte`) hatten kein eigenes Padding
+  und klebten am Kartenrand. Neue Regeln `.entry-form-card > .form-section-title` /
+  `.entry-form-card > .form-hint` sowie `.migrate-box` (Innenabstand für den Migrieren-Knopf)
+  beheben das, ohne `.datum-bar`/`.entry-form` anzufassen, die weiterhin bewusst randlos bis an den
+  Kartenrand reichen.
+- **Notiz-Autor sichtbar:** Kalender-Kacheln zeigen jetzt `🌐 Vorname: Text` bzw. `🔒 Vorname: Text`
+  direkt in der Kachel statt den Namen nur im Hover-Tooltip zu verstecken (Vorname statt vollem
+  Namen, damit es in der schmalen Kachel nicht umbricht).
+- **Echter Bug gefunden und behoben, nicht nur Kosmetik:** Beim Testen der Hintergrund-Ebene fiel
+  auf, dass die Seite horizontal um ca. 27px überlief (`document.documentElement.scrollWidth` >
+  `window.innerWidth`), sichtbar als abgeschnittener linker Rand nach jedem Seitenwechsel/Reload.
+  Ursache: `.pill-group input` (die unsichtbaren Radio-Buttons hinter den Privat/Öffentlich- bzw.
+  Ferien-Pillen) und `.entry-form input` haben dieselbe CSS-Spezifität; da `.entry-form input`
+  weiter unten in `globals.css` steht, gewann dessen `width: 100%` gegen das eigentlich gewollte
+  `width: 1px`, positioniert relativ zu `body` (da `.pill-group` selbst kein `position: relative`
+  hatte) statt zur kleinen Pillen-Gruppe, das blies die unsichtbaren Radios auf Formularbreite auf.
+  Betraf nicht nur die neuen Kalender-Notiz-Pillen, sondern genauso die seit Längerem bestehenden
+  Ferien-Pillen im Tageseintrag, dort ist es nur nie aufgefallen. Behoben durch `position: relative`
+  auf `.pill-group` selbst sowie eine spezifischere Selektor `.pill-group input[type="radio"]`
+  (schlägt `.entry-form input` unabhängig von der Reihenfolge im Stylesheet). Lokal auf mehreren
+  Seiten mit `document.documentElement.scrollWidth`/`window.innerWidth` nachgemessen, kein
+  Überlauf mehr.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
