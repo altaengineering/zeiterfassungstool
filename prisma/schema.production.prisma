@@ -21,6 +21,19 @@ model Company {
   holidays    Holiday[]
   settings    CompanySettings[]
   monthCloses MonthClose[]
+  projects    Project[]
+}
+
+model Project {
+  id        String    @id @default(cuid())
+  company   Company   @relation(fields: [companyId], references: [id])
+  companyId String
+  name      String
+  aktiv     Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  bookings  Booking[]
+
+  @@unique([companyId, name])
 }
 
 model MonthClose {
@@ -135,6 +148,9 @@ model Booking {
   id           String     @id @default(cuid())
   dailyEntry   DailyEntry @relation(fields: [dailyEntryId], references: [id], onDelete: Cascade)
   dailyEntryId String
+  project      Project?   @relation(fields: [projectId], references: [id])
+  projectId    String?
   label        String
   hours        Float
+  kommentar    String     @default("")
 }

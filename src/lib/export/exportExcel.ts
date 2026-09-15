@@ -31,8 +31,14 @@ const STEMPEL_SPALTEN: Array<[string, string]> = [
 ];
 
 export interface ExportBooking {
+  projectId: string | null;
   label: string;
   hours: number;
+}
+
+export interface ExportProjekt {
+  id: string;
+  name: string;
 }
 
 export interface ExportStempelPaar {
@@ -76,6 +82,14 @@ export interface ExportInput {
    */
   pensumWechsel?: PensumPeriode[];
   feiertage: Array<{ date: string; label: string; bezahlt: boolean }>;
+  /**
+   * Feste, firmenweite Projektreihenfolge (siehe /admin/projekte), maximal 9 Einträge (Vorlage hat
+   * nur die Spalten C-K). Anders als früher NICHT mehr pro Monat/Person neu aus den vorkommenden
+   * Labels abgeleitet, das führte dazu, dass dieselbe Spalte in verschiedenen Monaten oder bei
+   * verschiedenen Personen für unterschiedliche Projekte stand, sobald die Reihenfolge des ersten
+   * Auftretens variierte (der ursprünglich gemeldete "immer eine neue Spalte"-Bug).
+   */
+  projekte: ExportProjekt[];
   tage: ExportTag[];
 }
 
@@ -145,6 +159,8 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
   const janSheet = workbook.getWorksheet("Jan");
   if (janSheet) janSheet.getCell("H2").value = input.ferienBezogenBisher;
 
+  const projekte = input.projekte.slice(0, PROJEKT_SPALTEN.length);
+
   MONATSBLAETTER.forEach((sheetName, monatIndex0) => {
     const ws = workbook.getWorksheet(sheetName);
     if (!ws) return;
@@ -152,18 +168,10 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
     const tageImMonat = daysInMonth(input.jahr, monatIndex0);
     const monatStr = String(monatIndex0 + 1).padStart(2, "0");
 
-    // Projekt-Spaltenköpfe (Zeile 3, C-K) neu bestimmen: alle im Monat vorkommenden Labels,
-    // in Reihenfolge des ersten Auftretens.
-    const labelsImMonat: string[] = [];
-    for (let tag = 1; tag <= tageImMonat; tag++) {
-      const dateStr = `${input.jahr}-${monatStr}-${String(tag).padStart(2, "0")}`;
-      const eintrag = tageByDate.get(dateStr);
-      for (const b of eintrag?.bookings ?? []) {
-        if (!labelsImMonat.includes(b.label)) labelsImMonat.push(b.label);
-      }
-    }
+    // Projekt-Spaltenköpfe (Zeile 3, C-K): feste, firmenweite Reihenfolge (input.projekte), nicht
+    // mehr pro Monat neu ermittelt (siehe Kommentar bei ExportInput.projekte).
     PROJEKT_SPALTEN.forEach((col, i) => {
-      ws.getCell(`${col}3`).value = labelsImMonat[i] ?? null;
+      ws.getCell(`${col}3`).value = projekte[i]?.name ?? null;
     });
 
     for (let tag = 1; tag <= tageImMonat; tag++) {
@@ -171,10 +179,15 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
       const dateStr = `${input.jahr}-${monatStr}-${String(tag).padStart(2, "0")}`;
       const eintrag = tageByDate.get(dateStr);
 
-      // Projekt-Stunden gemäss oben bestimmter Spaltenreihenfolge
+      // Projekt-Stunden gemäss fester Spaltenreihenfolge. Zuordnung primär über projectId, mit
+      // Fallback auf den Namensvergleich für Altbuchungen, die noch nicht migriert wurden (siehe
+      // /admin/projekte, "Alte Buchungen übernehmen").
       PROJEKT_SPALTEN.forEach((col, i) => {
-        const label = labelsImMonat[i];
-        const stunden = label ? eintrag?.bookings.find((b) => b.label === label)?.hours : undefined;
+        const projekt = projekte[i];
+        const stunden = projekt
+          ? eintrag?.bookings.find((b) => b.projectId === projekt.id || (!b.projectId && b.label === projekt.name))
+              ?.hours
+          : undefined;
         setzeOderLeere(ws.getCell(`${col}${row}`), stunden);
       });
 

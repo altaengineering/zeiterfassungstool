@@ -506,6 +506,19 @@ td.override {
   gap: 10px;
 }
 
+.projekt-zeile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.projekt-zeile:last-of-type {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
 .entry-form label {
   display: flex;
   flex-direction: column;

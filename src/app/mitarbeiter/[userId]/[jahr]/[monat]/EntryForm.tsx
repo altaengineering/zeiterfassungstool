@@ -24,7 +24,12 @@ export interface BestehenderEintrag {
   stop3: number | null;
   start4: number | null;
   stop4: number | null;
-  bookings: { label: string; hours: number }[];
+  bookings: { projectId: string | null; label: string; hours: number; kommentar: string }[];
+}
+
+export interface ProjektOption {
+  id: string;
+  name: string;
 }
 
 function zeitZuMinuten(wert: string | undefined): number | null {
@@ -76,6 +81,7 @@ export function EntryForm({
   datum,
   sollFuerTag,
   bestehenderEintrag,
+  projekte,
 }: {
   userId: string;
   jahr: number;
@@ -83,6 +89,7 @@ export function EntryForm({
   datum: string;
   sollFuerTag: number;
   bestehenderEintrag: BestehenderEintrag | null;
+  projekte: ProjektOption[];
 }) {
   const router = useRouter();
 
@@ -108,7 +115,16 @@ export function EntryForm({
       return h != null ? String(h) : "";
     }),
   );
-  const projektLabelRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const projektSelectRefs = useRef<Array<HTMLSelectElement | null>>([]);
+
+  // Alte Buchungen ohne projectId (vor der festen Projektliste erfasst, noch nicht via
+  // /admin/projekte migriert): bestmöglich anhand des Namens vorbelegen, sonst leer lassen.
+  function anfangsProjektId(index: number): string {
+    const booking = bestehendeBookings[index];
+    if (!booking) return "";
+    if (booking.projectId) return booking.projectId;
+    return projekte.find((p) => p.name === booking.label)?.id ?? "";
+  }
 
   const [stempelGesamt, setStempelGesamt] = useState(
     gesamtStundenAusPaaren([
@@ -163,7 +179,7 @@ export function EntryForm({
   // eingetragen werden, nicht beide.
   function absorberIndexBestimmen(): number {
     for (let i = projektAnzahl - 1; i >= 0; i--) {
-      if ((projektLabelRefs.current[i]?.value ?? "").trim() !== "") return i;
+      if ((projektSelectRefs.current[i]?.value ?? "").trim() !== "") return i;
     }
     return 0;
   }
@@ -185,7 +201,7 @@ export function EntryForm({
     let summeAndere = 0;
     for (let i = 0; i < projektAnzahl; i++) {
       if (i === absorberIndex) continue;
-      if ((projektLabelRefs.current[i]?.value ?? "").trim() === "") continue;
+      if ((projektSelectRefs.current[i]?.value ?? "").trim() === "") continue;
       const wert = Number(kopie[i]);
       if (Number.isFinite(wert)) summeAndere += wert;
     }
@@ -198,7 +214,7 @@ export function EntryForm({
     projektStundenNeuVerteilen(projektStunden, null);
   }
 
-  function beiProjektLabelAenderung() {
+  function beiProjektAuswahlAenderung() {
     projektStundenNeuVerteilen(projektStunden, null);
   }
 
@@ -394,28 +410,44 @@ export function EntryForm({
               {projektSummeStimmt ? " ✓ stimmt mit den Stempelzeiten überein" : ` (Stempelzeiten: ${stempelGesamt.toFixed(2)} h, stimmt nicht überein)`}
             </p>
             {Array.from({ length: projektAnzahl }, (_, i) => (
-              <div className="form-row-pair" key={i}>
+              <div className="projekt-zeile" key={i}>
+                <div className="form-row-pair">
+                  <label>
+                    Projekt {i + 1}
+                    <select
+                      name={`projektId${i + 1}`}
+                      ref={(el) => {
+                        projektSelectRefs.current[i] = el;
+                      }}
+                      defaultValue={anfangsProjektId(i)}
+                      onChange={beiProjektAuswahlAenderung}
+                    >
+                      <option value="">{i === 0 ? "bitte wählen" : "kein Projekt"}</option>
+                      {projekte.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Stunden
+                    <input
+                      type="number"
+                      step="any"
+                      name={`projektStunden${i + 1}`}
+                      value={projektStunden[i] ?? ""}
+                      onChange={(e) => beiProjektStundenAenderung(i, e.target.value)}
+                    />
+                  </label>
+                </div>
                 <label>
-                  Projekt {i + 1} – Name
+                  Kommentar – was wurde gemacht?
                   <input
                     type="text"
-                    name={`projektLabel${i + 1}`}
-                    placeholder={i === 0 ? "z.B. Raytech AG" : "optional"}
-                    ref={(el) => {
-                      projektLabelRefs.current[i] = el;
-                    }}
-                    defaultValue={bestehendeBookings[i]?.label ?? ""}
-                    onChange={beiProjektLabelAenderung}
-                  />
-                </label>
-                <label>
-                  Stunden
-                  <input
-                    type="number"
-                    step="any"
-                    name={`projektStunden${i + 1}`}
-                    value={projektStunden[i] ?? ""}
-                    onChange={(e) => beiProjektStundenAenderung(i, e.target.value)}
+                    name={`projektKommentar${i + 1}`}
+                    placeholder="z.B. Konstruktion Gehäuse, Kundentelefonat, Testlauf"
+                    defaultValue={bestehendeBookings[i]?.kommentar ?? ""}
                   />
                 </label>
               </div>

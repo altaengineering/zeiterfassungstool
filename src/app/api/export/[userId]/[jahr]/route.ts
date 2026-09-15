@@ -40,7 +40,7 @@ export async function GET(
     return NextResponse.json({ error: "User nicht gefunden" }, { status: 404 });
   }
 
-  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, pensumWechselDb] = await Promise.all([
+  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, pensumWechselDb, projekteDb] = await Promise.all([
     prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
     prisma.companySettings.findUnique({
       where: { companyId_year: { companyId: user.companyId, year: jahr } },
@@ -59,6 +59,10 @@ export async function GET(
       include: { bookings: true },
     }),
     prisma.pensumWechsel.findMany({ where: { userId }, orderBy: { gueltigAb: "asc" } }),
+    prisma.project.findMany({
+      where: { companyId: user.companyId, aktiv: true },
+      orderBy: { createdAt: "asc" },
+    }),
   ]);
 
   if (!jahresStammdaten) {
@@ -67,7 +71,7 @@ export async function GET(
 
   const tage: ExportTag[] = entriesDb.map((e) => ({
     date: iso(e.date),
-    bookings: e.bookings.map((b) => ({ label: b.label, hours: b.hours })),
+    bookings: e.bookings.map((b) => ({ projectId: b.projectId, label: b.label, hours: b.hours })),
     krank: e.krank,
     reisezeit: e.reisezeit,
     cad: e.cad,
@@ -106,6 +110,7 @@ export async function GET(
       wochenstunden: w.wochenstunden,
     })),
     feiertage: holidaysDb.map((h) => ({ date: iso(h.date), label: h.label, bezahlt: h.bezahlt })),
+    projekte: projekteDb.map((p) => ({ id: p.id, name: p.name })),
     tage,
   });
 
