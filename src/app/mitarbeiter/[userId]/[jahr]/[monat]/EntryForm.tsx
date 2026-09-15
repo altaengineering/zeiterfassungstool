@@ -61,16 +61,12 @@ function gesamtStundenAusPaaren(paare: Array<[number | null, number | null]>): n
 
 const WOCHENTAGE = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
 
-// Das native <input type="date"> zeigt Datum/Format je nach Browser- bzw. Betriebssystem-Sprache
-// unterschiedlich an (z.B. amerikanisch statt schweizerisch), das können wir nicht beeinflussen.
-// Dieses Label daneben zeigt das gewählte Datum deshalb immer eindeutig im Format
-// "Wochentag, TT.MM.JJJJ" an, unabhängig von der Locale-Darstellung des Eingabefelds selbst.
-function formatDatumSchweiz(iso: string): string {
+// Datum steht schon in Überschrift und Eingabefeld, hier ergänzen wir nur den Wochentag dazu.
+function ermittleWochentag(iso: string): string {
   const [jahr, monat, tag] = iso.split("-").map(Number);
   if (!jahr || !monat || !tag) return "";
   const datum = new Date(Date.UTC(jahr, monat - 1, tag));
-  const wochentag = WOCHENTAGE[datum.getUTCDay()];
-  return `${wochentag}, ${String(tag).padStart(2, "0")}.${String(monat).padStart(2, "0")}.${jahr}`;
+  return WOCHENTAGE[datum.getUTCDay()] ?? "";
 }
 
 export function EntryForm({
@@ -268,7 +264,7 @@ export function EntryForm({
               onChange={(e) => aufDatumWechseln(e.target.value)}
               required
             />
-            <span className="datum-lesbar">{formatDatumSchweiz(datum)}</span>
+            <span className="datum-lesbar">{ermittleWochentag(datum)}</span>
           </label>
           <span className="edit-badge">
             {bestehenderEintrag ? "✏️ bestehender Eintrag wird bearbeitet" : "neuer Eintrag"}
