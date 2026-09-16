@@ -1543,7 +1543,11 @@ main.login-hero {
 
 .kalender-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  /* minmax(0, 1fr) statt 1fr: ohne die 0 als explizites Minimum kann eine Spalte breiter werden
+     als ihr fairer Anteil, wenn ein Notiztext darin trotz white-space:nowrap+overflow:hidden lang
+     ist (die Mindestbreite eines Grid-Tracks orientiert sich sonst am unverkuerzten Inhalt, nicht
+     am sichtbar abgeschnittenen Text). Das war die Ursache fuer die zu breite Dienstag-Spalte. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -1559,6 +1563,7 @@ main.login-hero {
 
 .kalender-tag {
   min-height: 84px;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -1710,4 +1715,29 @@ main.login-hero {
   .form-row-pair {
     grid-template-columns: 1fr;
   }
+
+  /* iOS Safari zoomt die ganze Seite automatisch hinein, sobald ein fokussiertes Eingabefeld eine
+     Schriftgroesse unter 16px hat, und bleibt danach so weit hineingezoomt (auch auf anderen
+     Seiten, bis man manuell wieder herauszoomt). Alle Formularfelder waren mit 0.9-0.95rem
+     (14.4-15.2px) kleiner als das, das erklaert das "mobile ist alles reingezoomt und undeutlich".
+     16px auf schmalen Bildschirmen verhindert den Auto-Zoom, ohne die Desktop-Groessen anzufassen. */
+  /* !important noetig: diverse Formular-Klassen (.entry-form input, .login-form-card input, ...)
+     setzen ihre eigene, spezifischere font-size (0.9-0.95rem), die sonst gegen dieses simple
+     Element-Selektor-Override gewinnen wuerde. Der Zoom-Bug betrifft aber jedes Eingabefeld
+     gleichermassen, daher hier bewusst pauschal statt jede Formular-Klasse einzeln aufzuzaehlen. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Kleine ironische Signatur ganz unten, bewusst unauffaellig: nur wer genau hinschaut findet sie. */
+.geheime-signatur {
+  text-align: center;
+  padding: 24px 12px 10px;
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  color: var(--border);
+  user-select: none;
 }

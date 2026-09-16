@@ -592,6 +592,33 @@ httpOnly-Auth-Cookies NICHT, eher ein komplett neues Browser-Profil/Inkognito od
 Netzwerk-Request mit `redirect: 'manual'` prüfen), ein bereits angemeldeter Test-Browser verdeckt
 genau diese Klasse von Fehlern zuverlässig.
 
+**Kalender-Formatierung auf Live: Dienstag-Spalte zu breit, Mobile "reingezoomt" (2026-09-16,
+behoben):** Michael meldete per Screenshot, der Kalender sei jetzt auch auf Desktop "defekt",
+konkretisiert auf Nachfrage zu: "formatierung ist komisch. dienstag ist breiter als der rest.
+mobile generell sehr undeutlich und so reingezoomt." Zwei getrennte, echte Ursachen gefunden:
+
+- **Dienstag-Spalte breiter:** `.kalender-grid` nutzte `grid-template-columns: repeat(7, 1fr)`.
+  Ein `1fr`-Track ohne explizites Minimum orientiert sich trotzdem an der Mindestbreite (Min-Content)
+  seines Inhalts. Ein langer, nicht umbrechender Notiztext (`.kalender-notiz-zeile` hat
+  `white-space: nowrap` + `overflow: hidden` fürs visuelle Abschneiden) hat als Min-Content-Breite
+  aber die volle, unabgeschnittene Textbreite, das zieht die ganze Spalte (alle Zeilen dieses
+  Wochentags) breiter, auch wenn der Text selbst optisch abgeschnitten aussieht. Fix:
+  `grid-template-columns: repeat(7, minmax(0, 1fr))` plus `min-width: 0` auf `.kalender-tag` (Grid-
+  Items haben implizit `min-width: auto`, das muss ebenfalls aufgehoben werden). Lokal mit
+  künstlich eingefügtem, sehr langem Notiztext verifiziert: alle 7 Spalten exakt gleich breit
+  (vorher zog die betroffene Spalte sichtbar auseinander, jetzt konstant über alle Zeilen).
+- **Mobile "sehr undeutlich und reingezoomt":** Alle Formularfelder (`.entry-form input`,
+  `.login-form-card input`, `.konto-card input`, Kalender-Notiz-Formular usw.) hatten
+  `font-size: 0.9–0.95rem` (14.4–15.2px). iOS Safari zoomt die gesamte Seite automatisch hinein,
+  sobald ein fokussiertes Eingabefeld unter 16px Schriftgrösse hat, und bleibt danach auch auf
+  anderen Seiten in diesem Zoom-Zustand hängen, bis man manuell wieder rauszoomt, genau das
+  Symptom "reingezoomt und undeutlich". Fix: neue Regel im bestehenden
+  `@media (max-width: 640px)`-Block, die `input, select, textarea` auf `16px !important` setzt
+  (das `!important` ist nötig, weil die einzelnen Formular-Klassen spezifischer sind als ein
+  blosser Element-Selektor und sonst gewinnen würden). Betrifft nur schmale Viewports, Desktop-
+  Grössen unangetastet. Verifiziert via `getComputedStyle` auf allen Inputs bei 375px: vorher
+  14.4px, nachher 16px, Layout dabei visuell unverändert (Screenshot-Vergleich).
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
