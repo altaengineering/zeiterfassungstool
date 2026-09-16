@@ -515,6 +515,29 @@ nur deaktivierbar, siehe erster Nachtrag), plus allgemein mehr visuelle Gestaltu
   Monat vorbefüllten Testdaten nachgestellt (vorher hätte das "28/10" angezeigt, danach korrekt
   "10/10").
 
+**Mobile-Ansicht dringend nachgebessert (2026-09-16):** Stefan hat das Tool firmenweit gelauncht,
+direktes Feedback am selben Tag: auf dem Handy sieht die App unschön aus, besonders der Kalender.
+Mit `resize_window`-Emulation (375px) lokal nachgestellt und zwei echte Ursachen gefunden.
+
+- **Kopfzeile brach auf drei Zeilen um**, weil `.topbar-user` (Navigation, Admin-Menü, Konto-Menü,
+  Dark-Mode-Knopf) intern selbst nochmal umbricht: Zeile 1 Logo, Zeile 2 Navigation+Menüs, Zeile 3
+  nur noch der Dark-Mode-Knopf allein (der Rest passte knapp auf Zeile 2, nur der letzte Knopf
+  nicht mehr). Neue Regeln in einem bestehenden `@media (max-width: 640px)`-Block reduzieren
+  Abstände/Innenabstände von `.topbar-inner`, `.topbar-user`, `.topbar-nav`, `.topbar-menu-trigger`
+  und `.icon-btn` leicht, dadurch passt auf 375px wieder alles inklusive Dark-Mode-Knopf auf eine
+  einzige zweite Zeile (Kopfzeile insgesamt nur noch zwei statt drei Zeilen).
+- **`.form-row-pair` (zweispaltiges Grid, z.B. Datum/Text bei der Kalender-Notiz, Projekt/Stunden
+  im Tageseintrag) quetschte beide Spalten auch auf schmalen Bildschirmen nebeneinander**, dadurch
+  wurden Platzhaltertexte abgeschnitten (z.B. "z.B. Homeof..." statt "z.B. Homeoffice"). Im selben
+  Media-Query auf eine Spalte gestellt (`grid-template-columns: 1fr`), alle vier Verwendungsstellen
+  (Feiertage, Pensumwechsel, Kalender-Notiz, Tageseintrag-Projekte) betroffen, absichtlich
+  einheitlich statt nur für den Kalender gefixt, da das exakt dieselbe Ursache war.
+- Lokal auf `/kalender`, der Tagesübersicht, `/admin` und `/admin/uebersicht` bei 375px
+  gegengeprüft: Kopfzeile jetzt zwei saubere Zeilen überall, Formularfelder stapeln sich lesbar,
+  Tabellen (Chef-Übersicht, Nutzerverwaltung) bleiben wie vorher horizontal scrollbar innerhalb
+  von `.table-wrap`, das ist für Datentabellen auf einem Telefon ein akzeptables, gängiges Muster
+  und wurde bewusst nicht angefasst.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
