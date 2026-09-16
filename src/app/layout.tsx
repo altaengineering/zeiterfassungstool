@@ -94,9 +94,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </div>
         {children}
-        <footer className="geheime-signatur" aria-hidden="true">
-          fck ai, i built this myself
-        </footer>
       </body>
     </html>
   );
