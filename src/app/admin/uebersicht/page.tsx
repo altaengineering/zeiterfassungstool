@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { MitarbeiterZeile } from "./MitarbeiterZeile";
 import { berechneMonatsStand } from "@/lib/monatsStand";
+import { vergleicheDienstalter } from "@/lib/dienstalter";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +64,7 @@ export default async function UebersichtSeite({ searchParams }: Props) {
   const monatStart = new Date(Date.UTC(jahr, monat - 1, 1));
   const monatEnde = new Date(Date.UTC(jahr, monat, 1));
 
-  const [users, feiertageDb, entriesDb] = await Promise.all([
+  const [usersDb, feiertageDb, entriesDb] = await Promise.all([
     prisma.user.findMany({ where: { companyId: admin.companyId }, orderBy: { name: "asc" } }),
     prisma.holiday.findMany({
       where: { companyId: admin.companyId, date: { gte: monatStart, lt: monatEnde }, bezahlt: true },
@@ -74,6 +75,10 @@ export default async function UebersichtSeite({ searchParams }: Props) {
       orderBy: { date: "asc" },
     }),
   ]);
+
+  // Nach Dienstalter statt Namen, siehe src/lib/dienstalter.ts, auch hier zuerst am Firmenumfeld
+  // orientiert (aelteste zuerst), wie ausdruecklich gewuenscht.
+  const users = [...usersDb].sort(vergleicheDienstalter);
 
   const feiertage = new Set(feiertageDb.map((f) => iso(f.date)));
   const istAktuellerMonat = jahr === heute.getUTCFullYear() && monat === heute.getUTCMonth() + 1;

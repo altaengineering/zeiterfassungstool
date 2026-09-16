@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { generiereZufallsPasswort } from "@/lib/passwort";
+import { DIENSTALTER } from "@/lib/dienstalter";
 
 export interface ResetState {
   error?: string;
@@ -95,6 +96,41 @@ export async function nutzerHinzufuegen(
 
   revalidatePath("/admin");
   return { neuesPasswort, email };
+}
+
+export interface DienstalterState {
+  anzahlAktualisiert?: number;
+  unbekannteEmails?: string[];
+}
+
+// Einmaliger Datenimport, siehe src/lib/dienstalter.ts fuer Hintergrund und Quelle. Per
+// E-Mail-Abgleich statt Name, weil E-Mail der zuverlaessigere, eindeutige Schluessel ist. Nicht
+// gefundene E-Mails werden zurueckgemeldet statt stillschweigend uebersprungen, damit Abweichungen
+// (z.B. andere Schreibweise) sofort auffallen statt unbemerkt zu bleiben.
+export async function dienstalterImportieren(
+  _bisher: DienstalterState,
+  _formData: FormData,
+): Promise<DienstalterState> {
+  await pruefeAdmin();
+
+  let anzahlAktualisiert = 0;
+  const unbekannteEmails: string[] = [];
+
+  for (const [email, datum] of Object.entries(DIENSTALTER)) {
+    const ergebnis = await prisma.user.updateMany({
+      where: { email },
+      data: { eintrittsdatum: new Date(datum) },
+    });
+    if (ergebnis.count > 0) {
+      anzahlAktualisiert += ergebnis.count;
+    } else {
+      unbekannteEmails.push(email);
+    }
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/uebersicht");
+  return { anzahlAktualisiert, unbekannteEmails };
 }
 
 export async function nutzerLoeschen(formData: FormData) {

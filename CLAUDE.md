@@ -538,6 +538,40 @@ Mit `resize_window`-Emulation (375px) lokal nachgestellt und zwei echte Ursachen
   von `.table-wrap`, das ist für Datentabellen auf einem Telefon ein akzeptables, gängiges Muster
   und wurde bewusst nicht angefasst.
 
+**Reihenfolge nach Dienstalter (2026-09-16):** Wunsch, die Mitarbeitenden-Reihenfolge (vor allem
+in der Chef-Übersicht, aber auch in der Nutzerverwaltung) nach Firmeneintritt statt alphabetisch
+zu sortieren. Michael lieferte dafür eine Excel-Liste (`MA_2026.xlsx`) mit Name + Eintrittsdatum
+für 13 von 14 Personen (Stefan Herger fehlt darin).
+
+- **Neues Feld `User.eintrittsdatum` (`DateTime?`, optional)** in beiden Schema-Dateien, rein
+  additiv, unproblematisch für `db push --accept-data-loss` (siehe Kommentar im Feld selbst zur
+  Begründung, warum optional statt Pflichtfeld, gleiches Muster wie schon bei `Project.userId` und
+  `Booking.projectId`).
+- **`src/lib/dienstalter.ts`:** feste `DIENSTALTER`-Zuordnung E-Mail → Datum (aus der Excel-Liste
+  abgetippt, keine dynamische Nutzereingabe, da feststehende, einmalige HR-Fakten) sowie
+  `vergleicheDienstalter()`, ein Sortier-Comparator: älteste zuerst, Personen ohne bekanntes Datum
+  ans Ende (alphabetisch untereinander), nicht geraten oder vorne einsortiert.
+- **Self-Service-Import statt direktem DB-Zugriff** (gleiches Muster wie die Projekt-Migration):
+  neuer Knopf "Dienstalter importieren" auf `/admin` (`DienstalterButton.tsx` +
+  `dienstalterImportieren` in `admin/actions.ts`), gleicht die feste E-Mail-Liste per
+  `updateMany({ where: { email } })` ab und meldet zurück, wie viele Personen aktualisiert wurden
+  UND welche E-Mails keine Übereinstimmung hatten (wichtig, weil diese Session keinen direkten
+  Zugriff auf die Produktions-Datenbank hat und Tippfehler/Schreibweisen-Abweichungen zwischen der
+  Excel-Liste und den echten Konten sonst unbemerkt blieben). **Nach diesem Deploy muss ein Admin
+  einmal auf `/admin` auf „Dienstalter importieren“ klicken**, danach sind die Anzeigen sortiert.
+- **`/admin` und `/admin/uebersicht`** laden Nutzer:innen weiterhin ganz normal aus der Datenbank
+  (Reihenfolge dort bewusst unverändert, alphabetisch, für stabile Sortierung als Ausgangsbasis)
+  und sortieren erst in JavaScript mit `vergleicheDienstalter()` um, keine DB-seitige
+  `NULLS LAST`-Sortierung verwendet (deren Unterstützung zwischen SQLite und PostgreSQL nicht
+  sicher identisch ist, JS-seitiges Sortieren funktioniert dagegen auf beiden garantiert gleich).
+  `/admin` zeigt zusätzlich eine neue Spalte „Eintritt“ in der Tabelle, damit sichtbar ist, ob der
+  Import funktioniert hat.
+- Lokal mit drei Testkonten unter echten E-Mail-Adressen (`d.gruber@...`, `f.kurzmeyer@...`,
+  `m.kueng@...`) end-to-end verifiziert: vor dem Import alphabetisch sortiert, nach Klick auf
+  „Dienstalter importieren“ korrekt nach Eintrittsdatum (älteste zuerst), Meldung „3 Person(en)
+  aktualisiert“ plus Liste der zehn nicht gefundenen E-Mails (weil lokal nur diese drei echten
+  Konten existieren), Reihenfolge in `/admin` und `/admin/uebersicht` identisch.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`

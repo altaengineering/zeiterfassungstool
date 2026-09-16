@@ -82,13 +82,17 @@ model Holiday {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  company      Company  @relation(fields: [companyId], references: [id])
-  companyId    String
-  name         String
-  email        String   @unique
-  passwordHash String
-  role         String   @default("MITARBEITER")
+  id             String    @id @default(cuid())
+  company        Company   @relation(fields: [companyId], references: [id])
+  companyId      String
+  name           String
+  email          String    @unique
+  passwordHash   String
+  role           String    @default("MITARBEITER")
+  // Datum des Firmeneintritts, fuer die Dienstalter-Sortierung in Nutzerverwaltung und
+  // Chef-Uebersicht (siehe src/lib/dienstalter.ts). Optional, weil nicht fuer jede Person bekannt,
+  // Personen ohne Wert werden in der Sortierung ans Ende gestellt statt geraten.
+  eintrittsdatum DateTime?
 
   jahresStammdaten JahresStammdaten[]
   dailyEntries     DailyEntry[]
