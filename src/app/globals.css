@@ -1681,4 +1681,33 @@ main.login-hero {
   .kalender-tag-label {
     display: none;
   }
+
+  /* Kopfzeile: etwas enger, damit Navigation + Konto-Menü + Dark-Mode-Knopf auf schmalen
+     Bildschirmen in zwei statt drei Zeilen passen (vorher blieb der Dark-Mode-Knopf allein auf
+     einer dritten Zeile übrig). */
+  .topbar {
+    padding: 8px 12px;
+  }
+  .topbar-inner,
+  .topbar-user,
+  .topbar-nav {
+    column-gap: 6px;
+    row-gap: 6px;
+  }
+  .topbar-menu-trigger {
+    padding: 4px 9px;
+    font-size: 0.76rem;
+  }
+  .icon-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 0.85rem;
+  }
+
+  /* Zweispaltige Formularzeilen (z.B. Datum/Text bei der Kalender-Notiz) wirken auf schmalen
+     Bildschirmen gequetscht, Platzhaltertexte wurden abgeschnitten. Untereinander statt
+     nebeneinander ist hier lesbarer als ein Kompromiss bei der Spaltenbreite. */
+  .form-row-pair {
+    grid-template-columns: 1fr;
+  }
 }
