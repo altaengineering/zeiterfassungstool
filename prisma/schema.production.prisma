@@ -69,13 +69,14 @@ model Holiday {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  company      Company  @relation(fields: [companyId], references: [id])
-  companyId    String
-  name         String
-  email        String   @unique
-  passwordHash String
-  role         String   @default("MITARBEITER")
+  id             String    @id @default(cuid())
+  company        Company   @relation(fields: [companyId], references: [id])
+  companyId      String
+  name           String
+  email          String    @unique
+  passwordHash   String
+  role           String    @default("MITARBEITER")
+  eintrittsdatum DateTime?
 
   jahresStammdaten JahresStammdaten[]
   dailyEntries     DailyEntry[]
