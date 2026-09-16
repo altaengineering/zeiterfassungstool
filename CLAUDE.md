@@ -572,6 +572,26 @@ für 13 von 14 Personen (Stefan Herger fehlt darin).
   aktualisiert“ plus Liste der zehn nicht gefundenen E-Mails (weil lokal nur diese drei echten
   Konten existieren), Reihenfolge in `/admin` und `/admin/uebersicht` identisch.
 
+**⚠ Logo auf der Login-Seite kaputt: Middleware blockierte public/-Dateien (2026-09-16, akut
+behoben):** Michael meldete, die Live-Seite "sieht schlimmer aus, selbst auf Desktop". Ursache
+war das Logo (Kapitel "Header/Logo", 2026-09-15): `src/middleware.ts` hatte den Matcher
+`"/((?!_next/static|_next/image|favicon.ico).*)"`, der schliesst nur `_next/`-interne Pfade und
+`favicon.ico` aus, NICHT aber andere Dateien direkt unter `public/` wie `alta-logo.png`. Für einen
+noch nicht eingeloggten Aufruf der Login-Seite griff die Middleware deshalb auch bei der
+Bild-Anfrage selbst und leitete sie auf `/login` um (HTML statt Bild), das Logo erschien als
+kaputtes Bild-Icon. Beim eigenen Testen nie aufgefallen, weil der Test-Browser praktisch immer
+schon eine gültige Session-Cookie hatte, dann läuft die Bild-Anfrage einfach durch die Middleware
+durch, ohne dass es auffällt. Fix: Matcher um einen Dateiendungs-Ausschluss erweitert
+(`.*\.(?:png|jpg|jpeg|gif|svg|webp|ico)$`), deckt damit `public/` automatisch mit ab, auch für
+künftige weitere Bild-Dateien dort, nicht nur `alta-logo.png` einzeln freigeschaltet. Lokal via
+`fetch('/alta-logo.png', { redirect: 'manual' })` verifiziert (`status: 200`, `redirected: false`
+statt vorher ein Redirect), sowie visuell auf der Login-Seite. **Wichtige Lehre für künftige
+Sessions:** Bei allem, was mit "auf der Login-Seite" oder "für nicht eingeloggte Personen" zu tun
+hat, unbedingt mit tatsächlich geleerter Session testen (z.B. `document.cookie` leeren reicht bei
+httpOnly-Auth-Cookies NICHT, eher ein komplett neues Browser-Profil/Inkognito oder direkt den
+Netzwerk-Request mit `redirect: 'manual'` prüfen), ein bereits angemeldeter Test-Browser verdeckt
+genau diese Klasse von Fehlern zuverlässig.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
