@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { berechneMonatsStand } from "@/lib/monatsStand";
 import {
   berechneFerienBezogen,
+  berechneFerienBezogenGesamt,
   berechneFerienGuthaben,
   berechneFerienuebertragNaechstesJahr,
   sollProTag,
@@ -69,7 +70,10 @@ export default async function PensumSeite({ params }: Props) {
       entriesDb.filter((e) => e.date.getUTCMonth() === m).reduce((sum, e) => sum + e.ferien, 0),
     );
     const sollProTagWert = sollProTag(jahresStammdaten.wochenstunden, jahresStammdaten.anstellungPct);
-    ferienBezogen = berechneFerienBezogen(ferienStundenProMonat, sollProTagWert);
+    ferienBezogen = berechneFerienBezogenGesamt(
+      berechneFerienBezogen(ferienStundenProMonat, sollProTagWert),
+      jahresStammdaten.ferienBezogenKorrektur,
+    );
     ferienUebertrag = berechneFerienuebertragNaechstesJahr(ferienGuthaben, ferienBezogen);
   }
 
@@ -152,6 +156,20 @@ export default async function PensumSeite({ params }: Props) {
               placeholder={`Standard: ${standardJahresferientage.toFixed(1)} Tage/Jahr`}
             />
           </label>
+          <label>
+            Zusätzlich verbrauchte Ferientage, nicht in Tageseinträgen erfasst
+            <input
+              type="number"
+              name="ferienBezogenKorrektur"
+              step={0.1}
+              defaultValue={jahresStammdaten?.ferienBezogenKorrektur ?? 0}
+            />
+          </label>
+          <p className="form-message small">
+            Für Ferientage, die genommen, aber nie im Kalender als Ferien-Tag erfasst wurden (siehe
+            "Ferien bezogen" oben). Wird zur aus echten Tageseinträgen berechneten Anzahl
+            hinzugezählt, nicht ersetzt, künftige echte Einträge zählen also weiterhin normal dazu.
+          </p>
           <div className="entry-form-footer">
             <button type="submit" disabled={!jahresStammdaten}>
               Korrektur speichern

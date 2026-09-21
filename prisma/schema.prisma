@@ -153,6 +153,14 @@ model JahresStammdaten {
   // CompanySettings.jahresferientage bzw. der Standard-Wert (siehe berechneJahresferientage).
   jahresferientage Float?
 
+  // Nicht aus dem Original-Excel, App-eigenes Feature: "Ferien bezogen" wird normalerweise nur aus
+  // den echten Tageseintraegen (DailyEntry.ferien) berechnet, nicht direkt eintragbar. Deckt aber
+  // nicht den Fall ab, dass jemand Ferientage genommen, aber nie als Ferien-Tag erfasst hat (siehe
+  // Andrit-Fall, 2026-09-16/21). Dieses Feld ist eine zusaetzliche Korrektur in TAGEN, die zur aus
+  // den Tageseintraegen berechneten Anzahl addiert wird (siehe berechneFerienBezogenGesamt), statt
+  // sie zu ersetzen, damit kuenftige echte Eintraege weiterhin korrekt mitgezaehlt werden.
+  ferienBezogenKorrektur Float @default(0)
+
   // Nicht aus dem Original-Excel, App-eigenes Feature (CLAUDE.md §7): Tage VOR diesem Datum
   // zählen nicht (Soll=0, wie ein manueller Override) — löst die "leere Startphase" beim
   // Onboarding neuer Nutzer:innen, ohne hunderte DailyEntry-Zeilen anlegen zu müssen. NULL =

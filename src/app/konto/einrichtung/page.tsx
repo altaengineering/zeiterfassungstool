@@ -47,6 +47,7 @@ export default async function EinrichtungSeite() {
           defaultFerienGuthaben={stammdaten?.ferienuebertragAltesJahr ?? 0}
           defaultJahresferientage={stammdaten?.jahresferientage ?? null}
           standardJahresferientage={standardJahresferientage}
+          defaultFerienBezogenKorrektur={stammdaten?.ferienBezogenKorrektur ?? 0}
           istEingerichtet={stammdaten?.erfassungStartDatum != null}
         />
       </div>

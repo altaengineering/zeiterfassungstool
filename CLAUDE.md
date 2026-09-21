@@ -700,6 +700,18 @@ korrekt 401/401/200). **Offener Punkt: `CRON_SECRET` muss noch in den Vercel-Pro
 gesetzt werden**, sonst antwortet die Route dauerhaft mit 500 (bewusst so, kein Fallback auf
 "ungeschützt laufen lassen").
 
+**"Ferien bezogen" manuell korrigierbar (2026-09-21):** Anlass: Michael wollte für Fälle wie den
+Andrit-Fall (siehe oben) nicht jedes Mal einzelne Tageseinträge nachtragen müssen, nur um "Ferien
+bezogen" korrekt zu bekommen. Neues Feld `JahresStammdaten.ferienBezogenKorrektur` (`Float`,
+Default 0): eine manuell eingetragene Zusatzmenge in Tagen, die zur aus echten `DailyEntry`-Zeilen
+berechneten Anzahl **addiert** wird (`berechneFerienBezogenGesamt` in `src/lib/calc/ferien.ts`),
+nicht sie ersetzt. Dadurch zählen künftige echte, korrekt als Ferien markierte Tageseinträge
+weiterhin normal dazu, die Korrektur deckt nur die Lücke für bereits genommene, aber nie erfasste
+Tage ab. Wie bei Ferienübertrag/Jahresferientage an **beiden** Stellen editierbar:
+`/konto/einrichtung` (Self-Service, eigenes Konto) und `/admin/pensum/[userId]` (Admin, beliebige
+Person). Lokal end-to-end verifiziert an beiden Stellen: Korrektur auf 3 bzw. 2 Tage gesetzt,
+"Ferien bezogen" und "Ferienübertrag" zogen auf beiden Seiten korrekt nach.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
