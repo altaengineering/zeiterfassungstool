@@ -11,5 +11,8 @@ export const config = {
   // schickte die Logo-Anfrage selbst wieder auf /login um, statt das Bild zu liefern, das Logo
   // erschien kaputt (nur bei bereits bestehender Session lief die Anfrage einfach durch, deshalb
   // beim eigenen Testen mit angemeldetem Browser nie aufgefallen).
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico)$).*)"],
+  // api/cron/ ebenfalls ausgeschlossen: Vercel Cron schickt keine Session-Cookie, nur einen
+  // Authorization-Bearer-Header (siehe api/cron/erinnerung/route.ts), diese Middleware hätte den
+  // Request sonst schon vorher auf /login umgeleitet, bevor die Route ihre eigene Prüfung sieht.
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/cron/|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico)$).*)"],
 };

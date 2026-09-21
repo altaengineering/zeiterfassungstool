@@ -118,7 +118,12 @@ export async function tageseintragSpeichern(formData: FormData) {
     const stunden = Number(formData.get(`projektStunden${i}`));
     const kommentar = String(formData.get(`projektKommentar${i}`) ?? "").trim();
     if (typeof projectId === "string" && projectId !== "" && Number.isFinite(stunden) && stunden > 0) {
-      const project = await prisma.project.findUniqueOrThrow({ where: { id: projectId } });
+      // Immer mit userId in der WHERE-Klausel, analog zu projekte/actions.ts: verhindert, dass
+      // jemand per manipulierter Projekt-ID ein fremdes Projekt (samt dessen Namen) in die eigene
+      // Buchung uebernimmt. userId ist hier die Person, fuer die der Tag gespeichert wird (bei
+      // Admin-Bearbeitung also betroffenerUser, nicht zwingend die eingeloggte Person).
+      const project = await prisma.project.findFirst({ where: { id: projectId, userId } });
+      if (!project) continue;
       await prisma.booking.create({
         data: { dailyEntryId: entry.id, projectId, label: project.name, hours: stunden, kommentar },
       });

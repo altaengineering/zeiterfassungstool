@@ -143,6 +143,12 @@ export async function nutzerLoeschen(formData: FormData) {
   await prisma.dailyEntry.deleteMany({ where: { userId } });
   await prisma.jahresStammdaten.deleteMany({ where: { userId } });
   await prisma.pensumWechsel.deleteMany({ where: { userId } });
+  // Ohne diese beiden schlaegt das Loeschen fehl, sobald die Person je ein Projekt angelegt oder
+  // eine Kalender-Notiz erfasst hat (Fremdschluessel-Constraint), was praktisch immer der Fall
+  // ist. Projekte sind bewusst persoenlich (siehe Kommentar im Schema), Buchungen darauf gehoeren
+  // bereits geloeschten eigenen Tageseintraegen, nicht denen anderer Personen.
+  await prisma.kalenderNotiz.deleteMany({ where: { userId } });
+  await prisma.project.deleteMany({ where: { userId } });
   await prisma.user.delete({ where: { id: userId } });
   revalidatePath("/admin");
 }
