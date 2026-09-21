@@ -654,6 +654,52 @@ Stunden-/Ferienübertrag-Muster:
 - Lokal end-to-end verifiziert: Self-Service-Feld auf 25 gesetzt, Monatsansicht zeigt korrekt
   "Ferien Guthaben 2026: 25 Tage" statt der vorherigen 10.8, Übertrag entsprechend nachgezogen.
 
+**Admin-Panel zeigt Live-Werte statt nur Eingabefelder (2026-09-21):** Michael wollte gemeldete
+Probleme direkt lösen können, ohne die aktuellen Zahlen selbst nachzurechnen. `/admin/pensum/[userId]`
+zeigt jetzt oben eine Karten-Reihe mit dem live berechneten Gleitzeit-Stand (`berechneMonatsStand`,
+gleiche Funktion wie die Chef-Übersicht) sowie Ferien Guthaben/bezogen/Übertrag (gleiche Funktionen
+wie die persönliche Monatsseite), direkt über der Korrektur-Karte. Lokal end-to-end verifiziert:
+Jahresferientage auf 22 gesetzt, Karten aktualisierten sich nach dem Speichern korrekt auf
+"22.0 Tage" bzw. "21.0 Tage" Übertrag.
+
+**Sicherheitsreview durchgeführt (2026-09-21):** Auf Wunsch ein fokussierter Security-Review der
+Codebase (nicht nur der letzten Änderungen). Ergebnis: Auth-Modell insgesamt solide (bcrypt,
+JWT-Sessions, keine Klartext-Secrets, kein Roh-SQL, `.env` nie committet), die meisten
+Server-Actions filtern konsequent nach der eigenen `userId`. Zwei echte Funde, beide behoben:
+
+- **IDOR in `tageseintragSpeichern`** (`mitarbeiter/[userId]/[jahr]/[monat]/actions.ts`): Projekt
+  wurde per `findUniqueOrThrow({ where: { id: projectId } })` geladen, ohne nach `userId` zu
+  filtern, anders als überall sonst im Code (`projekte/actions.ts` filtert konsequent `{ id,
+  userId }`, mit explizitem Kommentar zur IDOR-Absicht). Wer die Projekt-ID einer anderen Person
+  kennt (z.B. cuid, nicht öffentlich, aber auch nicht geheim), konnte deren Projektnamen in die
+  eigene Buchung übernehmen. Impact klein (nur der Name eines fremden Projekts sickert in die
+  eigene Zeile, keine fremden Daten lesbar/änderbar), aber echte Abweichung vom sonst
+  durchgehaltenen Muster. Fix: `findFirst({ where: { id: projectId, userId } })`, bei Nichttreffer
+  wird die Buchung einfach übersprungen statt die ganze Aktion abstürzen zu lassen.
+- **Nutzer löschen bricht bei vorhandenen Projekten/Kalendernotizen** (`admin/actions.ts`,
+  `nutzerLoeschen`): löschte weder `Project` noch `KalenderNotiz` der Person vor
+  `prisma.user.delete`, das schlägt an der Fremdschlüssel-Constraint fehl, sobald die Person
+  (praktisch immer) mindestens ein eigenes Projekt hat. Kein Sicherheitsproblem, aber ein
+  funktionaler Bug im selben Zug mitbehoben.
+
+**Cron-Erinnerung bei fehlendem Tageseintrag (2026-09-21):** Neue Route
+`src/app/api/cron/erinnerung/route.ts`, läuft per Vercel Cron Di-Sa um 6 Uhr UTC (`vercel.json`,
+`"schedule": "0 6 * * 2-6"`), prüft jeweils den Vortag (dadurch nie ein Wochenende als geprüfter
+Tag, und die Erinnerung für Freitag kommt am Samstag statt erst am Montag). Pro Firma und Person:
+übersprungen bei bezahltem Feiertag, bei noch nicht erreichtem `erfassungStartDatum`, oder wenn
+bereits ein `DailyEntry` existiert, sonst E-Mail über `sendeErinnerung` (neue Funktion in
+`src/lib/email.ts`, gleiches Resend-Muster wie `sendeKrankmeldung`, ebenfalls optional/best-effort
+ohne `RESEND_API_KEY`). Authentifizierung über `Authorization: Bearer $CRON_SECRET`, den Vercel bei
+konfiguriertem `CRON_SECRET`-Envvar automatisch mitschickt, ohne das Secret lehnt die Route mit 401
+ab (sonst könnte jede Person von aussen beliebig oft Erinnerungen an alle auslösen).
+**`middleware.ts`-Matcher musste um `api/cron/` erweitert werden**, sonst hätte die
+Session-Middleware den Cron-Request (kein Session-Cookie, nur der Bearer-Header) schon vorher auf
+`/login` umgeleitet, bevor die Route ihre eigene Prüfung überhaupt sieht (lokal genau so
+reproduziert und verifiziert: vor dem Matcher-Fix 307 zu `/login` in allen drei Testfällen, danach
+korrekt 401/401/200). **Offener Punkt: `CRON_SECRET` muss noch in den Vercel-Projekt-Settings
+gesetzt werden**, sonst antwortet die Route dauerhaft mit 500 (bewusst so, kein Fallback auf
+"ungeschützt laufen lassen").
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`

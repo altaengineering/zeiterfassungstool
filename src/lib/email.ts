@@ -36,3 +36,32 @@ export async function sendeKrankmeldung(params: {
     console.error("Krankmeldungs-E-Mail konnte nicht gesendet werden:", e);
   }
 }
+
+export async function sendeErinnerung(params: {
+  mitarbeiterName: string;
+  empfaengerEmail: string;
+  datumIso: string;
+}) {
+  if (!resend) {
+    console.warn(
+      "RESEND_API_KEY nicht gesetzt, Erinnerungs-E-Mail wurde nicht versendet (siehe CLAUDE.md).",
+    );
+    return;
+  }
+
+  const datum = formatDatum(params.datumIso);
+  try {
+    await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev",
+      to: [params.empfaengerEmail],
+      subject: `Zeiterfassung: noch kein Eintrag für ${datum}`,
+      text:
+        `Hallo ${params.mitarbeiterName}\n\n` +
+        `Für den ${datum} ist in der Zeiterfassung noch kein Eintrag vorhanden. ` +
+        `Falls das ein Versehen war, einfach nachtragen: https://zeiterfassungstool-psi.vercel.app\n\n` +
+        `Diese Erinnerung kommt automatisch, du musst nicht antworten.`,
+    });
+  } catch (e) {
+    console.error("Erinnerungs-E-Mail konnte nicht gesendet werden:", e);
+  }
+}
