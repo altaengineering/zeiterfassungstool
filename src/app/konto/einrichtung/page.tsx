@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { STANDARD_JAHRESFERIENTAGE } from "@/lib/calc";
 import { EinrichtungForm } from "./EinrichtungForm";
 
 export const dynamic = "force-dynamic";
@@ -11,9 +12,14 @@ export default async function EinrichtungSeite() {
 
   const userId = (session.user as { id: string }).id;
   const jahr = new Date().getFullYear();
-  const stammdaten = await prisma.jahresStammdaten.findUnique({
-    where: { userId_year: { userId, year: jahr } },
-  });
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const [stammdaten, companySettings] = await Promise.all([
+    prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
+    prisma.companySettings.findUnique({
+      where: { companyId_year: { companyId: user.companyId, year: jahr } },
+    }),
+  ]);
+  const standardJahresferientage = companySettings?.jahresferientage ?? STANDARD_JAHRESFERIENTAGE;
 
   const heute = new Date().toISOString().slice(0, 10);
   const defaultDatum = stammdaten?.erfassungStartDatum
@@ -39,6 +45,8 @@ export default async function EinrichtungSeite() {
           defaultDatum={defaultDatum}
           defaultStundenSaldo={stammdaten?.stundenuebertragAltesJahr ?? 0}
           defaultFerienGuthaben={stammdaten?.ferienuebertragAltesJahr ?? 0}
+          defaultJahresferientage={stammdaten?.jahresferientage ?? null}
+          standardJahresferientage={standardJahresferientage}
           istEingerichtet={stammdaten?.erfassungStartDatum != null}
         />
       </div>

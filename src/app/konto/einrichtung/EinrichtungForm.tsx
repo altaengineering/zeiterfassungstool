@@ -9,11 +9,15 @@ export function EinrichtungForm({
   defaultDatum,
   defaultStundenSaldo,
   defaultFerienGuthaben,
+  defaultJahresferientage,
+  standardJahresferientage,
   istEingerichtet,
 }: {
   defaultDatum: string;
   defaultStundenSaldo: number;
   defaultFerienGuthaben: number;
+  defaultJahresferientage: number | null;
+  standardJahresferientage: number;
   istEingerichtet: boolean;
 }) {
   const [state, formAction, pending] = useActionState(einrichtungSpeichern, initialState);
@@ -40,6 +44,21 @@ export function EinrichtungForm({
           Aktuelles Ferien-Guthaben (in Tagen)
           <input type="number" step="0.1" name="ferienGuthaben" defaultValue={defaultFerienGuthaben} required />
         </label>
+        <label>
+          Ferientage pro Jahr laut Vertrag (nur ausfüllen, falls abweichend vom Standard)
+          <input
+            type="number"
+            step="0.1"
+            name="jahresferientage"
+            defaultValue={defaultJahresferientage ?? ""}
+            placeholder={`Standard: ${standardJahresferientage.toFixed(1)} Tage/Jahr`}
+          />
+        </label>
+        <p className="form-message small">
+          Leer lassen für den Firmenstandard ({standardJahresferientage.toFixed(1)} Tage/Jahr bei
+          Vollzeit). Bei Lernenden oder unter 20 Jahren gilt gesetzlich oft ein höherer Anspruch,
+          in dem Fall hier die tatsächliche Anzahl eintragen.
+        </p>
         <button type="submit" disabled={pending}>
           {pending ? "Speichert…" : "Speichern"}
         </button>

@@ -619,6 +619,41 @@ mobile generell sehr undeutlich und so reingezoomt." Zwei getrennte, echte Ursac
   Grössen unangetastet. Verifiziert via `getComputedStyle` auf allen Inputs bei 375px: vorher
   14.4px, nachher 16px, Layout dabei visuell unverändert (Screenshot-Vergleich).
 
+**Admin kann Stunden-/Ferienübertrag aus dem Vorjahr korrigieren (2026-09-21):** Anlass: ein
+Mitarbeitender hatte bei der eigenen Einrichtung (`/konto/einrichtung`) einen falschen
+Ferienübertrag eingetragen, dafür gab es bisher keine Korrekturmöglichkeit ausser direktem
+DB-Zugriff (die Einrichtung ist Self-Service, aber nur fürs eigene Konto). `/admin/pensum/[userId]`
+(bisher nur für Pensumwechsel) hat jetzt zusätzlich einen Kasten "Stunden-/Ferienübertrag aus dem
+Vorjahr korrigieren", der `stundenuebertragAltesJahr`/`ferienuebertragAltesJahr` für eine beliebige
+Person editierbar macht (`stammdatenKorrigieren` in `admin/pensum/[userId]/actions.ts`). Lokal
+end-to-end verifiziert (Wert speichern, direkt in der DB nachgeschaut).
+
+**Ferientage pro Jahr neu Self-Service statt globaler Konstante (2026-09-21):** Ausgangspunkt war
+ein Mitarbeitenden-Bugreport (Ferien-Guthaben stimmte nicht), bei der Analyse fiel auf: die
+"Jahresferientage" (Summen!B16 im Original, `6.5/12*20-0.00333333` ≈ 10.83 Tage/Jahr) waren als
+`STANDARD_JAHRESFERIENTAGE`-Konstante für **alle** Mitarbeitenden identisch fest einprogrammiert.
+Das ist so im Original-Excel tatsächlich eine hartcodierte Formel (direkt in `Summen!B16` der
+Vorlage geprüft, keine Zellreferenz), aber Michael bestätigte, dass der tatsächliche
+Ferienanspruch in der Realität durchaus pro Person unterschiedlich ist (z.B. Lernende oder unter
+20-Jährige haben nach Art. 329a OR Anspruch auf 25 statt 20 Tage). Statt das über eine Liste von
+Stefan/HR nachzupflegen, auf Wunsch als Self-Service gelöst, analog zum bestehenden
+Stunden-/Ferienübertrag-Muster:
+
+- **Neues Feld `JahresStammdaten.jahresferientage` (`Float?`, optional)**, `NULL` = kein
+  persönlicher Wert hinterlegt.
+- **Fallback-Kette überall vereinheitlicht:** persönlicher Wert (falls gesetzt) →
+  `CompanySettings.jahresferientage` (falls für Firma/Jahr hinterlegt) → `STANDARD_JAHRESFERIENTAGE`
+  als letzter Fallback. Vorher fiel die Monatsansicht bei fehlenden `CompanySettings` still auf `0`
+  zurück (kein Ferienaufbau mehr), ein eigener, bis jetzt unbemerkter Bug, jetzt mitbehoben.
+- **`/konto/einrichtung`** hat ein neues, optionales Feld "Ferientage pro Jahr laut Vertrag", leer
+  lassen = Firmenstandard. Placeholder zeigt den aktuell wirksamen Standardwert an.
+- **Excel-Export:** `exportExcel.ts` überschreibt `Summen!B16` jetzt mit dem aufgelösten Wert
+  (vorher liess der Export die feste Formel der Vorlage unangetastet stehen, unabhängig vom
+  `CompanySettings`-Wert, den die App selbst schon länger nutzte. App-Anzeige und Excel-Export
+  konnten dadurch bereits vorher auseinanderlaufen).
+- Lokal end-to-end verifiziert: Self-Service-Feld auf 25 gesetzt, Monatsansicht zeigt korrekt
+  "Ferien Guthaben 2026: 25 Tage" statt der vorherigen 10.8, Übertrag entsprechend nachgezogen.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`

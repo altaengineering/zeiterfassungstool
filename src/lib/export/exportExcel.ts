@@ -71,6 +71,13 @@ export interface ExportInput {
   stundenuebertragAltesJahr: number;
   ferienuebertragAltesJahr: number;
   arbeitsmonate: number;
+  /**
+   * Summen!B16 in der Vorlage ("Jahresferientage neu hinzu"), dort als feste Formel
+   * `6.5/12*20-0.00333333` fuer alle Personen gleich verdrahtet. Gilt in Wirklichkeit nicht fuer
+   * alle gleich (siehe JahresStammdaten.jahresferientage), daher hier als Literal ueberschrieben
+   * statt die Formel der Vorlage stehen zu lassen.
+   */
+  jahresferientage: number;
   kmSpesensatz: number;
   ferienBezogenBisher: number; // Jan!H2-Startwert, i.d.R. 0 für einen frischen Export
   /** App-eigenes Feature (CLAUDE.md §7): Tage davor bekommen Soll=0, siehe DailyEntry-Seite. */
@@ -129,6 +136,7 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
   summen.getCell("B10").value = input.anzahlVorholtage;
   summen.getCell("B14").value = input.stundenuebertragAltesJahr;
   summen.getCell("B15").value = input.ferienuebertragAltesJahr;
+  summen.getCell("B16").value = input.jahresferientage;
   summen.getCell("B17").value = input.arbeitsmonate;
   summen.getCell("B27").value = new Date(Date.UTC(input.jahr, 0, 1));
   summen.getCell("B44").value = input.kmSpesensatz;

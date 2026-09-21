@@ -7,6 +7,7 @@ import {
   berechneFerienGuthaben,
   berechneFerienuebertragNaechstesJahr,
   berechneTagesReihe,
+  STANDARD_JAHRESFERIENTAGE,
   pensumFuerDatum,
   sollProTag,
   sollProTagFuerDatum,
@@ -198,7 +199,11 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
       .filter((e) => e.date.getUTCMonth() === m)
       .reduce((sum, e) => sum + e.ferien, 0),
   );
-  const jahresferientage = companySettings?.jahresferientage ?? 0;
+  // Reihenfolge: persönlicher Wert (Einrichtung) > Firmen-Standard (CompanySettings) > fest
+  // einprogrammierter Fallback. Vorher fiel das bei fehlenden CompanySettings still auf 0 zurück
+  // (kein Ferienaufbau mehr), das war ein eigener, bisher unbemerkter Bug.
+  const jahresferientage =
+    jahresStammdaten.jahresferientage ?? companySettings?.jahresferientage ?? STANDARD_JAHRESFERIENTAGE;
   const ferienGuthaben = berechneFerienGuthaben(
     jahresStammdaten.ferienuebertragAltesJahr,
     jahresStammdaten.arbeitsmonate,

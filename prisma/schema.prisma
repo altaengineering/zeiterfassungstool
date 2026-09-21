@@ -146,6 +146,13 @@ model JahresStammdaten {
   ferienuebertragAltesJahr     Float @default(0) // Summen!B15
   arbeitsmonate                 Float @default(12) // Summen!B17
 
+  // Nicht aus dem Original-Excel, App-eigenes Feature: Summen!B16 war im Original firmenweit eine
+  // einzige, fest verdrahtete Formel (6.5/12*20-0.00333333 ≈ 10.83 Tage/Jahr), gilt aber in
+  // Wirklichkeit nicht fuer alle gleich (z.B. Lernende/unter 20 Jahren haben laut Art. 329a OR
+  // Anspruch auf 25 statt 20 Tage). NULL = kein persoenlicher Wert hinterlegt, dann zaehlt weiter
+  // CompanySettings.jahresferientage bzw. der Standard-Wert (siehe berechneJahresferientage).
+  jahresferientage Float?
+
   // Nicht aus dem Original-Excel, App-eigenes Feature (CLAUDE.md §7): Tage VOR diesem Datum
   // zählen nicht (Soll=0, wie ein manueller Override) — löst die "leere Startphase" beim
   // Onboarding neuer Nutzer:innen, ohne hunderte DailyEntry-Zeilen anlegen zu müssen. NULL =
