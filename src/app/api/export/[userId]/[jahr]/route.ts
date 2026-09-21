@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { erzeugeExcelExport, istSchaltjahr, type ExportTag } from "@/lib/export/exportExcel";
+import { STANDARD_JAHRESFERIENTAGE } from "@/lib/calc";
 
 function iso(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -99,6 +100,8 @@ export async function GET(
     stundenuebertragAltesJahr: jahresStammdaten.stundenuebertragAltesJahr,
     ferienuebertragAltesJahr: jahresStammdaten.ferienuebertragAltesJahr,
     arbeitsmonate: jahresStammdaten.arbeitsmonate,
+    jahresferientage:
+      jahresStammdaten.jahresferientage ?? companySettings?.jahresferientage ?? STANDARD_JAHRESFERIENTAGE,
     kmSpesensatz: companySettings?.kmSpesensatz ?? 0,
     ferienBezogenBisher: 0,
     erfassungStartDatum: jahresStammdaten.erfassungStartDatum
