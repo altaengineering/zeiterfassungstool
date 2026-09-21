@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { pensumWechselHinzufuegen, pensumWechselLoeschen } from "./actions";
+import { pensumWechselHinzufuegen, pensumWechselLoeschen, stammdatenKorrigieren } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +34,44 @@ export default async function PensumSeite({ params }: Props) {
         Tag rechnet das Tool automatisch mit dem neuen Wert, alle Tage davor bleiben beim
         bisherigen Wert. <Link href="/admin">← zurück zur Nutzerverwaltung</Link>
       </p>
+
+      <div className="entry-form-card" style={{ marginBottom: 24 }}>
+        <h2 style={{ marginTop: 0 }}>Stunden-/Ferienübertrag aus dem Vorjahr korrigieren</h2>
+        <p className="subtitle">
+          Normalerweise trägt das jede Person unter "Einrichtung" selbst ein. Hier kann ein Admin
+          das nachträglich korrigieren, z.B. wenn beim eigenen Setup ein falscher Wert eingetragen
+          wurde. Wirkt sich auf "Ferien Guthaben {jahr}" bzw. den Stunden-Stand ab 1. Januar aus.
+        </p>
+        <form action={stammdatenKorrigieren} className="entry-form">
+          <input type="hidden" name="userId" value={userId} />
+          <input type="hidden" name="jahr" value={jahr} />
+          <div className="form-row-pair">
+            <label>
+              Stundenübertrag Vorjahr
+              <input
+                type="number"
+                name="stundenuebertragAltesJahr"
+                step={0.01}
+                defaultValue={jahresStammdaten?.stundenuebertragAltesJahr ?? 0}
+              />
+            </label>
+            <label>
+              Ferienübertrag Vorjahr (Tage)
+              <input
+                type="number"
+                name="ferienuebertragAltesJahr"
+                step={0.1}
+                defaultValue={jahresStammdaten?.ferienuebertragAltesJahr ?? 0}
+              />
+            </label>
+          </div>
+          <div className="entry-form-footer">
+            <button type="submit" disabled={!jahresStammdaten}>
+              Korrektur speichern
+            </button>
+          </div>
+        </form>
+      </div>
 
       <div className="entry-form-card" style={{ marginBottom: 24 }}>
         <form action={pensumWechselHinzufuegen} className="entry-form">

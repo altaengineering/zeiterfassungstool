@@ -40,3 +40,31 @@ export async function pensumWechselLoeschen(formData: FormData) {
   await prisma.pensumWechsel.delete({ where: { id } });
   revalidatePath(`/admin/pensum/${userId}`);
 }
+
+// Stunden-/Ferienübertrag aus dem Vorjahr sind normalerweise Self-Service (/konto/einrichtung),
+// aber nur beim eigenen Konto editierbar. Für Korrekturen durch einen Admin (z.B. weil jemand beim
+// eigenen Setup einen falschen Ferienübertrag eingetragen hat) gibt es dort keine Möglichkeit,
+// daher hier dasselbe Feld zusätzlich admin-seitig für beliebige Nutzer:innen editierbar.
+export async function stammdatenKorrigieren(formData: FormData) {
+  await pruefeAdmin();
+
+  const userId = String(formData.get("userId") ?? "");
+  const jahr = Number(formData.get("jahr") ?? 0);
+  const stundenuebertragAltesJahr = Number(formData.get("stundenuebertragAltesJahr") ?? 0);
+  const ferienuebertragAltesJahr = Number(formData.get("ferienuebertragAltesJahr") ?? 0);
+  if (
+    !userId ||
+    !jahr ||
+    !Number.isFinite(stundenuebertragAltesJahr) ||
+    !Number.isFinite(ferienuebertragAltesJahr)
+  ) {
+    return;
+  }
+
+  await prisma.jahresStammdaten.update({
+    where: { userId_year: { userId, year: jahr } },
+    data: { stundenuebertragAltesJahr, ferienuebertragAltesJahr },
+  });
+
+  revalidatePath(`/admin/pensum/${userId}`);
+}
