@@ -54,19 +54,21 @@ export async function stammdatenKorrigieren(formData: FormData) {
   const ferienuebertragAltesJahr = Number(formData.get("ferienuebertragAltesJahr") ?? 0);
   const jahresferientageRaw = String(formData.get("jahresferientage") ?? "").trim();
   const jahresferientage = jahresferientageRaw === "" ? null : Number(jahresferientageRaw);
+  const ferienBezogenKorrektur = Number(formData.get("ferienBezogenKorrektur") ?? 0);
   if (
     !userId ||
     !jahr ||
     !Number.isFinite(stundenuebertragAltesJahr) ||
     !Number.isFinite(ferienuebertragAltesJahr) ||
-    (jahresferientage != null && !Number.isFinite(jahresferientage))
+    (jahresferientage != null && !Number.isFinite(jahresferientage)) ||
+    !Number.isFinite(ferienBezogenKorrektur)
   ) {
     return;
   }
 
   await prisma.jahresStammdaten.update({
     where: { userId_year: { userId, year: jahr } },
-    data: { stundenuebertragAltesJahr, ferienuebertragAltesJahr, jahresferientage },
+    data: { stundenuebertragAltesJahr, ferienuebertragAltesJahr, jahresferientage, ferienBezogenKorrektur },
   });
 
   revalidatePath(`/admin/pensum/${userId}`);

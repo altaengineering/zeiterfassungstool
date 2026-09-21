@@ -23,6 +23,7 @@ export async function einrichtungSpeichern(
   const ferienGuthaben = Number(formData.get("ferienGuthaben") ?? 0);
   const jahresferientageRaw = String(formData.get("jahresferientage") ?? "").trim();
   const jahresferientage = jahresferientageRaw === "" ? null : Number(jahresferientageRaw);
+  const ferienBezogenKorrektur = Number(formData.get("ferienBezogenKorrektur") ?? 0);
 
   if (!startdatum) return { error: "Bitte ein Startdatum wählen." };
   if (!Number.isFinite(stundenSaldo) || !Number.isFinite(ferienGuthaben)) {
@@ -30,6 +31,9 @@ export async function einrichtungSpeichern(
   }
   if (jahresferientage != null && !Number.isFinite(jahresferientage)) {
     return { error: "Bitte eine gültige Zahl für die Ferientage pro Jahr eingeben, oder leer lassen." };
+  }
+  if (!Number.isFinite(ferienBezogenKorrektur)) {
+    return { error: "Bitte eine gültige Zahl für die zusätzlich verbrauchten Ferientage eingeben." };
   }
 
   try {
@@ -40,6 +44,7 @@ export async function einrichtungSpeichern(
         stundenuebertragAltesJahr: stundenSaldo,
         ferienuebertragAltesJahr: ferienGuthaben,
         jahresferientage,
+        ferienBezogenKorrektur,
       },
     });
   } catch {

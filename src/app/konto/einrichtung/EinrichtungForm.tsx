@@ -11,6 +11,7 @@ export function EinrichtungForm({
   defaultFerienGuthaben,
   defaultJahresferientage,
   standardJahresferientage,
+  defaultFerienBezogenKorrektur,
   istEingerichtet,
 }: {
   defaultDatum: string;
@@ -18,6 +19,7 @@ export function EinrichtungForm({
   defaultFerienGuthaben: number;
   defaultJahresferientage: number | null;
   standardJahresferientage: number;
+  defaultFerienBezogenKorrektur: number;
   istEingerichtet: boolean;
 }) {
   const [state, formAction, pending] = useActionState(einrichtungSpeichern, initialState);
@@ -58,6 +60,20 @@ export function EinrichtungForm({
           Leer lassen für den Firmenstandard ({standardJahresferientage.toFixed(1)} Tage/Jahr bei
           Vollzeit). Bei Lernenden oder unter 20 Jahren gilt gesetzlich oft ein höherer Anspruch,
           in dem Fall hier die tatsächliche Anzahl eintragen.
+        </p>
+        <label>
+          Zusätzlich verbrauchte Ferientage, nicht im Kalender erfasst
+          <input
+            type="number"
+            step="0.1"
+            name="ferienBezogenKorrektur"
+            defaultValue={defaultFerienBezogenKorrektur}
+          />
+        </label>
+        <p className="form-message small">
+          Für Ferientage, die du schon genommen, aber nie im Kalender als Ferien-Tag eingetragen
+          hast. Wird zu den echten Kalender-Einträgen dazugezählt, ersetzt sie nicht, künftige
+          Einträge zählen also weiterhin normal dazu.
         </p>
         <button type="submit" disabled={pending}>
           {pending ? "Speichert…" : "Speichern"}

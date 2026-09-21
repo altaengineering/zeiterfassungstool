@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   berechneFerienBezogen,
+  berechneFerienBezogenGesamt,
   berechneFerienGuthaben,
   berechneFerienuebertragNaechstesJahr,
   STANDARD_JAHRESFERIENTAGE,
@@ -30,6 +31,16 @@ describe("berechneFerienBezogen", () => {
 
   it("ist 0, wenn keine Ferien bezogen wurden", () => {
     expect(berechneFerienBezogen([0, 0, 0], 8.4)).toBe(0);
+  });
+});
+
+describe("berechneFerienBezogenGesamt", () => {
+  it("addiert die manuelle Korrektur zu den echten Tageseintraegen", () => {
+    expect(berechneFerienBezogenGesamt(1, 5)).toBe(6);
+  });
+
+  it("ist gleich den echten Tageseintraegen, wenn keine Korrektur eingetragen ist", () => {
+    expect(berechneFerienBezogenGesamt(1, 0)).toBe(1);
   });
 });
 

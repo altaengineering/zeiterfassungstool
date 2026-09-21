@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import {
   berechneFerienBezogen,
+  berechneFerienBezogenGesamt,
   berechneFerienGuthaben,
   berechneFerienuebertragNaechstesJahr,
   berechneTagesReihe,
@@ -214,7 +215,10 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
   const sollProTagProMonat = Array.from({ length: 12 }, (_, m) =>
     sollProTagWertFuerDatum(`${jahr}-${String(m + 1).padStart(2, "0")}-01`),
   );
-  const ferienBezogen = berechneFerienBezogen(ferienStundenProMonat, sollProTagProMonat);
+  const ferienBezogen = berechneFerienBezogenGesamt(
+    berechneFerienBezogen(ferienStundenProMonat, sollProTagProMonat),
+    jahresStammdaten.ferienBezogenKorrektur,
+  );
   const ferienUebertrag = berechneFerienuebertragNaechstesJahr(ferienGuthaben, ferienBezogen);
 
   const entriesByDateFull = entriesByDate; // bookings/labels for display

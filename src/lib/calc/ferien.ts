@@ -36,6 +36,17 @@ export function berechneFerienBezogen(
   return ferienStundenProMonat.reduce((sum, h, i) => sum + h / sollProTag[i]!, 0);
 }
 
+/**
+ * Nicht aus dem Original-Excel, App-eigenes Feature: `berechneFerienBezogen` zaehlt nur echte
+ * Tageseintraege. Wurde ein Ferientag nie als solcher erfasst (Person hat frei genommen, aber
+ * beim Eintragen das Ferien-Feld vergessen), fehlt er dort. `korrektur` ist eine manuell
+ * eingetragene Zusatzmenge in Tagen (siehe JahresStammdaten.ferienBezogenKorrektur), die addiert
+ * statt die Berechnung zu ersetzen, damit zukuenftige echte Eintraege weiterhin korrekt dazukommen.
+ */
+export function berechneFerienBezogenGesamt(ausEintraegen: number, korrektur: number): number {
+  return ausEintraegen + korrektur;
+}
+
 /** Entspricht Summen!B20: `=Ferien_Guthaben-Ferien_bezogen`. */
 export function berechneFerienuebertragNaechstesJahr(
   ferienGuthaben: number,

@@ -120,6 +120,7 @@ model JahresStammdaten {
   ferienuebertragAltesJahr     Float @default(0)
   arbeitsmonate                 Float @default(12)
   jahresferientage Float?
+  ferienBezogenKorrektur Float @default(0)
   erfassungStartDatum DateTime?
 
   @@unique([userId, year])
