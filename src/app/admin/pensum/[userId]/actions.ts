@@ -41,10 +41,10 @@ export async function pensumWechselLoeschen(formData: FormData) {
   revalidatePath(`/admin/pensum/${userId}`);
 }
 
-// Stunden-/Ferienübertrag aus dem Vorjahr sind normalerweise Self-Service (/konto/einrichtung),
-// aber nur beim eigenen Konto editierbar. Für Korrekturen durch einen Admin (z.B. weil jemand beim
-// eigenen Setup einen falschen Ferienübertrag eingetragen hat) gibt es dort keine Möglichkeit,
-// daher hier dasselbe Feld zusätzlich admin-seitig für beliebige Nutzer:innen editierbar.
+// Stunden-/Ferienübertrag und Jahresferientage sind normalerweise Self-Service
+// (/konto/einrichtung), aber nur beim eigenen Konto editierbar. Für direkte Korrekturen durch
+// einen Admin (z.B. wenn jemand ein falsches Guthaben meldet) gibt es dort keine Möglichkeit,
+// daher hier dieselben Felder zusätzlich admin-seitig für beliebige Nutzer:innen editierbar.
 export async function stammdatenKorrigieren(formData: FormData) {
   await pruefeAdmin();
 
@@ -52,18 +52,21 @@ export async function stammdatenKorrigieren(formData: FormData) {
   const jahr = Number(formData.get("jahr") ?? 0);
   const stundenuebertragAltesJahr = Number(formData.get("stundenuebertragAltesJahr") ?? 0);
   const ferienuebertragAltesJahr = Number(formData.get("ferienuebertragAltesJahr") ?? 0);
+  const jahresferientageRaw = String(formData.get("jahresferientage") ?? "").trim();
+  const jahresferientage = jahresferientageRaw === "" ? null : Number(jahresferientageRaw);
   if (
     !userId ||
     !jahr ||
     !Number.isFinite(stundenuebertragAltesJahr) ||
-    !Number.isFinite(ferienuebertragAltesJahr)
+    !Number.isFinite(ferienuebertragAltesJahr) ||
+    (jahresferientage != null && !Number.isFinite(jahresferientage))
   ) {
     return;
   }
 
   await prisma.jahresStammdaten.update({
     where: { userId_year: { userId, year: jahr } },
-    data: { stundenuebertragAltesJahr, ferienuebertragAltesJahr },
+    data: { stundenuebertragAltesJahr, ferienuebertragAltesJahr, jahresferientage },
   });
 
   revalidatePath(`/admin/pensum/${userId}`);
