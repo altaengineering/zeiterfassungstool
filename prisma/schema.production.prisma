@@ -83,6 +83,7 @@ model User {
   pensumWechsel    PensumWechsel[]
   projekte         Project[]
   notizen          KalenderNotiz[]
+  ferienAntraege   FerienAntrag[]
 }
 
 model KalenderNotiz {
@@ -93,6 +94,22 @@ model KalenderNotiz {
   text        String
   oeffentlich Boolean  @default(false)
   createdAt   DateTime @default(now())
+}
+
+model FerienAntrag {
+  id             String    @id @default(cuid())
+  user           User      @relation(fields: [userId], references: [id])
+  userId         String
+  von            DateTime
+  bis            DateTime
+  arbeitstage    Float
+  kommentar      String?
+  status         String    @default("offen")
+  erstelltAm     DateTime  @default(now())
+  entschiedenAm  DateTime?
+  entschiedenVon String?
+
+  @@index([userId])
 }
 
 model PensumWechsel {

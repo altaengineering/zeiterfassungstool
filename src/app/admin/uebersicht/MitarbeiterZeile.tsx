@@ -31,6 +31,7 @@ export function MitarbeiterZeile({
   zeilen,
   standEndeMonat,
   standVeraenderung,
+  ferienUebertrag,
 }: {
   userId: string;
   jahr: number;
@@ -42,6 +43,7 @@ export function MitarbeiterZeile({
   zeilen: UebersichtBuchung[];
   standEndeMonat: number | null;
   standVeraenderung: number | null;
+  ferienUebertrag: number | null;
 }) {
   const [offen, setOffen] = useState(false);
 
@@ -84,6 +86,15 @@ export function MitarbeiterZeile({
             "—"
           )}
         </td>
+        <td>
+          {ferienUebertrag !== null ? (
+            <span className={ferienUebertrag < 0 ? "neg" : undefined}>
+              {ferienUebertrag.toFixed(1)} Tage
+            </span>
+          ) : (
+            "—"
+          )}
+        </td>
         <td className="label-cell">
           <Link
             href={`/mitarbeiter/${userId}/${jahr}/${monat}`}
@@ -96,7 +107,7 @@ export function MitarbeiterZeile({
       </tr>
       {offen && (
         <tr className="uebersicht-detail-zeile">
-          <td colSpan={5}>
+          <td colSpan={6}>
             {zeilen.length > 0 ? (
               <table className="uebersicht-detail-table">
                 <colgroup>

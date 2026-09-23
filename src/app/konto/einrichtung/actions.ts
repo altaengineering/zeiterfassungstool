@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
@@ -53,6 +54,11 @@ export async function einrichtungSpeichern(
     };
   }
 
+  // "layout" revalidiert das RootLayout mit: der einmalige Einrichtungs-Hinweis dort (siehe
+  // layout.tsx) muss sofort verschwinden, nicht erst beim naechsten harten Neuladen — ohne dies
+  // aktualisiert ein Server-Action-Aufruf zwar diese Seite, aber nicht zwangslaeufig das Layout.
+  revalidatePath("/", "layout");
+
   return { success: true };
 }
 
@@ -79,6 +85,8 @@ export async function einrichtungZuruecksetzen(
       error: `Keine Jahres-Stammdaten für ${jahr} gefunden. Bitte bei einem Admin melden.`,
     };
   }
+
+  revalidatePath("/", "layout");
 
   return { success: true };
 }

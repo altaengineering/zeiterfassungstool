@@ -1,6 +1,6 @@
 # Zeiterfassung Alta Engineering AG – Projekt-Referenz
 
-**Status (Stand 2026-09-08): Live und in Nutzung.**
+**Status (Stand 2026-09-23): Live und in Nutzung.**
 URL: https://zeiterfassungstool-psi.vercel.app — GitHub: https://github.com/altaengineering/zeiterfassungstool
 (privates Repo). Login mit E-Mail + Passwort für alle 14 Mitarbeitenden, Rollen MITARBEITER/ADMIN
 (Stefan Herger + Michael Küng sind Admin; in der Anzeige heisst Michaels Rolle aus Spass „sudo“,
@@ -13,8 +13,10 @@ Mode, Passwort selbst ändern (`/konto/passwort`), Admin-Nutzerverwaltung mit Pa
 Anlegen/Löschen von Mitarbeitenden (`/admin`), Feiertage-Verwaltung (`/admin/feiertage`),
 Monatsabschluss (`/admin/monatsabschluss` — sperrt einen Monat firmenweit für Mitarbeitende,
 Admins können trotzdem noch korrigieren, Modell `MonthClose`), eine "Einrichtung"-Seite
-(`/konto/einrichtung`) gegen die leere Startphase (siehe nächster Absatz), sowie eine
-Pensumwechsel-Verwaltung (`/admin/pensum/[userId]`, siehe Absatz danach).
+(`/konto/einrichtung`) gegen die leere Startphase (siehe nächster Absatz), eine
+Pensumwechsel-Verwaltung (`/admin/pensum/[userId]`, siehe Absatz danach), sowie Ferienanträge
+(`/ferien`, Mitarbeitende beantragen Zeiträume und sehen ihren Saldo; Chef-Übersicht zeigt offene
+Anträge zum Genehmigen/Ablehnen, siehe Eintrag 2026-09-23 unten).
 
 **"Leere Startphase" — gelöst (2026-09-07):** Neues Feld `JahresStammdaten.erfassungStartDatum`
 (`DateTime?`, in beiden Schema-Dateien). Auf `/konto/einrichtung` trägt jede Person Startdatum +
@@ -711,6 +713,66 @@ Tage ab. Wie bei Ferienübertrag/Jahresferientage an **beiden** Stellen editierb
 `/konto/einrichtung` (Self-Service, eigenes Konto) und `/admin/pensum/[userId]` (Admin, beliebige
 Person). Lokal end-to-end verifiziert an beiden Stellen: Korrektur auf 3 bzw. 2 Tage gesetzt,
 "Ferien bezogen" und "Ferienübertrag" zogen auf beiden Seiten korrekt nach.
+
+**Ferienanträge, neuer Standard-Jahresanspruch, Einrichtungs-Hinweis, Hintergrund (2026-09-23):**
+Vier von Michael in einer Anfrage gebündelte Punkte:
+- **`STANDARD_JAHRESFERIENTAGE` von 10.83 auf 20 Tage geändert** (`src/lib/calc/ferien.ts`). Der
+  alte Wert war 1:1 aus der Excel-Formel übernommen (`6.5/12*20-0.00333333`), von Michael am
+  2026-09-23 aber ausdrücklich als falsch korrigiert: Standard ist 4 Wochen Ferien/Jahr = 20 Tage.
+  `CompanySettings.jahresferientage` (Fallback-Kette davor) wird im Anwendungscode nirgends
+  geschrieben, nur `prisma/seed.ts` setzt es beim Seeden auf die Konstante — betrifft also nur die
+  lokale Offline-Demo, Produktion (Vercel/Postgres) hat vermutlich nie einen `CompanySettings`-Eintrag
+  und fällt direkt auf die Konstante zurück. **Achtung für Testdaten:** War eine lokale `dev.db`
+  schon vor diesem Fix geseedet, hat sie noch die alte `CompanySettings.jahresferientage=10.83`
+  eingefroren — beim nächsten `npx prisma migrate reset && npx tsx prisma/seed.ts` (oder manuellem
+  Update dieser einen Zeile) behoben, siehe auch `prisma/seed.ts`.
+- **Einmaliger Einrichtungs-Hinweis** (`src/app/layout.tsx`): Banner erscheint auf jeder Seite,
+  solange `JahresStammdaten.erfassungStartDatum` (aktuelles Jahr) noch `null` ist — derselbe Marker,
+  der schon die "leere Startphase" steuert (siehe 2026-09-07 oben), kein neues Feld nötig. Verlinkt
+  auf `/konto/einrichtung`, bewusst ohne Wegklicken-X (soll erst verschwinden, wenn die Einrichtung
+  wirklich erledigt ist). ⚠ **Gefundene und behobene Stolperfalle:** `einrichtungSpeichern`/
+  `einrichtungZuruecksetzen` (`src/app/konto/einrichtung/actions.ts`) aktualisierten die DB korrekt,
+  das Banner im `RootLayout` verschwand aber nach dem Speichern nicht sofort (erst nach einem harten
+  Neuladen) — ein Server-Action-Aufruf revalidiert nicht automatisch übergeordnete Layouts. Behoben
+  mit `revalidatePath("/", "layout")` in beiden Actions. Lokal end-to-end verifiziert (Banner
+  erscheint, verschwindet sofort nach Speichern ohne Reload, erscheint nach "Einrichtung
+  zurücksetzen" beim nächsten Laden wieder).
+- **Hintergrund `.app-bg` interessanter gemacht** (`src/app/globals.css`): dritter Radial-Gradient
+  mit `--accent-2` (Amber/Gold) unten links ergänzt, plus neue `app-bg-drift`-Animation (26s, sanfte
+  `background-position`-Verschiebung der drei Farb-Layer), zusätzlich zur bestehenden
+  `app-bg-atmen`-Opazitäts-Animation. Gitternetz-Layer bewusst unbewegt gelassen (Textur-Anker).
+- **Neues Feature: Ferienanträge.** Datenmodell `FerienAntrag` (`userId`, `von`/`bis`,
+  `arbeitstage` fest gespeichert beim Erstellen statt live berechnet — eine spätere
+  Feiertags-Änderung soll die Historie nicht rückwirkend verfälschen, `status`
+  offen/genehmigt/abgelehnt, `entschiedenAm`/`entschiedenVon`), in beiden Schema-Dateien. Neuer
+  Helper `arbeitstageImZeitraum` (`src/lib/calc/datum.ts`) für Arbeitstage über einen beliebigen
+  Zeitraum (Mo–Fr ohne bezahlte Feiertage, kann Monats-/Jahresgrenzen überschreiten, anders als das
+  bestehende `arbeitstageBisher` in der Chef-Übersicht). Gemeinsame Saldo-Berechnung aus der
+  Einrichtungsseite nach `src/lib/ferienSaldo.ts` ausgelagert (jetzt auch von `/ferien` und der
+  Chef-Übersicht genutzt, keine Drittkopie mehr). Ablauf:
+  - **`/ferien`** (neu, `src/app/ferien/`): Mitarbeitende sehen ihren aktuellen Saldo (Guthaben/
+    bezogen/übrig), stellen einen Antrag (Von/Bis/Kommentar, Server Action `ferienBeantragen`
+    berechnet `arbeitstage` serverseitig und lehnt reine Wochenend-/Feiertags-Zeiträume mit
+    Fehlermeldung ab), sehen eine Liste ihrer eigenen Anträge mit Status-Badge und können offene
+    Anträge selbst zurückziehen (`ferienAntragZuruecknehmen`, nur `status="offen"`, entschiedene
+    bleiben für die Historie erhalten).
+  - **Chef-Übersicht** (`/admin/uebersicht`): neuer Abschnitt "Offene Ferienanträge" oberhalb der
+    Tabelle (Name, Zeitraum, Arbeitstage, aktueller Saldo, Kommentar, Genehmigen/Ablehnen), neue
+    Karte "Offene Ferienanträge" in der Kennzahlen-Zeile, neue Tabellenspalte "Ferien übrig" pro
+    Mitarbeitendem (immer fürs laufende Kalenderjahr, unabhängig vom oben gewählten Monat — Ferien
+    sind ein Jetzt-Blick, kein Monatsrückblick).
+  - **Genehmigen** (`ferienAntragGenehmigen`/`ferienAntragEntscheiden` in `src/lib/ferienAntrag.ts`):
+    legt für jeden Arbeitstag im Zeitraum eine `DailyEntry`-Zeile an bzw. aktualisiert sie
+    (`ferien = sollProTagFuerDatum(...)`, nur dieses Feld, andere Buchungen am selben Tag bleiben
+    unberührt) — sonst hätte ein genehmigter Antrag keinen Effekt auf den echten Saldo, der
+    ausschliesslich aus echten Tageseinträgen berechnet wird. Löst pro betroffenem Kalenderjahr die
+    passenden `JahresStammdaten` auf (Zeitraum kann eine Jahresgrenze überschreiten), berücksichtigt
+    `PensumWechsel`. **Ablehnen** setzt nur den Status, legt keine `DailyEntry`-Zeilen an.
+  - Lokal end-to-end verifiziert: Antrag über eine Monatsgrenze (28.09.–02.10., 5 Arbeitstage)
+    gestellt, als Admin genehmigt — beide Monatsansichten zeigen danach korrekt "Ferien 8.40h" an
+    allen fünf Tagen, Saldo sinkt exakt um 5 Tage, Status auf `/ferien` wechselt live auf
+    "genehmigt". Zweiter Antrag (1 Arbeitstag) abgelehnt — Saldo bleibt unverändert, keine
+    `DailyEntry`-Zeile angelegt, Status "abgelehnt" ohne Zurücknehmen-Möglichkeit.
 
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit

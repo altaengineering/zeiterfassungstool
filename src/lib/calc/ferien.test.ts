@@ -7,19 +7,26 @@ import {
   STANDARD_JAHRESFERIENTAGE,
 } from "./ferien";
 
-// Referenzwerte aus Arbeitsrapport_2026_kum.xlsx, Blatt "Summen" (Michael Küng, 2026):
-// B16=10.830000003333332, B18=10.8, B19=1, B20=9.8, B9(Soll/Tag)=8.4
+// Referenzwerte aus Arbeitsrapport_2026_kum.xlsx, Blatt "Summen" (Michael Küng, 2026), nur fuer
+// die reinen Formel-Funktionen unten noch relevant (B18/B20), NICHT mehr fuer
+// STANDARD_JAHRESFERIENTAGE selbst: der alte Excel-Wert (B16=10.83) wurde am 2026-09-23 von
+// Michael ausdruecklich als falsch korrigiert, siehe Kommentar in ferien.ts.
 
 describe("STANDARD_JAHRESFERIENTAGE", () => {
-  it("entspricht der Original-Formel 6.5/12*20-0.00333333", () => {
-    expect(STANDARD_JAHRESFERIENTAGE).toBeCloseTo(10.830000003333332, 9);
+  it("entspricht 4 Wochen Ferien pro Jahr (20 Tage)", () => {
+    expect(STANDARD_JAHRESFERIENTAGE).toBe(20);
   });
 });
 
 describe("berechneFerienGuthaben", () => {
-  it("entspricht Summen!B18 (Beispiel Michael Küng 2026)", () => {
-    const guthaben = berechneFerienGuthaben(0, 12, STANDARD_JAHRESFERIENTAGE);
+  it("entspricht Summen!B18-Formel bei vollem Jahr und 10.8 Tagen Anspruch", () => {
+    const guthaben = berechneFerienGuthaben(0, 12, 10.83);
     expect(guthaben).toBeCloseTo(10.8, 9);
+  });
+
+  it("bei 20 Tagen Standardanspruch und vollem Jahr ergibt Guthaben genau 20", () => {
+    const guthaben = berechneFerienGuthaben(0, 12, STANDARD_JAHRESFERIENTAGE);
+    expect(guthaben).toBe(20);
   });
 });
 

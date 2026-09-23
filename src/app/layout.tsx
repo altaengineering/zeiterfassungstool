@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
 import { auth, signOut } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { ThemeToggle } from "./ThemeToggle";
 import { TopbarMenu } from "./TopbarMenu";
 
@@ -25,6 +26,22 @@ const themeInitScript = `
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   const istAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+
+  // Einmalig erscheinender Hinweis, bis die Person ihre Einrichtung ausgefuellt hat (Startdatum,
+  // Ferien-Guthaben, Jahresferientage). erfassungStartDatum ist genau dafuer schon ein
+  // zuverlaessiger Marker: bleibt NULL bis zum ersten Speichern der Einrichtung (siehe
+  // einrichtungZuruecksetzen fuer den einzigen Weg, es wieder auf NULL zu setzen), kein separates
+  // Feld noetig. Im Layout statt einzeln pro Seite, damit der Hinweis ueberall erscheint, nicht
+  // nur auf einer Unterseite, die man zufaellig zuerst besucht.
+  let brauchtEinrichtung = false;
+  if (userId) {
+    const jahr = new Date().getFullYear();
+    const stammdaten = await prisma.jahresStammdaten.findUnique({
+      where: { userId_year: { userId, year: jahr } },
+    });
+    brauchtEinrichtung = stammdaten != null && stammdaten.erfassungStartDatum == null;
+  }
 
   const abmeldenForm = (
     <form
@@ -57,6 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <nav className="topbar-nav">
                   <Link href="/kalender">Kalender</Link>
                   <Link href="/projekte">Projekte</Link>
+                  <Link href="/ferien">Ferien</Link>
                   {istAdmin && (
                     <TopbarMenu label="Admin" accent>
                       <Link href="/admin" className="topbar-menu-item">
@@ -93,6 +111,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             )}
           </div>
         </div>
+        {brauchtEinrichtung && (
+          <div className="einrichtung-hinweis">
+            <div className="einrichtung-hinweis-inner">
+              <span>
+                📅 Bevor dein Ferien-Saldo stimmt: trag einmalig dein aktuelles Ferien-Guthaben und
+                deinen Jahresanspruch ein.
+              </span>
+              <Link href="/konto/einrichtung" className="einrichtung-hinweis-link">
+                Jetzt einrichten →
+              </Link>
+            </div>
+          </div>
+        )}
         {children}
       </body>
     </html>
