@@ -14,9 +14,10 @@ Anlegen/Löschen von Mitarbeitenden (`/admin`), Feiertage-Verwaltung (`/admin/fe
 Monatsabschluss (`/admin/monatsabschluss` — sperrt einen Monat firmenweit für Mitarbeitende,
 Admins können trotzdem noch korrigieren, Modell `MonthClose`), eine "Einrichtung"-Seite
 (`/konto/einrichtung`) gegen die leere Startphase (siehe nächster Absatz), eine
-Pensumwechsel-Verwaltung (`/admin/pensum/[userId]`, siehe Absatz danach), sowie Ferienanträge
-(`/ferien`, Mitarbeitende beantragen Zeiträume und sehen ihren Saldo; Chef-Übersicht zeigt offene
-Anträge zum Genehmigen/Ablehnen, siehe Eintrag 2026-09-23 unten).
+Pensumwechsel-Verwaltung (`/admin/pensum/[userId]`, siehe Absatz danach), sowie Abwesenheitsanträge
+(`/abwesenheiten`, Ferien oder Gleitzeit-Kompensation, Mitarbeitende beantragen Zeiträume und sehen
+ihre Salden; Chef-Übersicht zeigt offene Anträge zum Genehmigen/Ablehnen, siehe Einträge 2026-09-23
+unten).
 
 **"Leere Startphase" — gelöst (2026-09-07):** Neues Feld `JahresStammdaten.erfassungStartDatum`
 (`DateTime?`, in beiden Schema-Dateien). Auf `/konto/einrichtung` trägt jede Person Startdatum +
@@ -773,6 +774,49 @@ Vier von Michael in einer Anfrage gebündelte Punkte:
     allen fünf Tagen, Saldo sinkt exakt um 5 Tage, Status auf `/ferien` wechselt live auf
     "genehmigt". Zweiter Antrag (1 Arbeitstag) abgelehnt — Saldo bleibt unverändert, keine
     `DailyEntry`-Zeile angelegt, Status "abgelehnt" ohne Zurücknehmen-Möglichkeit.
+
+**Nachbesserung noch am selben Tag (2026-09-23), nach Feedback:**
+- **`/ferien` → `/abwesenheiten`, plus Gleitzeit als zweite Antragsart.** Michael wollte statt reiner
+  Ferienanträge auch Gleitzeit-Abwesenheiten (Kompensation mit dem Überstunden-Saldo) beantragen
+  können. Route umbenannt (neuer Ordner `src/app/abwesenheiten/`, alter `src/app/ferien/` entfernt),
+  `FerienAntrag.typ` additiv ergänzt (`"ferien"` | `"gleitzeit"`, Default `"ferien"` hält bestehende
+  Zeilen gültig). **Modell/Tabelle bewusst NICHT umbenannt** (bliebe `FerienAntrag`): ein
+  Modell-Rename hätte bei `prisma db push` gegen die Live-DB (kein Migrations-Verlauf, siehe
+  Kommentar im Schema) ein Drop+Recreate der Tabelle ausgelöst statt einer reinen Spaltenänderung.
+  Genehmigung verzweigt jetzt nach `typ` (`ferienAntragEntscheiden` in `src/lib/ferienAntrag.ts`):
+  - `"ferien"`: wie zuvor, setzt `DailyEntry.ferien = sollProTagFuerDatum(...)` pro Arbeitstag.
+  - `"gleitzeit"`: **kein** DailyEntry-Feld nötig, ein nicht gearbeiteter Arbeitstag senkt den
+    Gleitzeit-Stand bereits von selbst über die normale Soll/Ist-Differenz. Trotzdem wird pro
+    Arbeitstag eine leere `DailyEntry`-Zeile angelegt (nur falls noch keine existiert), sonst würde
+    die Chef-Übersicht den Tag faelschlich als "nicht erfasst" zeigen, sobald er vergangen ist. Dazu
+    eine oeffentliche `KalenderNotiz` ("Gleitzeit-Abwesenheit (genehmigt)") pro Tag, dadurch
+    erscheint der Grund automatisch im bestehenden Firmenkalender (`/kalender`), ohne dass dessen
+    Chip-Logik angefasst werden musste.
+  - `/abwesenheiten` zeigt jetzt zusätzlich zum Ferien-Saldo den aktuellen Gleitzeit-Stand
+    (`berechneMonatsStand` fürs laufende Jahr/Monat, `nichtInDieZukunftProjizieren: true`, "Stand
+    von gestern" wie in der Chef-Übersicht). Die Chef-Übersicht zeigt bei offenen Anträgen je nach
+    `typ` den passenden Saldo (Ferien-Saldo bzw. aktueller Gleitzeit-Stand statt des am oben
+    gewählten Monat hängenden Werts).
+  - Lokal end-to-end verifiziert: Gleitzeit-Antrag für einen Arbeitstag gestellt, genehmigt — Tag
+    erscheint korrekt im Firmenkalender mit der Notiz, DailyEntry existiert (Kontrollhäkchen ✓,
+    zählt als erfasst), Soll/Ist-Differenz zieht den Stand an diesem Tag wie erwartet um den
+    Tages-Soll-Wert herunter, Ferien-Saldo bleibt unverändert.
+- **"Genehmigen"-Button in der Chef-Übersicht war unstyled** (kein CSS griff, sah nach nacktem
+  Browser-Standardbutton aus) — das `<button>` sass in einem eigenen `<form>` ausserhalb von
+  `.entry-form`, wo die einzige existierende Button-Regel (`.entry-form button[type="submit"]`)
+  nicht griff. Neue, wiederverwendbare Klasse `.btn-primary-inline` ergänzt (globals.css) und dort
+  angewendet.
+- **Hintergrund (`.app-bg` und die Login-Seite `.login-brand::before`) sah trotz der Änderung von
+  vorhin noch wie ein Gitter aus.** Ursache: `repeating-linear-gradient(90deg, farbe 0 5px,
+  transparent 5px 64px)` erzeugt KEINE kurzen Striche, sondern volle Streifen über die gesamte
+  Fläche (die Farbe eines linear-gradient variiert nur entlang seiner eigenen Achse, nicht senkrecht
+  dazu) — sah optisch identisch zum vorherigen durchgezogenen Gitter aus. Behoben durch komplettes
+  Entfernen der `repeating-linear-gradient`-Layer, übrig bleiben nur zwei `radial-gradient`-Punkte
+  (echte isolierte "Via"-Punkte, kein Linien-Bug möglich) in zwei Grössen/Farben, an beiden Stellen
+  (App-Hintergrund und Login-Seite). Deutlich subtiler als das alte Gitter. **Lektion:** ein
+  `repeating-linear-gradient` kann in CSS grundsätzlich keine kurzen "Striche" entlang seiner Achse
+  erzeugen, nur volle Streifen quer dazu — für echte Punktmuster ausschliesslich `radial-gradient`
+  verwenden.
 
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit

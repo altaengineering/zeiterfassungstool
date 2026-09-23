@@ -116,12 +116,15 @@ model KalenderNotiz {
   createdAt   DateTime @default(now())
 }
 
-// Ferienantrag: App-eigenes Feature, kein Bezug im Original-Excel. Eine Person beantragt einen
-// Zeitraum, ein Admin genehmigt oder lehnt ab. Bei Genehmigung werden fuer alle Arbeitstage im
-// Zeitraum automatisch DailyEntry-Zeilen mit ferien=Soll-pro-Tag (ganztags) angelegt/aktualisiert
-// (siehe admin/ferienantraege/actions.ts) — sonst wuerde der Antrag zwar als "genehmigt" dastehen,
-// aber am Ferien-Saldo (der nur echte Tageseintraege zaehlt) nichts aendern, und die Person muesste
-// die bereits genehmigten Tage zusaetzlich noch von Hand im Kalender eintragen.
+// Abwesenheitsantrag (Modellname aus historischen Gruenden noch FerienAntrag, siehe `typ`): eine
+// Person beantragt einen Zeitraum, ein Admin genehmigt oder lehnt ab. Bei Genehmigung eines
+// "ferien"-Antrags werden fuer alle Arbeitstage im Zeitraum automatisch DailyEntry-Zeilen mit
+// ferien=Soll-pro-Tag (ganztags) angelegt/aktualisiert (siehe src/lib/ferienAntrag.ts) — sonst
+// wuerde der Antrag zwar als "genehmigt" dastehen, aber am Ferien-Saldo (der nur echte
+// Tageseintraege zaehlt) nichts aendern. Bei "gleitzeit" braucht es das nicht: ein nicht
+// gearbeiteter Arbeitstag senkt den Gleitzeit-Stand bereits von selbst ueber die normale Soll/Ist-
+// Differenz, die Genehmigung legt dort nur eine leere DailyEntry-Zeile (damit der Tag nicht als
+// "nicht erfasst" auffaellt) sowie eine oeffentliche KalenderNotiz an (damit sichtbar ist, warum).
 model FerienAntrag {
   id             String    @id @default(cuid())
   user           User      @relation(fields: [userId], references: [id])
@@ -132,6 +135,8 @@ model FerienAntrag {
   // Anzeige neu berechnet), damit eine spaetere Aenderung an Feiertagen die Historie nicht
   // rueckwirkend verfaelscht.
   arbeitstage    Float
+  // "ferien" | "gleitzeit", additiv ergaenzt (2026-09-23), Default haelt bestehende Zeilen gueltig.
+  typ            String    @default("ferien")
   kommentar      String?
   // "offen" | "genehmigt" | "abgelehnt"
   status         String    @default("offen")

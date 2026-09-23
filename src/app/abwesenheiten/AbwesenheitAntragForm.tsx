@@ -5,7 +5,7 @@ import { ferienBeantragen, type FerienAntragState } from "./actions";
 
 const initialState: FerienAntragState = {};
 
-export function FerienAntragForm({ heute }: { heute: string }) {
+export function AbwesenheitAntragForm({ heute }: { heute: string }) {
   const [state, formAction, pending] = useActionState(ferienBeantragen, initialState);
 
   return (
@@ -17,6 +17,12 @@ export function FerienAntragForm({ heute }: { heute: string }) {
           entscheidet, änderst sich der Status hier automatisch.
         </p>
       )}
+      <div className="pill-group">
+        <input type="radio" id="typ-ferien" name="typ" value="ferien" defaultChecked />
+        <label htmlFor="typ-ferien">🏖️ Ferien (Ferien-Saldo)</label>
+        <input type="radio" id="typ-gleitzeit" name="typ" value="gleitzeit" />
+        <label htmlFor="typ-gleitzeit">🕑 Gleitzeit (Gleitzeit-Stand)</label>
+      </div>
       <label>
         Von
         <input type="date" name="von" defaultValue={heute} required />
@@ -30,7 +36,7 @@ export function FerienAntragForm({ heute }: { heute: string }) {
         <input type="text" name="kommentar" placeholder="z.B. Grund oder Hinweis für den Admin" />
       </label>
       <button type="submit" disabled={pending}>
-        {pending ? "Sendet…" : "Ferien beantragen"}
+        {pending ? "Sendet…" : "Abwesenheit beantragen"}
       </button>
     </form>
   );

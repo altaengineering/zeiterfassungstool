@@ -21,7 +21,7 @@ export async function ferienAntragGenehmigen(formData: FormData) {
   await ferienAntragEntscheiden(antragId, "genehmigt", adminEmail);
 
   revalidatePath("/admin/uebersicht");
-  revalidatePath("/ferien");
+  revalidatePath("/abwesenheiten");
   revalidatePath("/kalender");
 }
 
@@ -33,5 +33,5 @@ export async function ferienAntragAblehnen(formData: FormData) {
   await ferienAntragEntscheiden(antragId, "abgelehnt", adminEmail);
 
   revalidatePath("/admin/uebersicht");
-  revalidatePath("/ferien");
+  revalidatePath("/abwesenheiten");
 }
