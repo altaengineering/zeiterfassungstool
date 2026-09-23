@@ -1,14 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import {
-  berechneFerienBezogen,
-  berechneFerienBezogenGesamt,
-  berechneFerienGuthaben,
-  berechneFerienuebertragNaechstesJahr,
-  sollProTag,
-  STANDARD_JAHRESFERIENTAGE,
-} from "@/lib/calc";
+import { STANDARD_JAHRESFERIENTAGE } from "@/lib/calc";
+import { berechneFerienSaldo } from "@/lib/ferienSaldo";
 import { EinrichtungForm } from "./EinrichtungForm";
 
 export const dynamic = "force-dynamic";
@@ -20,40 +14,21 @@ export default async function EinrichtungSeite() {
   const userId = (session.user as { id: string }).id;
   const jahr = new Date().getFullYear();
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  const [stammdaten, companySettings, entriesDb] = await Promise.all([
+  const [stammdaten, companySettings, saldo] = await Promise.all([
     prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
     prisma.companySettings.findUnique({
       where: { companyId_year: { companyId: user.companyId, year: jahr } },
     }),
-    prisma.dailyEntry.findMany({
-      where: { userId, date: { gte: new Date(Date.UTC(jahr, 0, 1)), lt: new Date(Date.UTC(jahr + 1, 0, 1)) } },
-    }),
+    berechneFerienSaldo(userId, jahr),
   ]);
   const standardJahresferientage = companySettings?.jahresferientage ?? STANDARD_JAHRESFERIENTAGE;
 
   // Live-Werte direkt auf der Einrichtungsseite: sonst sieht man erst auf der Monatsseite, ob die
   // eingetragenen Werte zu einem sinnvollen "wieviele Ferien bekomme ich, wieviele habe ich noch"
   // fuehren, siehe Chef-Uebersicht/Admin-Panel fuer dasselbe Muster.
-  let ferienGuthaben: number | null = null;
-  let ferienBezogen: number | null = null;
-  let ferienUebertrag: number | null = null;
-  if (stammdaten) {
-    const jahresferientageEffektiv = stammdaten.jahresferientage ?? standardJahresferientage;
-    ferienGuthaben = berechneFerienGuthaben(
-      stammdaten.ferienuebertragAltesJahr,
-      stammdaten.arbeitsmonate,
-      jahresferientageEffektiv,
-    );
-    const ferienStundenProMonat = Array.from({ length: 12 }, (_, m) =>
-      entriesDb.filter((e) => e.date.getUTCMonth() === m).reduce((sum, e) => sum + e.ferien, 0),
-    );
-    const sollProTagWert = sollProTag(stammdaten.wochenstunden, stammdaten.anstellungPct);
-    ferienBezogen = berechneFerienBezogenGesamt(
-      berechneFerienBezogen(ferienStundenProMonat, sollProTagWert),
-      stammdaten.ferienBezogenKorrektur,
-    );
-    ferienUebertrag = berechneFerienuebertragNaechstesJahr(ferienGuthaben, ferienBezogen);
-  }
+  const ferienGuthaben = saldo?.ferienGuthaben ?? null;
+  const ferienBezogen = saldo?.ferienBezogen ?? null;
+  const ferienUebertrag = saldo?.ferienUebertrag ?? null;
 
   const heute = new Date().toISOString().slice(0, 10);
   const defaultDatum = stammdaten?.erfassungStartDatum

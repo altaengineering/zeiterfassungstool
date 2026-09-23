@@ -99,6 +99,7 @@ model User {
   pensumWechsel    PensumWechsel[]
   projekte         Project[]
   notizen          KalenderNotiz[]
+  ferienAntraege   FerienAntrag[]
 }
 
 // Freie Notiz zu einem Tag im geteilten Kalender (/kalender). Privat = nur für die eigene Person
@@ -113,6 +114,32 @@ model KalenderNotiz {
   text        String
   oeffentlich Boolean  @default(false)
   createdAt   DateTime @default(now())
+}
+
+// Ferienantrag: App-eigenes Feature, kein Bezug im Original-Excel. Eine Person beantragt einen
+// Zeitraum, ein Admin genehmigt oder lehnt ab. Bei Genehmigung werden fuer alle Arbeitstage im
+// Zeitraum automatisch DailyEntry-Zeilen mit ferien=Soll-pro-Tag (ganztags) angelegt/aktualisiert
+// (siehe admin/ferienantraege/actions.ts) — sonst wuerde der Antrag zwar als "genehmigt" dastehen,
+// aber am Ferien-Saldo (der nur echte Tageseintraege zaehlt) nichts aendern, und die Person muesste
+// die bereits genehmigten Tage zusaetzlich noch von Hand im Kalender eintragen.
+model FerienAntrag {
+  id             String    @id @default(cuid())
+  user           User      @relation(fields: [userId], references: [id])
+  userId         String
+  von            DateTime
+  bis            DateTime
+  // Anzahl Arbeitstage im Zeitraum, beim Erstellen berechnet und fest gespeichert (nicht bei jeder
+  // Anzeige neu berechnet), damit eine spaetere Aenderung an Feiertagen die Historie nicht
+  // rueckwirkend verfaelscht.
+  arbeitstage    Float
+  kommentar      String?
+  // "offen" | "genehmigt" | "abgelehnt"
+  status         String    @default("offen")
+  erstelltAm     DateTime  @default(now())
+  entschiedenAm  DateTime?
+  entschiedenVon String?
+
+  @@index([userId])
 }
 
 // App-eigenes Feature (nicht aus dem Original-Excel, das pro Jahr nur einen konstanten

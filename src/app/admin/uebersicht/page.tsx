@@ -4,7 +4,13 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { MitarbeiterZeile } from "./MitarbeiterZeile";
 import { berechneMonatsStand } from "@/lib/monatsStand";
+import { berechneFerienSaldo } from "@/lib/ferienSaldo";
 import { vergleicheDienstalter } from "@/lib/dienstalter";
+import { ferienAntragAblehnen, ferienAntragGenehmigen } from "./actions";
+
+function fmtDatum(d: Date): string {
+  return d.toISOString().slice(8, 10) + "." + d.toISOString().slice(5, 7) + "." + d.toISOString().slice(0, 4);
+}
 
 export const dynamic = "force-dynamic";
 
@@ -119,6 +125,20 @@ export default async function UebersichtSeite({ searchParams }: Props) {
     ),
   );
 
+  // Ferien-Saldo immer fuers laufende Kalenderjahr, unabhaengig vom Monat, den man sich in der
+  // Uebersicht gerade ansieht (Ferienplanung ist ein Jetzt-Blick, kein Monatsrueckblick wie der
+  // Rest der Seite) — siehe user-Anfrage "Chefübersicht braucht mehr Infos und Daten".
+  const heuteJahr = heute.getUTCFullYear();
+  const saldoByUser = new Map(
+    await Promise.all(users.map(async (u) => [u.id, await berechneFerienSaldo(u.id, heuteJahr)] as const)),
+  );
+
+  const offeneFerienantraege = await prisma.ferienAntrag.findMany({
+    where: { user: { companyId: admin.companyId }, status: "offen" },
+    include: { user: true },
+    orderBy: { erstelltAm: "asc" },
+  });
+
   return (
     <main>
       <h1>Chef-Übersicht</h1>
@@ -152,7 +172,56 @@ export default async function UebersichtSeite({ searchParams }: Props) {
           <div className="label">Im Rückstand</div>
           <div className={"value" + (anzahlImRueckstand > 0 ? " neg" : "")}>{anzahlImRueckstand}</div>
         </div>
+        <div className={"card card-accent" + (offeneFerienantraege.length > 0 ? " card-accent-rot" : " card-accent-blau")}>
+          <div className="label">Offene Ferienanträge</div>
+          <div className={"value" + (offeneFerienantraege.length > 0 ? " neg" : "")}>
+            {offeneFerienantraege.length}
+          </div>
+        </div>
       </div>
+
+      {offeneFerienantraege.length > 0 && (
+        <>
+          <h2>Offene Ferienanträge</h2>
+          <div className="ferien-antraege-liste" style={{ marginBottom: 28 }}>
+            {offeneFerienantraege.map((a) => {
+              const saldo = saldoByUser.get(a.userId);
+              return (
+                <div key={a.id} className="ferien-antrag-zeile">
+                  <div className="ferien-antrag-info">
+                    <span>
+                      <strong>{a.user.name}</strong>: {fmtDatum(a.von)} – {fmtDatum(a.bis)} (
+                      {a.arbeitstage} {a.arbeitstage === 1 ? "Arbeitstag" : "Arbeitstage"})
+                      {saldo && (
+                        <>
+                          {" "}
+                          · Saldo aktuell:{" "}
+                          <span className={saldo.ferienUebertrag < 0 ? "neg" : "pos"}>
+                            {saldo.ferienUebertrag.toFixed(1)} Tage
+                          </span>
+                        </>
+                      )}
+                    </span>
+                    {a.kommentar && <span className="ferien-antrag-kommentar">{a.kommentar}</span>}
+                  </div>
+                  <div className="ferien-antrag-aktionen">
+                    <form action={ferienAntragGenehmigen}>
+                      <input type="hidden" name="antragId" value={a.id} />
+                      <button type="submit">Genehmigen</button>
+                    </form>
+                    <form action={ferienAntragAblehnen}>
+                      <input type="hidden" name="antragId" value={a.id} />
+                      <button type="submit" className="link-btn-inline">
+                        Ablehnen
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       <div className="table-wrap">
         <table className="uebersicht-table">
@@ -166,6 +235,9 @@ export default async function UebersichtSeite({ searchParams }: Props) {
                 title="Stand von gestern: heute und noch nicht erfasste Resttage dieses Monats zaehlen nicht mit"
               >
                 Gleitzeit (Stand gestern)
+              </th>
+              <th title={`Ferien-Saldo für ${heuteJahr}, unabhängig vom oben gewählten Monat`}>
+                Ferien übrig
               </th>
               <th></th>
             </tr>
@@ -187,6 +259,7 @@ export default async function UebersichtSeite({ searchParams }: Props) {
               );
 
               const stand = standByUser.get(u.id) ?? null;
+              const saldo = saldoByUser.get(u.id) ?? null;
 
               return (
                 <MitarbeiterZeile
@@ -201,6 +274,7 @@ export default async function UebersichtSeite({ searchParams }: Props) {
                   zeilen={zeilen}
                   standEndeMonat={stand?.standEndeMonat ?? null}
                   standVeraenderung={stand ? stand.standEndeMonat - stand.standVorMonat : null}
+                  ferienUebertrag={saldo?.ferienUebertrag ?? null}
                 />
               );
             })}
