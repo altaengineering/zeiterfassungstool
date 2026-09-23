@@ -263,10 +263,6 @@ export default async function UebersichtSeite({ searchParams }: Props) {
           </div>
           <div className="value">{teamFerienAuslastungPct.toFixed(0)}%</div>
         </div>
-      </div>
-
-      <h2>Team-Statistik</h2>
-      <div className="card-row" style={{ marginBottom: 28 }}>
         <div className="card card-accent card-accent-blau">
           <div className="label" title="Anzahl Tage mit einer Krank-Buchung, seit Anfang dieses Monats, ganzes Team">
             Kranktage Team (Monat)
