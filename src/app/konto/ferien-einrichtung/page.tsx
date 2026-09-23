@@ -27,7 +27,7 @@ export default async function FerienEinrichtungSeite() {
     <main>
       <h1>Ferien-Einrichtung</h1>
       <p className="subtitle">
-        Nur dein aktuelles Ferien-Guthaben und dein Jahresanspruch, sonst nichts. Für Startdatum
+        Nur dein aktueller Ferien-Saldo und dein Jahresanspruch, sonst nichts. Für Startdatum
         und Überstunden-Saldo gibt es die separate{" "}
         <a href="/konto/einrichtung">grosse Einrichtung</a>, falls die auch noch offen ist.
       </p>
@@ -49,7 +49,7 @@ export default async function FerienEinrichtungSeite() {
 
       <div className="konto-card">
         <FerienEinrichtungForm
-          defaultFerienGuthaben={stammdaten?.ferienuebertragAltesJahr ?? 0}
+          defaultAktuellerSaldo={saldo?.ferienUebertrag ?? 0}
           defaultJahresferientage={stammdaten?.jahresferientage ?? null}
           standardJahresferientage={standardJahresferientage}
         />

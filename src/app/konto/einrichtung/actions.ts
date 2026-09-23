@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { STANDARD_JAHRESFERIENTAGE } from "@/lib/calc";
+import { berechneFerienSaldo, berechneUebertragAusAktuellemSaldo } from "@/lib/ferienSaldo";
 
 export interface EinrichtungState {
   error?: string;
@@ -21,13 +23,13 @@ export async function einrichtungSpeichern(
 
   const startdatum = String(formData.get("startdatum") ?? "");
   const stundenSaldo = Number(formData.get("stundenSaldo") ?? 0);
-  const ferienGuthaben = Number(formData.get("ferienGuthaben") ?? 0);
+  const aktuellerSaldo = Number(formData.get("aktuellerSaldo") ?? 0);
   const jahresferientageRaw = String(formData.get("jahresferientage") ?? "").trim();
   const jahresferientage = jahresferientageRaw === "" ? null : Number(jahresferientageRaw);
   const ferienBezogenKorrektur = Number(formData.get("ferienBezogenKorrektur") ?? 0);
 
   if (!startdatum) return { error: "Bitte ein Startdatum wählen." };
-  if (!Number.isFinite(stundenSaldo) || !Number.isFinite(ferienGuthaben)) {
+  if (!Number.isFinite(stundenSaldo) || !Number.isFinite(aktuellerSaldo)) {
     return { error: "Bitte gültige Zahlen für Stunden und Ferien eingeben." };
   }
   if (jahresferientage != null && !Number.isFinite(jahresferientage)) {
@@ -37,13 +39,40 @@ export async function einrichtungSpeichern(
     return { error: "Bitte eine gültige Zahl für die zusätzlich verbrauchten Ferientage eingeben." };
   }
 
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  const [stammdaten, companySettings, saldoVorher] = await Promise.all([
+    prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
+    prisma.companySettings.findUnique({
+      where: { companyId_year: { companyId: user.companyId, year: jahr } },
+    }),
+    berechneFerienSaldo(userId, jahr),
+  ]);
+  if (!stammdaten || !saldoVorher) {
+    return { error: `Keine Jahres-Stammdaten für ${jahr} gefunden. Bitte bei einem Admin melden.` };
+  }
+
+  const standardJahresferientage = companySettings?.jahresferientage ?? STANDARD_JAHRESFERIENTAGE;
+  const effektivJahresferientage = jahresferientage ?? standardJahresferientage;
+  // saldoVorher.ferienBezogen rechnet noch mit der ALTEN ferienBezogenKorrektur, wird aber gleich
+  // durch die NEUE ersetzt — erst auf die reinen Kalender-Einträge zurückrechnen, dann die neue
+  // Korrektur draufrechnen, sonst bekäme berechneUebertragAusAktuellemSaldo unten einen leicht
+  // falschen "bereits bezogen"-Wert (siehe Kommentar dort für die Herleitung).
+  const ausEintraegen = saldoVorher.ferienBezogen - stammdaten.ferienBezogenKorrektur;
+  const bereitsBezogen = ausEintraegen + ferienBezogenKorrektur;
+  const neuerUebertrag = berechneUebertragAusAktuellemSaldo(
+    aktuellerSaldo,
+    bereitsBezogen,
+    stammdaten.arbeitsmonate,
+    effektivJahresferientage,
+  );
+
   try {
     await prisma.jahresStammdaten.update({
       where: { userId_year: { userId, year: jahr } },
       data: {
         erfassungStartDatum: new Date(startdatum),
         stundenuebertragAltesJahr: stundenSaldo,
-        ferienuebertragAltesJahr: ferienGuthaben,
+        ferienuebertragAltesJahr: neuerUebertrag,
         jahresferientage,
         ferienBezogenKorrektur,
         // Die grosse Einrichtung deckt die Ferien-Felder mit ab, zaehlt also auch als erledigt

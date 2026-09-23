@@ -69,7 +69,7 @@ export default async function EinrichtungSeite() {
         <EinrichtungForm
           defaultDatum={defaultDatum}
           defaultStundenSaldo={stammdaten?.stundenuebertragAltesJahr ?? 0}
-          defaultFerienGuthaben={stammdaten?.ferienuebertragAltesJahr ?? 0}
+          defaultFerienGuthaben={saldo?.ferienUebertrag ?? 0}
           defaultJahresferientage={stammdaten?.jahresferientage ?? null}
           standardJahresferientage={standardJahresferientage}
           defaultFerienBezogenKorrektur={stammdaten?.ferienBezogenKorrektur ?? 0}

@@ -43,9 +43,14 @@ export function EinrichtungForm({
           <input type="number" step="0.1" name="stundenSaldo" defaultValue={defaultStundenSaldo} required />
         </label>
         <label>
-          Aktuelles Ferien-Guthaben (in Tagen)
-          <input type="number" step="0.1" name="ferienGuthaben" defaultValue={defaultFerienGuthaben} required />
+          Wie viele Ferientage hast du JETZT insgesamt noch? (dein aktueller Gesamtsaldo)
+          <input type="number" step="0.1" name="aktuellerSaldo" defaultValue={defaultFerienGuthaben} required />
         </label>
+        <p className="form-message small">
+          Nicht der Übertrag aus dem Vorjahr, sondern dein Saldo genau jetzt in diesem Moment —
+          bereits bezogene Tage dieses Jahr und dein anteiliger Jahresanspruch rechnet das Tool
+          selbst dazu.
+        </p>
         <label>
           Ferientage pro Jahr laut Vertrag (nur ausfüllen, falls abweichend vom Standard)
           <input

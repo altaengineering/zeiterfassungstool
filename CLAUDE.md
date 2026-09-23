@@ -855,7 +855,45 @@ Vier von Michael in einer Anfrage gebündelte Punkte:
   durch verfügbare Ferientage der ganzen Firma in %), plus kleine Fortschrittsbalken pro Person in
   der Tabelle (Tage erfasst, Ferien-Nutzung) statt nur nackter Zahlen — bewusst reine CSS-Balken
   (`.mini-bar-*` in globals.css), keine Chart-Bibliothek, das Projekt hat bisher keine und die
-  Datenmenge (14 Personen) rechtfertigt den Zusatzaufwand nicht.
+  Datenmenge (14 Personen) rechtfertigt den Zusatzaufwand nicht. **Die Fortschrittsbalken selbst
+  wieder entfernt** (siehe nächster Eintrag, kam nicht gut an) — die beiden Team-Karten blieben.
+
+**Dritte Feedback-Runde, wieder selber Tag (2026-09-23), diesmal mit echtem Produktivbetrieb:**
+Michael hatte inzwischen mit seinem echten Account (nicht Testdaten) gearbeitet, dadurch kam ein
+echter Rechenfehler zum Vorschein, kein reines Kosmetik-Feedback mehr.
+- **Fortschrittsbalken entfernt** ("bitte entfernen"), die `.mini-bar-*`-Klassen aus globals.css
+  wieder gelöscht (nichts referenziert sie mehr). Die beiden Team-Kennzahlen-Karten (siehe oben)
+  blieben, dazu Tooltips: die "Im Rückstand"-Karte oben zeigt beim Hovern jetzt eine Erklärung plus
+  die Namen der betroffenen Personen, der Status-Badge pro Zeile ebenso mit den konkreten Zahlen.
+- **Echter Bug gefunden: Ferien-Guthaben-Feld verdoppelte den Jahresanspruch.** Michael trug bei
+  sich selbst über die neue `/konto/ferien-einrichtung` 8.8 Tage ein (seinen tatsächlichen
+  aktuellen Saldo), die Anzeige sprang aber auf 17.8. Ursache: Das Feld
+  `JahresStammdaten.ferienuebertragAltesJahr` (und sein Formular-Label "Aktuelles Ferien-Guthaben")
+  bedeutet fachlich "Übertrag aus dem VORJAHR" — die Formel (`berechneFerienGuthaben`, Summen!B18)
+  addiert dazu automatisch noch den anteiligen Jahresanspruch fürs laufende Jahr. Wer stattdessen
+  (wie jede vernünftige Person) seinen AKTUELLEN Gesamtsaldo einträgt, bekommt diesen Anspruch
+  fälschlich ein zweites Mal obendrauf. Dieses Missverständnis steckte vermutlich schon seit der
+  ursprünglichen Einrichtungsseite im Code, ist aber erst jetzt aufgefallen, weil Michael die neue,
+  einfache Seite zum ersten Mal an einem echten Account mit bereits bezogenen Ferientagen benutzt
+  hat. Behoben nicht durch Text-Klarstellung allein, sondern strukturell: neue reine Formel
+  `berechneUebertragAusAktuellemSaldo` (`src/lib/calc/ferien.ts`, mit Regressionstest für genau
+  diesen Vorfall in `ferien.test.ts`) rechnet ausgehend vom aktuellen Saldo den fachlich korrekten
+  Übertrag zurück (`Übertrag = aktuellerSaldo + bereitsBezogen - anteiligerJahresanspruch`). Beide
+  Formulare (`/konto/einrichtung` **und** `/konto/ferien-einrichtung`) fragen jetzt nach "wie viele
+  Ferientage hast du JETZT insgesamt noch" statt nach dem Übertrag, rechnen serverseitig zurück und
+  speichern erst dann. Bei der grossen Einrichtung zusätzlich zu beachten: `ferienBezogenKorrektur`
+  ist im selben Formular editierbar, der VOR dem Speichern abgefragte `berechneFerienSaldo`-Wert
+  rechnet noch mit der ALTEN Korrektur — im Code daher erst auf die reinen Kalendereinträge
+  zurückgerechnet (`ausEintraegen = saldoVorher.ferienBezogen - stammdaten.ferienBezogenKorrektur`)
+  und dann die NEUE Korrektur addiert, bevor die Rückrechnung läuft, sonst wäre bei gleichzeitiger
+  Änderung beider Felder ein leichter Fehler entstanden. Lokal verifiziert: Person mit bereits
+  bezogenen Ferientagen trägt "10" als aktuellen Saldo ein, Anzeige zeigt danach exakt "10.0 Tage",
+  nicht mehr aufgeblasen.
+  **Offener Punkt:** Michaels echter Produktiv-Saldo (Konto m.kueng@alta-engineering.ch) steht
+  vermutlich noch auf dem falschen, zu hohen Wert (17.8 statt 8.8) — ich habe keinen direkten
+  Zugriff auf die Produktions-DB (Vercel Postgres), das muss Michael selbst über die jetzt
+  reparierte `/konto/ferien-einrichtung`-Seite korrigieren (seinen echten aktuellen Saldo, 8.8,
+  erneut eintragen und speichern — die Rückrechnung ist jetzt korrekt).
 
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
