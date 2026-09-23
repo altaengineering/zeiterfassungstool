@@ -152,6 +152,43 @@ export default async function UebersichtSeite({ searchParams }: Props) {
     orderBy: { erstelltAm: "asc" },
   });
 
+  // Team-Statistik (Kranktage, geleistete Stunden) — immer fuers laufende Kalenderjahr/-monat wie
+  // die Ferien-/Gleitzeit-Karten oben, unabhaengig vom oben durchblaetterten Monat. "Bis gestern"
+  // wie ueberall sonst auf der Seite: der heutige, moeglicherweise noch nicht fertig erfasste Tag
+  // zaehlt bewusst nicht mit. Eine einzige Jahres-Query deckt sowohl die Jahres- als auch die
+  // Monats-Kennzahl ab (Monat ist eine Teilmenge des Jahres), spart einen zweiten Datenbank-Zugriff.
+  const heuteMitternacht = new Date(Date.UTC(heute.getUTCFullYear(), heute.getUTCMonth(), heute.getUTCDate()));
+  const bisGestern = new Date(heuteMitternacht.getTime() - 86400000);
+  const jahresStart = new Date(Date.UTC(heuteJahr, 0, 1));
+  const monatsStart = new Date(Date.UTC(heuteJahr, heuteMonat - 1, 1));
+  const monatsStartIso = iso(monatsStart);
+
+  const [krankEntriesJahrDb, bookingsJahrDb] = await Promise.all([
+    prisma.dailyEntry.findMany({
+      where: { user: { companyId: admin.companyId }, date: { gte: jahresStart, lte: bisGestern }, krank: { gt: 0 } },
+      select: { userId: true, date: true },
+    }),
+    prisma.booking.findMany({
+      where: { dailyEntry: { user: { companyId: admin.companyId }, date: { gte: jahresStart, lte: bisGestern } } },
+      select: { hours: true, dailyEntry: { select: { date: true } } },
+    }),
+  ]);
+
+  const krankTageProUser = new Map<string, number>();
+  for (const e of krankEntriesJahrDb) {
+    krankTageProUser.set(e.userId, (krankTageProUser.get(e.userId) ?? 0) + 1);
+  }
+  const teamKrankTageJahr = krankEntriesJahrDb.length;
+  const teamKrankTageMonat = krankEntriesJahrDb.filter((e) => iso(e.date) >= monatsStartIso).length;
+
+  // "Geleistete Arbeitsstunden": bewusst nur echte Projekt-/Kategorie-Buchungen (Booking.hours),
+  // nicht Krank/Ferien/Reisezeit — das hier soll die tatsaechlich erbrachte Arbeitsleistung zeigen
+  // ("was ihn stolz macht", Feedback 2026-09-23), keine Soll-Ist-Kennzahl wie der Gleitzeit-Stand.
+  const teamStundenJahr = bookingsJahrDb.reduce((sum, b) => sum + b.hours, 0);
+  const teamStundenMonat = bookingsJahrDb
+    .filter((b) => iso(b.dailyEntry.date) >= monatsStartIso)
+    .reduce((sum, b) => sum + b.hours, 0);
+
   // Team-weite Kennzahlen, aus denselben pro-Person-Daten oben zusammengefasst (kein zusaetzlicher
   // Query noetig) — "mehr Infos, smarter" (Feedback 2026-09-23): ein einzelner Gleitzeit-Wert pro
   // Person sagt wenig ueber die Firma als Ganzes, die Summe schon (z.B. "wir liegen als Team X
@@ -225,6 +262,34 @@ export default async function UebersichtSeite({ searchParams }: Props) {
             Ferien-Auslastung Team
           </div>
           <div className="value">{teamFerienAuslastungPct.toFixed(0)}%</div>
+        </div>
+      </div>
+
+      <h2>Team-Statistik</h2>
+      <div className="card-row" style={{ marginBottom: 28 }}>
+        <div className="card card-accent card-accent-blau">
+          <div className="label" title="Anzahl Tage mit einer Krank-Buchung, seit Anfang dieses Monats, ganzes Team">
+            Kranktage Team (Monat)
+          </div>
+          <div className="value">{teamKrankTageMonat}</div>
+        </div>
+        <div className="card card-accent card-accent-blau">
+          <div className="label" title={`Anzahl Tage mit einer Krank-Buchung, seit 1.1.${heuteJahr}, ganzes Team`}>
+            Kranktage Team ({heuteJahr})
+          </div>
+          <div className="value">{teamKrankTageJahr}</div>
+        </div>
+        <div className="card card-accent card-accent-gruen">
+          <div className="label" title="Summe aller Projekt-/Kategorie-Stunden, seit Anfang dieses Monats, ganzes Team">
+            Geleistete Stunden Team (Monat)
+          </div>
+          <div className="value pos">{teamStundenMonat.toFixed(0)} h</div>
+        </div>
+        <div className="card card-accent card-accent-gruen">
+          <div className="label" title={`Summe aller Projekt-/Kategorie-Stunden, seit 1.1.${heuteJahr}, ganzes Team`}>
+            Geleistete Stunden Team ({heuteJahr})
+          </div>
+          <div className="value pos">{teamStundenJahr.toFixed(0)} h</div>
         </div>
       </div>
 
@@ -302,6 +367,7 @@ export default async function UebersichtSeite({ searchParams }: Props) {
               <th title={`Ferien-Saldo für ${heuteJahr}, unabhängig vom oben gewählten Monat`}>
                 Ferien übrig
               </th>
+              <th title={`Anzahl Tage mit einer Krank-Buchung seit 1.1.${heuteJahr}`}>Krank ({heuteJahr})</th>
               <th></th>
             </tr>
           </thead>
@@ -338,6 +404,8 @@ export default async function UebersichtSeite({ searchParams }: Props) {
                   standEndeMonat={stand?.standEndeMonat ?? null}
                   standVeraenderung={stand ? stand.standEndeMonat - stand.standVorMonat : null}
                   ferienSaldo={saldo}
+                  krankTageJahr={krankTageProUser.get(u.id) ?? 0}
+                  statistikJahr={heuteJahr}
                 />
               );
             })}

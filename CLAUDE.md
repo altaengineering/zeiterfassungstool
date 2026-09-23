@@ -895,6 +895,19 @@ echter Rechenfehler zum Vorschein, kein reines Kosmetik-Feedback mehr.
   reparierte `/konto/ferien-einrichtung`-Seite korrigieren (seinen echten aktuellen Saldo, 8.8,
   erneut eintragen und speichern — die Rückrechnung ist jetzt korrekt).
 
+**Vierte Feedback-Runde, wieder 2026-09-23 — Team-Statistik in der Chef-Übersicht:** Neuer
+Abschnitt "Team-Statistik" (eigene `<h2>` + zweite `.card-row`) mit vier firmenweiten Kennzahlen,
+alle immer fürs laufende Kalenderjahr/-monat wie die Ferien-/Gleitzeit-Karten (unabhängig vom oben
+durchblätterten Monat, "bis gestern" wie überall sonst auf der Seite): Kranktage Team (Monat),
+Kranktage Team (Jahr), geleistete Stunden Team (Monat), geleistete Stunden Team (Jahr) — Letztere
+bewusst nur aus echten Projekt-/Kategorie-Buchungen (`Booking.hours`), nicht aus Krank/Ferien/
+Reisezeit, da explizit als "worauf man stolz sein kann"-Kennzahl gedacht war, keine Soll-Ist-Zahl.
+Eine "Kranktag" zählt hier als ganzer Tag (jede `DailyEntry` mit `krank > 0`), keine
+Stunden-Umrechnung wie bei Ferien — "wie oft er krank ist" liest sich als Häufigkeit, nicht als
+Stundenvolumen. Zusätzlich neue Tabellenspalte "Krank (Jahr)" pro Mitarbeitendem in
+`MitarbeiterZeile.tsx`. Eine einzige zusätzliche Datenbank-Abfrage pro Kennzahlenpaar (Jahres-Query,
+Monat ist eine Teilmenge davon) statt getrennter Monats-/Jahres-Abfragen.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
