@@ -58,3 +58,25 @@ export function berechneFerienuebertragNaechstesJahr(
 ): number {
   return ferienGuthaben - ferienBezogen;
 }
+
+/**
+ * Rückwärts-Rechnung für die Einrichtungsformulare (App-eigenes Feature): Leute kennen
+ * typischerweise ihren AKTUELLEN Gesamtsaldo ("wie viele Ferientage habe ich JETZT noch"), nicht
+ * den fachlich benötigten `JahresStammdaten.ferienuebertragAltesJahr` (Übertrag aus dem Vorjahr),
+ * der laut `berechneFerienGuthaben` erst zusammen mit dem anteiligen Jahresanspruch den
+ * Gesamtsaldo ergibt. Wurde der aktuelle Saldo versehentlich direkt als Übertrag gespeichert,
+ * zählt der anteilige Jahresanspruch zusätzlich obendrauf (Vorfall 2026-09-23: Michael Küng trug
+ * 8.8 ein, Anzeige sprang auf 17.8, weil bereits bezogene 11 Tage plus ein voller Jahresanspruch
+ * dazugerechnet wurden). Diese Funktion dreht das um: Übertrag = aktuellerSaldo + bereitsBezogen -
+ * anteiliger Jahresanspruch — beide Einrichtungsformulare (src/app/konto/einrichtung,
+ * src/app/konto/ferien-einrichtung) fragen seither nach dem aktuellen Saldo und rechnen das hier
+ * zurück, bevor sie speichern.
+ */
+export function berechneUebertragAusAktuellemSaldo(
+  aktuellerSaldo: number,
+  bereitsBezogen: number,
+  arbeitsmonate: number,
+  jahresferientage: number,
+): number {
+  return aktuellerSaldo + bereitsBezogen - (arbeitsmonate / 12) * jahresferientage;
+}

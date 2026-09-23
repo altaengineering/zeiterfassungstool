@@ -107,9 +107,10 @@ export default async function UebersichtSeite({ searchParams }: Props) {
     return arbeitstageBisher(jahr, monat, stichtagBisGestern, feiertage, entryDatesSet);
   }
 
-  const anzahlImRueckstand = users.filter(
-    (u) => erfassteArbeitstage(u.id) < erwarteteArbeitstage,
-  ).length;
+  const namenImRueckstand = users
+    .filter((u) => erfassteArbeitstage(u.id) < erwarteteArbeitstage)
+    .map((u) => u.name);
+  const anzahlImRueckstand = namenImRueckstand.length;
 
   // Gleitzeitstand pro Person, parallel berechnet (jede Berechnung braucht die volle Jahresreihe
   // dieser Person, siehe berechneMonatsStand). Nur fuer Admins, daher hier der Mehraufwand okay.
@@ -194,7 +195,14 @@ export default async function UebersichtSeite({ searchParams }: Props) {
           <div className="label">Erwartete Arbeitstage bisher</div>
           <div className="value">{erwarteteArbeitstage}</div>
         </div>
-        <div className="card card-accent card-accent-rot">
+        <div
+          className="card card-accent card-accent-rot"
+          title={
+            "Hat weniger Tage erfasst als bis gestern erwartet (zählt nur Arbeitstage ohne " +
+            "Wochenenden/Feiertage, heute selbst zählt noch nicht mit)." +
+            (namenImRueckstand.length > 0 ? "\n\n" + namenImRueckstand.join("\n") : "")
+          }
+        >
           <div className="label">Im Rückstand</div>
           <div className={"value" + (anzahlImRueckstand > 0 ? " neg" : "")}>{anzahlImRueckstand}</div>
         </div>

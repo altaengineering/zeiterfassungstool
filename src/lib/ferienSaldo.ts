@@ -8,6 +8,8 @@ import {
   STANDARD_JAHRESFERIENTAGE,
 } from "@/lib/calc";
 
+export { berechneUebertragAusAktuellemSaldo } from "@/lib/calc";
+
 export interface FerienSaldo {
   /** Ferien, die die Person dieses Jahr insgesamt bekommt (Übertrag + anteiliger Jahresanspruch). */
   ferienGuthaben: number;

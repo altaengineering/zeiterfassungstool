@@ -46,12 +46,6 @@ export function MitarbeiterZeile({
   standVeraenderung: number | null;
   ferienSaldo: FerienSaldo | null;
 }) {
-  const erfassungPct =
-    erwarteteArbeitstage > 0 ? Math.min(100, (erfassteTage / erwarteteArbeitstage) * 100) : 100;
-  const ferienNutzungPct =
-    ferienSaldo && ferienSaldo.ferienGuthaben > 0
-      ? Math.min(100, (ferienSaldo.ferienBezogen / ferienSaldo.ferienGuthaben) * 100)
-      : null;
   const [offen, setOffen] = useState(false);
 
   return (
@@ -64,20 +58,17 @@ export function MitarbeiterZeile({
             {name}
           </span>
         </td>
-        <td>
-          <span className="mini-bar-row">
-            <span className="mini-bar-track" title={`${erfassteTage} von ${erwarteteArbeitstage} erwarteten Arbeitstagen erfasst`}>
-              <span
-                className={"mini-bar-fill" + (hinterher ? " warn" : "")}
-                style={{ width: `${erfassungPct}%` }}
-              />
-            </span>
-            {erfassteTage} / {erwarteteArbeitstage}
-          </span>
+        <td title={`${erfassteTage} von ${erwarteteArbeitstage} erwarteten Arbeitstagen erfasst`}>
+          {erfassteTage} / {erwarteteArbeitstage}
         </td>
         <td className="label-cell">
           <span
             className={"uebersicht-status" + (hinterher ? " uebersicht-status-warn" : "")}
+            title={
+              hinterher
+                ? `Hat weniger Tage erfasst als bis gestern erwartet (${erfassteTage} von ${erwarteteArbeitstage}). Zählt nur Arbeitstage ohne Wochenenden/Feiertage, heute selbst zählt noch nicht mit.`
+                : "Hat bis gestern alle erwarteten Arbeitstage erfasst."
+            }
           >
             {hinterher ? "im Rückstand" : "auf dem Laufenden"}
           </span>
@@ -101,20 +92,16 @@ export function MitarbeiterZeile({
             "—"
           )}
         </td>
-        <td>
+        <td
+          title={
+            ferienSaldo
+              ? `${ferienSaldo.ferienBezogen.toFixed(1)} von ${ferienSaldo.ferienGuthaben.toFixed(1)} Tagen bereits bezogen`
+              : undefined
+          }
+        >
           {ferienSaldo !== null ? (
-            <span className="mini-bar-row">
-              {ferienNutzungPct !== null && (
-                <span
-                  className="mini-bar-track"
-                  title={`${ferienSaldo.ferienBezogen.toFixed(1)} von ${ferienSaldo.ferienGuthaben.toFixed(1)} Tagen bezogen`}
-                >
-                  <span className="mini-bar-fill gold" style={{ width: `${ferienNutzungPct}%` }} />
-                </span>
-              )}
-              <span className={ferienSaldo.ferienUebertrag < 0 ? "neg" : undefined}>
-                {ferienSaldo.ferienUebertrag.toFixed(1)} Tage
-              </span>
+            <span className={ferienSaldo.ferienUebertrag < 0 ? "neg" : undefined}>
+              {ferienSaldo.ferienUebertrag.toFixed(1)} Tage
             </span>
           ) : (
             "—"
