@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { initialen } from "@/lib/colors";
+import type { FerienSaldo } from "@/lib/ferienSaldo";
 
 export interface UebersichtBuchung {
   datum: string;
@@ -31,7 +32,7 @@ export function MitarbeiterZeile({
   zeilen,
   standEndeMonat,
   standVeraenderung,
-  ferienUebertrag,
+  ferienSaldo,
 }: {
   userId: string;
   jahr: number;
@@ -43,8 +44,14 @@ export function MitarbeiterZeile({
   zeilen: UebersichtBuchung[];
   standEndeMonat: number | null;
   standVeraenderung: number | null;
-  ferienUebertrag: number | null;
+  ferienSaldo: FerienSaldo | null;
 }) {
+  const erfassungPct =
+    erwarteteArbeitstage > 0 ? Math.min(100, (erfassteTage / erwarteteArbeitstage) * 100) : 100;
+  const ferienNutzungPct =
+    ferienSaldo && ferienSaldo.ferienGuthaben > 0
+      ? Math.min(100, (ferienSaldo.ferienBezogen / ferienSaldo.ferienGuthaben) * 100)
+      : null;
   const [offen, setOffen] = useState(false);
 
   return (
@@ -58,7 +65,15 @@ export function MitarbeiterZeile({
           </span>
         </td>
         <td>
-          {erfassteTage} / {erwarteteArbeitstage}
+          <span className="mini-bar-row">
+            <span className="mini-bar-track" title={`${erfassteTage} von ${erwarteteArbeitstage} erwarteten Arbeitstagen erfasst`}>
+              <span
+                className={"mini-bar-fill" + (hinterher ? " warn" : "")}
+                style={{ width: `${erfassungPct}%` }}
+              />
+            </span>
+            {erfassteTage} / {erwarteteArbeitstage}
+          </span>
         </td>
         <td className="label-cell">
           <span
@@ -87,9 +102,19 @@ export function MitarbeiterZeile({
           )}
         </td>
         <td>
-          {ferienUebertrag !== null ? (
-            <span className={ferienUebertrag < 0 ? "neg" : undefined}>
-              {ferienUebertrag.toFixed(1)} Tage
+          {ferienSaldo !== null ? (
+            <span className="mini-bar-row">
+              {ferienNutzungPct !== null && (
+                <span
+                  className="mini-bar-track"
+                  title={`${ferienSaldo.ferienBezogen.toFixed(1)} von ${ferienSaldo.ferienGuthaben.toFixed(1)} Tagen bezogen`}
+                >
+                  <span className="mini-bar-fill gold" style={{ width: `${ferienNutzungPct}%` }} />
+                </span>
+              )}
+              <span className={ferienSaldo.ferienUebertrag < 0 ? "neg" : undefined}>
+                {ferienSaldo.ferienUebertrag.toFixed(1)} Tage
+              </span>
             </span>
           ) : (
             "—"

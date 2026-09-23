@@ -13,7 +13,8 @@ Mode, Passwort selbst ändern (`/konto/passwort`), Admin-Nutzerverwaltung mit Pa
 Anlegen/Löschen von Mitarbeitenden (`/admin`), Feiertage-Verwaltung (`/admin/feiertage`),
 Monatsabschluss (`/admin/monatsabschluss` — sperrt einen Monat firmenweit für Mitarbeitende,
 Admins können trotzdem noch korrigieren, Modell `MonthClose`), eine "Einrichtung"-Seite
-(`/konto/einrichtung`) gegen die leere Startphase (siehe nächster Absatz), eine
+(`/konto/einrichtung`) gegen die leere Startphase sowie eine separate, kleine
+`/konto/ferien-einrichtung` nur für Ferien-Guthaben/Jahresanspruch (siehe nächster Absatz), eine
 Pensumwechsel-Verwaltung (`/admin/pensum/[userId]`, siehe Absatz danach), sowie Abwesenheitsanträge
 (`/abwesenheiten`, Ferien oder Gleitzeit-Kompensation, Mitarbeitende beantragen Zeiträume und sehen
 ihre Salden; Chef-Übersicht zeigt offene Anträge zum Genehmigen/Ablehnen, siehe Einträge 2026-09-23
@@ -817,6 +818,44 @@ Vier von Michael in einer Anfrage gebündelte Punkte:
   `repeating-linear-gradient` kann in CSS grundsätzlich keine kurzen "Striche" entlang seiner Achse
   erzeugen, nur volle Streifen quer dazu — für echte Punktmuster ausschliesslich `radial-gradient`
   verwenden.
+
+**Noch eine Runde Feedback, selber Tag (2026-09-23):**
+- **Ferien-Hinweis verlinkte auf die falsche, zu grosse Seite.** Der einmalige Banner (siehe oben)
+  verspricht nur zwei Felder ("Ferien-Guthaben und Jahresanspruch"), verlinkte aber auf die volle
+  `/konto/einrichtung`-Seite mit fünf Feldern (Startdatum, Überstunden-Saldo, etc.) — fühlte sich
+  an wie "nochmal neu einrichten". Neue, eigene Seite `/konto/ferien-einrichtung` mit **nur** den
+  zwei versprochenen Feldern, eigener Server Action (`ferienEinrichtungSpeichern`). Neuer, davon
+  bewusst getrennter Marker `JahresStammdaten.ferienEinrichtungErledigt` (`Boolean @default(false)`,
+  additiv) statt weiter `erfassungStartDatum` mitzubenutzen — die "leere Startphase" und die
+  Ferien-Ersteinrichtung sind fachlich zwei verschiedene Schritte, ein gemeinsamer Marker war die
+  Ursache der Vermischung. Wird sowohl von der neuen kleinen Seite als auch von der grossen
+  Einrichtung gesetzt (wer die grosse Einrichtung ausfüllt, hat die Ferien-Felder ja mitgeliefert),
+  `einrichtungZuruecksetzen` setzt ihn wieder zurück. Lokal verifiziert: Banner verlinkt jetzt auf
+  die kleine Seite, verschwindet nach dem Speichern sofort, taucht nach "Einrichtung zurücksetzen"
+  wieder auf.
+- **Hintergrund war beim zweiten Anlauf immer noch falsch, dann auf Nachfrage geklärt.** "Nur
+  Punkte" (voriger Eintrag) kam beim Nutzer nicht gut an ("sieht jetzt richtig beschissen aus").
+  Statt einen dritten Blindversuch zu riskieren, per `AskUserQuestion` nachgefragt statt weiter zu
+  raten — Antwort: eine echte Leiterplatte mit PCB-Traces (gebogene Leiterbahnen), nicht nur Punkte.
+  Dafür reicht CSS nicht aus (siehe Lektion oben, ein Farbverlauf kann keine rechtwinkligen Pfade
+  zeichnen), stattdessen ein echtes `<svg>`-Element mit `<pattern>` + `<path>`-Leiterbahnen
+  (rechtwinklige Pfade) plus Via-/Pad-Kreisen, als Kind von `.app-bg` in `layout.tsx` (echtes DOM-
+  Element statt CSS-Hintergrund, dadurch bleiben die Pfade ueber `var(--accent)` themefaehig). Erster
+  Wurf davon war selbst wieder zu heftig ("wie Tapete") — die Musterkachel war mit 160px genauso
+  gross wie das gezeichnete Leiterbahn-Cluster, dadurch kachelte es ohne Abstand durch. Behoben durch
+  eine deutlich groessere Kachel (400px) bei unveraendert kleinem Leiterbahn-Cluster (bleibt in der
+  oberen linken Ecke jeder Kachel) plus halbierte Deckkraft. Fuer die Login-Seite (`.login-brand`,
+  eigenes, immer-dunkles Panel unabhaengig vom App-Theme) as SVG-Data-URI mit fest codierten
+  rgba-Farben nachgebaut, aus demselben Grund (kein Kind-Markup in einem `::before`-Pseudoelement
+  moeglich). **Lektion:** bei repetitiven Deko-Mustern das Verhaeltnis Motiv-Groesse zu Kachel-Groesse
+  bewusst gross waehlen (Motiv deutlich kleiner als die Kachel), sonst wirkt jedes noch so filigrane
+  Motiv in der Wiederholung wie Tapete.
+- **Chef-Übersicht "smarter" gemacht:** zwei neue Kennzahlen-Karten ("Team-Gleitzeit gesamt" =
+  Summe des aktuellen Gleitzeit-Stands aller Mitarbeitenden, "Ferien-Auslastung Team" = bezogene
+  durch verfügbare Ferientage der ganzen Firma in %), plus kleine Fortschrittsbalken pro Person in
+  der Tabelle (Tage erfasst, Ferien-Nutzung) statt nur nackter Zahlen — bewusst reine CSS-Balken
+  (`.mini-bar-*` in globals.css), keine Chart-Bibliothek, das Projekt hat bisher keine und die
+  Datenmenge (14 Personen) rechtfertigt den Zusatzaufwand nicht.
 
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit

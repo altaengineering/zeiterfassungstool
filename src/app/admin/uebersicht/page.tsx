@@ -151,6 +151,20 @@ export default async function UebersichtSeite({ searchParams }: Props) {
     orderBy: { erstelltAm: "asc" },
   });
 
+  // Team-weite Kennzahlen, aus denselben pro-Person-Daten oben zusammengefasst (kein zusaetzlicher
+  // Query noetig) — "mehr Infos, smarter" (Feedback 2026-09-23): ein einzelner Gleitzeit-Wert pro
+  // Person sagt wenig ueber die Firma als Ganzes, die Summe schon (z.B. "wir liegen als Team X
+  // Stunden im Plus/Minus"), ebenso die Ferien-Auslastung uebers ganze Team statt nur einzeln.
+  const alleSaldi = users.map((u) => saldoByUser.get(u.id)).filter((s) => s != null);
+  const teamGleitzeitGesamt = users.reduce(
+    (sum, u) => sum + (standHeuteByUser.get(u.id)?.standEndeMonat ?? 0),
+    0,
+  );
+  const teamFerienGuthaben = alleSaldi.reduce((sum, s) => sum + s.ferienGuthaben, 0);
+  const teamFerienBezogen = alleSaldi.reduce((sum, s) => sum + s.ferienBezogen, 0);
+  const teamFerienAuslastungPct =
+    teamFerienGuthaben > 0 ? (teamFerienBezogen / teamFerienGuthaben) * 100 : 0;
+
   return (
     <main>
       <h1>Chef-Übersicht</h1>
@@ -189,6 +203,20 @@ export default async function UebersichtSeite({ searchParams }: Props) {
           <div className={"value" + (offeneFerienantraege.length > 0 ? " neg" : "")}>
             {offeneFerienantraege.length}
           </div>
+        </div>
+        <div className={"card card-accent" + (teamGleitzeitGesamt < 0 ? " card-accent-rot" : " card-accent-gruen")}>
+          <div className="label" title="Summe des aktuellen Gleitzeit-Stands aller Mitarbeitenden">
+            Team-Gleitzeit gesamt
+          </div>
+          <div className={"value" + (teamGleitzeitGesamt < 0 ? " neg" : " pos")}>
+            {teamGleitzeitGesamt.toFixed(1)} h
+          </div>
+        </div>
+        <div className="card card-accent card-accent-gold">
+          <div className="label" title={`${teamFerienBezogen.toFixed(1)} von ${teamFerienGuthaben.toFixed(1)} Tagen Team-Ferienanspruch ${heuteJahr} bezogen`}>
+            Ferien-Auslastung Team
+          </div>
+          <div className="value">{teamFerienAuslastungPct.toFixed(0)}%</div>
         </div>
       </div>
 
@@ -301,7 +329,7 @@ export default async function UebersichtSeite({ searchParams }: Props) {
                   zeilen={zeilen}
                   standEndeMonat={stand?.standEndeMonat ?? null}
                   standVeraenderung={stand ? stand.standEndeMonat - stand.standVorMonat : null}
-                  ferienUebertrag={saldo?.ferienUebertrag ?? null}
+                  ferienSaldo={saldo}
                 />
               );
             })}
