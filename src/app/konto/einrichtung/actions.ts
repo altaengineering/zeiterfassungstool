@@ -46,6 +46,9 @@ export async function einrichtungSpeichern(
         ferienuebertragAltesJahr: ferienGuthaben,
         jahresferientage,
         ferienBezogenKorrektur,
+        // Die grosse Einrichtung deckt die Ferien-Felder mit ab, zaehlt also auch als erledigt
+        // fuer den separaten Ferien-Hinweis (siehe layout.tsx / konto/ferien-einrichtung).
+        ferienEinrichtungErledigt: true,
       },
     });
   } catch {
@@ -78,7 +81,12 @@ export async function einrichtungZuruecksetzen(
   try {
     await prisma.jahresStammdaten.update({
       where: { userId_year: { userId, year: jahr } },
-      data: { erfassungStartDatum: null, stundenuebertragAltesJahr: 0, ferienuebertragAltesJahr: 0 },
+      data: {
+        erfassungStartDatum: null,
+        stundenuebertragAltesJahr: 0,
+        ferienuebertragAltesJahr: 0,
+        ferienEinrichtungErledigt: false,
+      },
     });
   } catch {
     return {

@@ -115,29 +115,42 @@ textarea {
       transparent 40%,
       color-mix(in srgb, var(--accent) 7%, transparent) 52%,
       transparent 64%
-    ),
-    /* Leiterplatten-"Via"-Punkte statt Millimeterpapier-Gitter (das vorherige Gitter wirkte wie
-       Raster-Papier). Bewusst NUR isolierte Punkte, keine Linien: ein repeating-linear-gradient
-       liefert immer volle Streifen ueber die ganze Flaeche (die Farbe variiert nur entlang seiner
-       eigenen Achse, nicht senkrecht dazu), auch mit kurzem Farbstopp sieht das wie eine
-       durchgezogene Linie aus, nicht wie ein Strich. Nur radial-gradient erzeugt echte einzelne
-       Punkte, dadurch bleibt die Flaeche wirklich subtil. */
-    radial-gradient(
-      circle at 0 0,
-      color-mix(in srgb, var(--accent) 34%, transparent) 1.6px,
-      transparent 1.8px
-    ),
-    /* Zweite, sparsamer verteilte Via-Groesse in der Akzentfarbe, fuer etwas Tiefe */
-    radial-gradient(
-      circle at 0 0,
-      color-mix(in srgb, var(--accent-2) 30%, transparent) 1.8px,
-      transparent 2px
     );
-  background-size:
-    100% 100%, 100% 100%, 100% 100%, 100% 100%, 64px 64px, 192px 192px;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
   mask-image: radial-gradient(1900px 1500px at 50% 25%, black 0%, transparent 94%);
   -webkit-mask-image: radial-gradient(1900px 1500px at 50% 25%, black 0%, transparent 94%);
   animation: app-bg-atmen 14s ease-in-out infinite, app-bg-drift 26s ease-in-out infinite;
+}
+
+/* Leiterplatten-Spuren statt der vorherigen Gitter-/Punkte-Versuche (Feedback 2026-09-23: "eine
+   Leiterplatte darstellen, so diese PCB traces"). Echtes SVG-Element statt CSS-Gradient-Trick, weil
+   nur so tatsaechlich gebogene Leiterbahnen (rechtwinklige Pfade) gezeichnet werden koennen, nicht
+   nur Linien oder Punkte — ein CSS repeating-linear-gradient kann das grundsaetzlich nicht (siehe
+   vorherigen, verworfenen Versuch). Als echtes DOM-Element (nicht data-URI) koennen die Pfade
+   ausserdem per var(--accent) themefaehig bleiben. Erbt die Maskierung von .app-bg (position:
+   absolute innerhalb des fixed-positionierten Elternelements). */
+.app-bg-traces {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.pcb-trace {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent) 15%, transparent);
+  stroke-width: 1.1;
+  stroke-linecap: round;
+}
+
+.pcb-via {
+  fill: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.pcb-pad {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent-2) 22%, transparent);
+  stroke-width: 1.1;
 }
 
 @keyframes app-bg-atmen {
@@ -156,10 +169,10 @@ textarea {
 @keyframes app-bg-drift {
   0%,
   100% {
-    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+    background-position: 0 0, 0 0, 0 0, 0 0;
   }
   50% {
-    background-position: 1.5% -1%, -1% 1.5%, 1% -1.5%, 0 0, 0 0, 0 0;
+    background-position: 1.5% -1%, -1% 1.5%, 1% -1.5%, 0 0;
   }
 }
 
@@ -915,12 +928,14 @@ main.login-hero {
   pointer-events: none;
 }
 
-/* Leiterplatten-"Via"-Punkte, gleiche Formensprache wie .app-bg, statt des vorherigen
-   Millimeterpapier-Gitters (nur isolierte Punkte, keine Linien, siehe Kommentar dort). */
+/* Leiterplatten-Spuren, gleiches Motiv wie .app-bg-traces (siehe dortiger Kommentar), hier als
+   SVG-Data-URI statt echtem DOM-Element, weil ::before kein Kind-Markup haben kann. Farben
+   deshalb als feste rgba-Werte statt var(--accent) — dieses Panel ist ohnehin fest dunkel gehalten,
+   unabhaengig vom App-Theme (siehe .login-brand background oben), reine CSS-Variablen wuerden hier
+   also nichts zusaetzlich theme-faehig machen. */
 .login-brand::before {
-  background-image: radial-gradient(circle at 0 0, rgba(90, 155, 240, 0.5) 1.6px, transparent 1.8px),
-    radial-gradient(circle at 28px 28px, rgba(255, 176, 32, 0.4) 1.8px, transparent 2px);
-  background-size: 56px 56px, 56px 56px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cpath d='M0 40 H50 L60 50 V90 H130' fill='none' stroke='rgba(90,155,240,0.15)' stroke-width='1.1' stroke-linecap='round'/%3E%3Cpath d='M100 0 V30 L110 40 H160' fill='none' stroke='rgba(90,155,240,0.15)' stroke-width='1.1' stroke-linecap='round'/%3E%3Cpath d='M20 160 V120 L30 110 H90 L100 120 V160' fill='none' stroke='rgba(90,155,240,0.15)' stroke-width='1.1' stroke-linecap='round'/%3E%3Cpath d='M160 100 H140 L130 90 V60' fill='none' stroke='rgba(90,155,240,0.15)' stroke-width='1.1' stroke-linecap='round'/%3E%3Cpath d='M0 130 H30' fill='none' stroke='rgba(90,155,240,0.15)' stroke-width='1.1' stroke-linecap='round'/%3E%3Ccircle cx='60' cy='50' r='2.2' fill='rgba(90,155,240,0.25)'/%3E%3Ccircle cx='130' cy='90' r='2.2' fill='rgba(90,155,240,0.25)'/%3E%3Ccircle cx='110' cy='40' r='2.2' fill='rgba(90,155,240,0.25)'/%3E%3Ccircle cx='30' cy='110' r='2.2' fill='rgba(90,155,240,0.25)'/%3E%3Ccircle cx='100' cy='120' r='2.2' fill='rgba(90,155,240,0.25)'/%3E%3Ccircle cx='0' cy='40' r='3' fill='none' stroke='rgba(255,176,32,0.22)' stroke-width='1.1'/%3E%3Ccircle cx='160' cy='100' r='3' fill='none' stroke='rgba(255,176,32,0.22)' stroke-width='1.1'/%3E%3Ccircle cx='30' cy='160' r='3' fill='none' stroke='rgba(255,176,32,0.22)' stroke-width='1.1'/%3E%3C/svg%3E");
+  background-size: 400px 400px;
   mask-image: radial-gradient(circle at 30% 30%, black 0%, transparent 75%);
 }
 
@@ -1827,6 +1842,44 @@ main.login-hero {
    die Farbe kein Warnsignal, sondern ein bewusst freundlicher Hinweis ist. */
 .card-accent-gruen {
   border-top-color: color-mix(in srgb, var(--pos) 55%, var(--border));
+}
+
+.card-accent-gold {
+  border-top-color: color-mix(in srgb, var(--accent-2) 55%, var(--border));
+}
+
+/* Kleine Fortschrittsbalken in der Chef-Uebersicht (Tage erfasst, Ferien-Nutzung), Feedback
+   2026-09-23 "mehr Infos, smarter, coole Grafiken" — bewusst als schmaler Balken statt Donut/Chart,
+   damit er in eine Tabellenzelle passt und nicht mit einer Bibliothek nachgezogen werden muss. */
+.mini-bar-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mini-bar-track {
+  width: 46px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.mini-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.mini-bar-fill.warn {
+  background: var(--neg);
+}
+
+.mini-bar-fill.gold {
+  background: var(--accent-2);
 }
 
 /* Status-Badges fuer Ferienanträge (offen/genehmigt/abgelehnt), gleiches Grundprinzip wie

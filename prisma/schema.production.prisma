@@ -141,6 +141,7 @@ model JahresStammdaten {
   jahresferientage Float?
   ferienBezogenKorrektur Float @default(0)
   erfassungStartDatum DateTime?
+  ferienEinrichtungErledigt Boolean @default(false)
 
   @@unique([userId, year])
 }

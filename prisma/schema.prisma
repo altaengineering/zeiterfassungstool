@@ -199,6 +199,16 @@ model JahresStammdaten {
   // von Anfang Jahr an zählen (Standardverhalten, z.B. für Michael, der schon reale Daten hat).
   erfassungStartDatum DateTime?
 
+  // Eigener Marker fuer den einmaligen Ferien-Hinweis im Layout (siehe layout.tsx), bewusst
+  // GETRENNT von erfassungStartDatum: die "leere Startphase" (Startdatum/Ueberstunden) und die
+  // Ferien-Ersteinrichtung (Guthaben/Jahresanspruch) sind fachlich zwei verschiedene Schritte,
+  // ein gemeinsamer Marker hatte dazu gefuehrt, dass der Hinweis auf die GROSSE Einrichtungsseite
+  // verlinkte, obwohl er nur die zwei Ferien-Felder meinte (Feedback 2026-09-23: "muss man dann
+  // quasi nochmal neu einrichten"). Wird sowohl von der kleinen, dedizierten Seite
+  // (konto/ferien-einrichtung) als auch von der grossen Einrichtungsseite gesetzt, je nachdem, wo
+  // die Ferien-Felder zuerst ausgefuellt werden.
+  ferienEinrichtungErledigt Boolean @default(false)
+
   @@unique([userId, year])
 }
 
