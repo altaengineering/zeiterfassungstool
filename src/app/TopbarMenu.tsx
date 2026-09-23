@@ -37,7 +37,19 @@ export function TopbarMenu({
         <span className="topbar-menu-caret">{offen ? "▴" : "▾"}</span>
       </button>
       {offen && (
-        <div className="topbar-menu-panel" onClick={() => setOffen(false)}>
+        <div
+          className="topbar-menu-panel"
+          onClick={() => {
+            // setTimeout statt direktem setOffen(false): ein Klick auf einen echten
+            // Formular-Submit-Button (z.B. "Abmelden", src/app/layout.tsx) loest neben diesem
+            // React-onClick auch die native Formular-Submission als Default-Action aus. React
+            // entfernt {offen && ...} inklusive Formular synchron aus dem DOM, sobald setOffen(false)
+            // im selben Tick laeuft, dadurch feuert die native Submission nie (Bug: Abmelden tat
+            // nichts, lokal reproduziert). Mit setTimeout(...,0) laeuft die native Default-Action
+            // zuerst, das Schliessen des Menüs einen Tick spaeter faellt nicht auf.
+            setTimeout(() => setOffen(false), 0);
+          }}
+        >
           {children}
         </div>
       )}

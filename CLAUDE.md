@@ -908,6 +908,21 @@ Stundenvolumen. Zusätzlich neue Tabellenspalte "Krank (Jahr)" pro Mitarbeitende
 `MitarbeiterZeile.tsx`. Eine einzige zusätzliche Datenbank-Abfrage pro Kennzahlenpaar (Jahres-Query,
 Monat ist eine Teilmenge davon) statt getrennter Monats-/Jahres-Abfragen.
 
+**Bug: "Abmelden" tat nichts (2026-09-23):** Michael meldete, Abmelden funktioniere nicht, lokal
+reproduziert (Klick auf "Abmelden" schliesst nur das Konto-Menü, Session bleibt aktiv). Ursache in
+`src/app/TopbarMenu.tsx`: das aufklappbare Menü-Panel hat `onClick={() => setOffen(false)}`, damit
+ein Klick auf irgendeinen Eintrag das Menü automatisch schliesst. "Abmelden" ist aber kein Link mit
+eigenem `onClick`, sondern ein simpler `<button type="submit">` in einem `<form action={...}>`
+(`src/app/layout.tsx`, inline Server Action mit `signOut()`), der sich auf die native
+Formular-Submission als Default-Action verlässt. Ein Klick auf diesen Button löst zwei Dinge aus:
+den React-`onClick` des Panels (bubble-Phase, läuft synchron, entfernt `{offen && ...}` inklusive
+Formular aus dem DOM) und danach die native Submission (Default-Action, läuft erst NACH der
+Bubble-Phase) — durch die vorherige DOM-Entfernung feuert die Submission nie, `signOut()` wird nie
+aufgerufen. Fix: `setOffen(false)` in `setTimeout(..., 0)` verpackt, damit die native Default-Action
+zuerst laufen kann, das Schliessen des Menüs einen Tick später fällt nicht auf. Lokal verifiziert:
+vor dem Fix reproduziert (Klick auf Abmelden bleibt auf der Dashboard-Seite, Titel weiterhin "Test
+Admin"), nach dem Fix korrekt zur Login-Seite weitergeleitet.
+
 **Zugangsdaten & Secrets:** `.env` (lokal, SQLite) und Vercel-Projekt-Settings (Produktions-Secrets:
 `DATABASE_URL`, `AUTH_SECRET`, `AUTH_TRUST_HOST`) — nicht im Repo. Mitarbeitenden-Liste mit
 Klartext-Passwörtern liegt lokal in `prisma/seed-data/mitarbeitende-2026.local.json`
