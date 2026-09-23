@@ -21,6 +21,7 @@ export async function ferienBeantragen(
   const userId = (session.user as { id: string }).id;
   const von = String(formData.get("von") ?? "");
   const bis = String(formData.get("bis") ?? "");
+  const typ = formData.get("typ") === "gleitzeit" ? "gleitzeit" : "ferien";
   const kommentar = String(formData.get("kommentar") ?? "").trim();
 
   if (!von || !bis) return { error: "Bitte Start- und Enddatum angeben." };
@@ -38,11 +39,12 @@ export async function ferienBeantragen(
       von: parseISODate(von),
       bis: parseISODate(bis),
       arbeitstage: tage.length,
+      typ,
       kommentar: kommentar || null,
     },
   });
 
-  revalidatePath("/ferien");
+  revalidatePath("/abwesenheiten");
   revalidatePath("/admin/uebersicht");
   return { success: true };
 }
@@ -59,6 +61,6 @@ export async function ferienAntragZuruecknehmen(formData: FormData) {
   // entschiedener Antraege, damit die Historie (auch abgelehnte) fuer Admin und Person erhalten bleibt.
   await prisma.ferienAntrag.deleteMany({ where: { id: antragId, userId, status: "offen" } });
 
-  revalidatePath("/ferien");
+  revalidatePath("/abwesenheiten");
   revalidatePath("/admin/uebersicht");
 }

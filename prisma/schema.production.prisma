@@ -96,6 +96,7 @@ model KalenderNotiz {
   createdAt   DateTime @default(now())
 }
 
+// Abwesenheitsantrag (Modellname aus historischen Gruenden noch FerienAntrag, siehe `typ`).
 model FerienAntrag {
   id             String    @id @default(cuid())
   user           User      @relation(fields: [userId], references: [id])
@@ -103,6 +104,7 @@ model FerienAntrag {
   von            DateTime
   bis            DateTime
   arbeitstage    Float
+  typ            String    @default("ferien")
   kommentar      String?
   status         String    @default("offen")
   erstelltAm     DateTime  @default(now())

@@ -116,9 +116,25 @@ textarea {
       color-mix(in srgb, var(--accent) 7%, transparent) 52%,
       transparent 64%
     ),
-    linear-gradient(color-mix(in srgb, var(--accent) 12%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 12%, transparent) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+    /* Leiterplatten-"Via"-Punkte statt Millimeterpapier-Gitter (das vorherige Gitter wirkte wie
+       Raster-Papier). Bewusst NUR isolierte Punkte, keine Linien: ein repeating-linear-gradient
+       liefert immer volle Streifen ueber die ganze Flaeche (die Farbe variiert nur entlang seiner
+       eigenen Achse, nicht senkrecht dazu), auch mit kurzem Farbstopp sieht das wie eine
+       durchgezogene Linie aus, nicht wie ein Strich. Nur radial-gradient erzeugt echte einzelne
+       Punkte, dadurch bleibt die Flaeche wirklich subtil. */
+    radial-gradient(
+      circle at 0 0,
+      color-mix(in srgb, var(--accent) 34%, transparent) 1.6px,
+      transparent 1.8px
+    ),
+    /* Zweite, sparsamer verteilte Via-Groesse in der Akzentfarbe, fuer etwas Tiefe */
+    radial-gradient(
+      circle at 0 0,
+      color-mix(in srgb, var(--accent-2) 30%, transparent) 1.8px,
+      transparent 2px
+    );
+  background-size:
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 64px 64px, 192px 192px;
   mask-image: radial-gradient(1900px 1500px at 50% 25%, black 0%, transparent 94%);
   -webkit-mask-image: radial-gradient(1900px 1500px at 50% 25%, black 0%, transparent 94%);
   animation: app-bg-atmen 14s ease-in-out infinite, app-bg-drift 26s ease-in-out infinite;
@@ -838,6 +854,24 @@ td.override {
   background: var(--surface-alt);
 }
 
+/* Solide Variante von .link-btn-inline fuer primaere Inline-Aktionen ausserhalb von .entry-form
+   (z.B. "Genehmigen" in der Chef-Uebersicht) — ohne eigene Klasse faellt so ein <button> sonst auf
+   den nackten Browser-Standardstil zurueck (grauer Kasten, wirkt "kaputt"). */
+.btn-primary-inline {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary-inline:hover {
+  background: var(--accent-dark);
+}
+
 .form-message.success {
   background: color-mix(in srgb, var(--pos) 14%, transparent);
   color: var(--pos);
@@ -881,10 +915,12 @@ main.login-hero {
   pointer-events: none;
 }
 
+/* Leiterplatten-"Via"-Punkte, gleiche Formensprache wie .app-bg, statt des vorherigen
+   Millimeterpapier-Gitters (nur isolierte Punkte, keine Linien, siehe Kommentar dort). */
 .login-brand::before {
-  background-image: linear-gradient(rgba(90, 155, 240, 0.16) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(90, 155, 240, 0.16) 1px, transparent 1px);
-  background-size: 42px 42px;
+  background-image: radial-gradient(circle at 0 0, rgba(90, 155, 240, 0.5) 1.6px, transparent 1.8px),
+    radial-gradient(circle at 28px 28px, rgba(255, 176, 32, 0.4) 1.8px, transparent 2px);
+  background-size: 56px 56px, 56px 56px;
   mask-image: radial-gradient(circle at 30% 30%, black 0%, transparent 75%);
 }
 

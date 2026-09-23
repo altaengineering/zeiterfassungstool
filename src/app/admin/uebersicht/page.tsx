@@ -129,8 +129,20 @@ export default async function UebersichtSeite({ searchParams }: Props) {
   // Uebersicht gerade ansieht (Ferienplanung ist ein Jetzt-Blick, kein Monatsrueckblick wie der
   // Rest der Seite) — siehe user-Anfrage "Chefübersicht braucht mehr Infos und Daten".
   const heuteJahr = heute.getUTCFullYear();
+  const heuteMonat = heute.getUTCMonth() + 1;
   const saldoByUser = new Map(
     await Promise.all(users.map(async (u) => [u.id, await berechneFerienSaldo(u.id, heuteJahr)] as const)),
+  );
+  // Fuer den Gleitzeit-Stand im "Offene Abwesenheitsanträge"-Abschnitt: immer der aktuelle Stand,
+  // unabhaengig vom oben ausgewaehlten Monat (analog saldoByUser), separat von standByUser, das an
+  // den gewaehlten Monat gebunden bleibt (Spalte "Gleitzeit (Stand gestern)" in der Tabelle unten).
+  const standHeuteByUser = new Map(
+    await Promise.all(
+      users.map(
+        async (u) =>
+          [u.id, await berechneMonatsStand(u.id, heuteJahr, heuteMonat, { nichtInDieZukunftProjizieren: true })] as const,
+      ),
+    ),
   );
 
   const offeneFerienantraege = await prisma.ferienAntrag.findMany({
@@ -173,7 +185,7 @@ export default async function UebersichtSeite({ searchParams }: Props) {
           <div className={"value" + (anzahlImRueckstand > 0 ? " neg" : "")}>{anzahlImRueckstand}</div>
         </div>
         <div className={"card card-accent" + (offeneFerienantraege.length > 0 ? " card-accent-rot" : " card-accent-blau")}>
-          <div className="label">Offene Ferienanträge</div>
+          <div className="label">Offene Abwesenheitsanträge</div>
           <div className={"value" + (offeneFerienantraege.length > 0 ? " neg" : "")}>
             {offeneFerienantraege.length}
           </div>
@@ -182,32 +194,47 @@ export default async function UebersichtSeite({ searchParams }: Props) {
 
       {offeneFerienantraege.length > 0 && (
         <>
-          <h2>Offene Ferienanträge</h2>
+          <h2>Offene Abwesenheitsanträge</h2>
           <div className="ferien-antraege-liste" style={{ marginBottom: 28 }}>
             {offeneFerienantraege.map((a) => {
-              const saldo = saldoByUser.get(a.userId);
+              const istGleitzeit = a.typ === "gleitzeit";
+              const ferienSaldo = saldoByUser.get(a.userId);
+              const gleitzeitStand = standHeuteByUser.get(a.userId);
               return (
                 <div key={a.id} className="ferien-antrag-zeile">
                   <div className="ferien-antrag-info">
                     <span>
-                      <strong>{a.user.name}</strong>: {fmtDatum(a.von)} – {fmtDatum(a.bis)} (
+                      {istGleitzeit ? "🕑 Gleitzeit" : "🏖️ Ferien"} · <strong>{a.user.name}</strong>:{" "}
+                      {fmtDatum(a.von)} – {fmtDatum(a.bis)} (
                       {a.arbeitstage} {a.arbeitstage === 1 ? "Arbeitstag" : "Arbeitstage"})
-                      {saldo && (
-                        <>
-                          {" "}
-                          · Saldo aktuell:{" "}
-                          <span className={saldo.ferienUebertrag < 0 ? "neg" : "pos"}>
-                            {saldo.ferienUebertrag.toFixed(1)} Tage
-                          </span>
-                        </>
-                      )}
+                      {istGleitzeit
+                        ? gleitzeitStand && (
+                            <>
+                              {" "}
+                              · Gleitzeit-Stand aktuell:{" "}
+                              <span className={gleitzeitStand.standEndeMonat < 0 ? "neg" : "pos"}>
+                                {gleitzeitStand.standEndeMonat.toFixed(2)} h
+                              </span>
+                            </>
+                          )
+                        : ferienSaldo && (
+                            <>
+                              {" "}
+                              · Ferien-Saldo aktuell:{" "}
+                              <span className={ferienSaldo.ferienUebertrag < 0 ? "neg" : "pos"}>
+                                {ferienSaldo.ferienUebertrag.toFixed(1)} Tage
+                              </span>
+                            </>
+                          )}
                     </span>
                     {a.kommentar && <span className="ferien-antrag-kommentar">{a.kommentar}</span>}
                   </div>
                   <div className="ferien-antrag-aktionen">
                     <form action={ferienAntragGenehmigen}>
                       <input type="hidden" name="antragId" value={a.id} />
-                      <button type="submit">Genehmigen</button>
+                      <button type="submit" className="btn-primary-inline">
+                        Genehmigen
+                      </button>
                     </form>
                     <form action={ferienAntragAblehnen}>
                       <input type="hidden" name="antragId" value={a.id} />

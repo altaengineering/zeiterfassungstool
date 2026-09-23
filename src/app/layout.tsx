@@ -74,7 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <nav className="topbar-nav">
                   <Link href="/kalender">Kalender</Link>
                   <Link href="/projekte">Projekte</Link>
-                  <Link href="/ferien">Ferien</Link>
+                  <Link href="/abwesenheiten">Abwesenheiten</Link>
                   {istAdmin && (
                     <TopbarMenu label="Admin" accent>
                       <Link href="/admin" className="topbar-menu-item">

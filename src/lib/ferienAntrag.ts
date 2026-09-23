@@ -25,12 +25,17 @@ export async function arbeitstageFuerZeitraum(
 }
 
 /**
- * Bei Genehmigung werden fuer jeden Arbeitstag im Zeitraum DailyEntry-Zeilen mit
- * ferien=Soll-pro-Tag angelegt bzw. aktualisiert (nur das ferien-Feld, andere Buchungen an
- * diesem Tag bleiben unberuehrt) — sonst haette ein "genehmigter" Antrag keinerlei Effekt auf den
- * echten Ferien-Saldo, der ausschliesslich aus echten Tageseintraegen berechnet wird (siehe
- * src/lib/calc/ferien.ts). Zeitraum kann eine Jahresgrenze ueberschreiten, daher werden die
- * Jahres-Stammdaten (fuer den Soll-pro-Tag-Basiswert) pro betroffenem Jahr separat geladen.
+ * Bei Genehmigung eines "ferien"-Antrags werden fuer jeden Arbeitstag im Zeitraum DailyEntry-
+ * Zeilen mit ferien=Soll-pro-Tag angelegt bzw. aktualisiert (nur das ferien-Feld, andere Buchungen
+ * an diesem Tag bleiben unberuehrt) — sonst haette ein "genehmigter" Antrag keinerlei Effekt auf
+ * den echten Ferien-Saldo, der ausschliesslich aus echten Tageseintraegen berechnet wird (siehe
+ * src/lib/calc/ferien.ts). Ein "gleitzeit"-Antrag braucht das nicht: ein Arbeitstag ohne jede
+ * Buchung senkt den Gleitzeit-Stand bereits von selbst (Ist 0 gegen normales Soll), es wird nur
+ * eine leere DailyEntry-Zeile angelegt (fehlende Zeile wuerde die Chef-Uebersicht faelschlich als
+ * "nicht erfasst" zeigen) plus eine oeffentliche KalenderNotiz, damit im Firmenkalender sichtbar
+ * ist, warum die Person an diesem Tag fehlt. Zeitraum kann eine Jahresgrenze ueberschreiten, daher
+ * werden die Jahres-Stammdaten (fuer den Soll-pro-Tag-Basiswert) pro betroffenem Jahr separat
+ * geladen.
  */
 export async function ferienAntragEntscheiden(
   antragId: string,
@@ -45,33 +50,52 @@ export async function ferienAntragEntscheiden(
     const user = await prisma.user.findUniqueOrThrow({ where: { id: antrag.userId } });
     const vonIso = iso(antrag.von);
     const bisIso = iso(antrag.bis);
+    const tage = await arbeitstageFuerZeitraum(user.companyId, vonIso, bisIso);
 
-    const [tage, pensumWechselDb, jahresStammdatenDb] = await Promise.all([
-      arbeitstageFuerZeitraum(user.companyId, vonIso, bisIso),
-      prisma.pensumWechsel.findMany({ where: { userId: antrag.userId }, orderBy: { gueltigAb: "asc" } }),
-      prisma.jahresStammdaten.findMany({ where: { userId: antrag.userId } }),
-    ]);
-
-    const stammdatenByYear = new Map(jahresStammdatenDb.map((s) => [s.year, s]));
-    const pensumWechsel: PensumPeriode[] = pensumWechselDb.map((w) => ({
-      gueltigAb: iso(w.gueltigAb),
-      anstellungPct: w.anstellungPct,
-      wochenstunden: w.wochenstunden,
-    }));
-
-    for (const datum of tage) {
-      const jahr = Number(datum.slice(0, 4));
-      const basis = stammdatenByYear.get(jahr);
-      // Kein Jahres-Stammdatensatz fuer dieses Jahr (z.B. Person erst spaeter eingetreten) -> kann
-      // fuer diesen Tag keinen sinnvollen Soll-Wert ermitteln, Tag wird uebersprungen statt mit
-      // einem geratenen Wert befuellt.
-      if (!basis) continue;
-      const sollProTagWert = sollProTagFuerDatum(datum, basis, pensumWechsel);
-      await prisma.dailyEntry.upsert({
-        where: { userId_date: { userId: antrag.userId, date: parseISODate(datum) } },
-        create: { userId: antrag.userId, date: parseISODate(datum), ferien: sollProTagWert },
-        update: { ferien: sollProTagWert },
+    if (antrag.typ === "gleitzeit") {
+      for (const datum of tage) {
+        const vorhanden = await prisma.dailyEntry.findUnique({
+          where: { userId_date: { userId: antrag.userId, date: parseISODate(datum) } },
+        });
+        if (!vorhanden) {
+          await prisma.dailyEntry.create({ data: { userId: antrag.userId, date: parseISODate(datum) } });
+        }
+      }
+      await prisma.kalenderNotiz.createMany({
+        data: tage.map((datum) => ({
+          userId: antrag.userId,
+          date: parseISODate(datum),
+          text: "Gleitzeit-Abwesenheit (genehmigt)",
+          oeffentlich: true,
+        })),
       });
+    } else {
+      const [pensumWechselDb, jahresStammdatenDb] = await Promise.all([
+        prisma.pensumWechsel.findMany({ where: { userId: antrag.userId }, orderBy: { gueltigAb: "asc" } }),
+        prisma.jahresStammdaten.findMany({ where: { userId: antrag.userId } }),
+      ]);
+
+      const stammdatenByYear = new Map(jahresStammdatenDb.map((s) => [s.year, s]));
+      const pensumWechsel: PensumPeriode[] = pensumWechselDb.map((w) => ({
+        gueltigAb: iso(w.gueltigAb),
+        anstellungPct: w.anstellungPct,
+        wochenstunden: w.wochenstunden,
+      }));
+
+      for (const datum of tage) {
+        const jahr = Number(datum.slice(0, 4));
+        const basis = stammdatenByYear.get(jahr);
+        // Kein Jahres-Stammdatensatz fuer dieses Jahr (z.B. Person erst spaeter eingetreten) ->
+        // kann fuer diesen Tag keinen sinnvollen Soll-Wert ermitteln, Tag wird uebersprungen statt
+        // mit einem geratenen Wert befuellt.
+        if (!basis) continue;
+        const sollProTagWert = sollProTagFuerDatum(datum, basis, pensumWechsel);
+        await prisma.dailyEntry.upsert({
+          where: { userId_date: { userId: antrag.userId, date: parseISODate(datum) } },
+          create: { userId: antrag.userId, date: parseISODate(datum), ferien: sollProTagWert },
+          update: { ferien: sollProTagWert },
+        });
+      }
     }
   }
 
