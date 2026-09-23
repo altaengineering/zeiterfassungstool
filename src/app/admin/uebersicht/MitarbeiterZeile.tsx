@@ -33,6 +33,8 @@ export function MitarbeiterZeile({
   standEndeMonat,
   standVeraenderung,
   ferienSaldo,
+  krankTageJahr,
+  statistikJahr,
 }: {
   userId: string;
   jahr: number;
@@ -45,6 +47,8 @@ export function MitarbeiterZeile({
   standEndeMonat: number | null;
   standVeraenderung: number | null;
   ferienSaldo: FerienSaldo | null;
+  krankTageJahr: number;
+  statistikJahr: number;
 }) {
   const [offen, setOffen] = useState(false);
 
@@ -107,6 +111,9 @@ export function MitarbeiterZeile({
             "—"
           )}
         </td>
+        <td className={krankTageJahr > 0 ? undefined : "muted"} title={`${krankTageJahr} Kranktage seit 1.1.${statistikJahr}`}>
+          {krankTageJahr}
+        </td>
         <td className="label-cell">
           <Link
             href={`/mitarbeiter/${userId}/${jahr}/${monat}`}
@@ -119,7 +126,7 @@ export function MitarbeiterZeile({
       </tr>
       {offen && (
         <tr className="uebersicht-detail-zeile">
-          <td colSpan={6}>
+          <td colSpan={7}>
             {zeilen.length > 0 ? (
               <table className="uebersicht-detail-table">
                 <colgroup>
