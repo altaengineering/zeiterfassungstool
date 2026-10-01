@@ -11,7 +11,13 @@ import {
   sollProTag,
   STANDARD_JAHRESFERIENTAGE,
 } from "@/lib/calc";
-import { pensumWechselHinzufuegen, pensumWechselLoeschen, stammdatenKorrigieren } from "./actions";
+import {
+  pensumWechselHinzufuegen,
+  pensumWechselLoeschen,
+  stammdatenKorrigieren,
+  stundenAuszahlen,
+  ferientageAuszahlen,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -117,10 +123,47 @@ export default async function PensumSeite({ params }: Props) {
         ) : (
           <p className="form-message small">Keine Jahres-Stammdaten für {jahr} hinterlegt.</p>
         )}
+
+        {jahresStammdaten && (
+          <div className="form-row-pair" style={{ marginBottom: 20 }}>
+            <form action={stundenAuszahlen} className="entry-form" style={{ margin: 0 }}>
+              <input type="hidden" name="userId" value={userId} />
+              <input type="hidden" name="jahr" value={jahr} />
+              <label>
+                Gleitzeit auszahlen (Stunden)
+                <input type="number" name="stunden" step={0.1} placeholder="z.B. 5" />
+              </label>
+              <p className="form-message small" style={{ margin: "4px 0 10px" }}>
+                Wird direkt vom Gleitzeit-Stand oben abgezogen. Negative Zahl eintippen, um
+                stattdessen gutzuschreiben.
+              </p>
+              <div className="entry-form-footer" style={{ marginTop: 0 }}>
+                <button type="submit">Abziehen</button>
+              </div>
+            </form>
+            <form action={ferientageAuszahlen} className="entry-form" style={{ margin: 0 }}>
+              <input type="hidden" name="userId" value={userId} />
+              <input type="hidden" name="jahr" value={jahr} />
+              <label>
+                Ferientage auszahlen (Tage)
+                <input type="number" name="tage" step={0.5} placeholder="z.B. 5" />
+              </label>
+              <p className="form-message small" style={{ margin: "4px 0 10px" }}>
+                Wird direkt von "Ferien, die noch da sind" oben abgezogen. Negative Zahl eintippen,
+                um stattdessen gutzuschreiben.
+              </p>
+              <div className="entry-form-footer" style={{ marginTop: 0 }}>
+                <button type="submit">Abziehen</button>
+              </div>
+            </form>
+          </div>
+        )}
+
         <p className="subtitle">
-          Direkt editierbar sind die Grundwerte, aus denen sich die Zahlen oben berechnen. Es gibt
-          keinen einzelnen "Gleitzeit-Stand heute"-Wert zum Überschreiben, der Stand ist immer die
-          Summe aus dem Startwert unten plus allen Tageseinträgen seither, daher hier den Startwert
+          Direkt editierbar sind die Grundwerte, aus denen sich die Zahlen oben berechnen (für
+          Spezialfälle, im Alltag reichen die beiden Schnellkorrekturen oben). Es gibt keinen
+          einzelnen "Gleitzeit-Stand heute"-Wert zum Überschreiben, der Stand ist immer die Summe
+          aus dem Startwert unten plus allen Tageseinträgen seither, daher hier den Startwert
           anpassen, bis der Stand oben stimmt (Seite danach neu laden, um das Ergebnis zu sehen).
         </p>
         <form action={stammdatenKorrigieren} className="entry-form">
