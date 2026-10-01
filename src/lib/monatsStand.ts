@@ -158,3 +158,90 @@ export async function berechneMonatsStand(
 
   return { standVorMonat, standEndeMonat };
 }
+
+// Fuer die Rueckrechnung auf der Einrichtungsseite (siehe konto/einrichtung/actions.ts und
+// berechneUebertragAusAktuellemStundenSaldo in calc/stand.ts): wie viel Plus/Minus dieses Jahr
+// bereits real angefallen ist, gerechnet mit Uebertrag=0 und bis einschliesslich heute (Tage ohne
+// Eintrag zaehlen dabei bewusst normal als Rueckstand, exakt wie ueberall sonst im Tool, siehe
+// Kommentar bei MonatsStandOptionen.nichtInDieZukunftProjizieren).
+export async function berechneAkkumulierteStundenBisHeute(userId: string, jahr: number): Promise<number> {
+  const [jahresStammdaten, user] = await Promise.all([
+    prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
+    prisma.user.findUniqueOrThrow({ where: { id: userId } }),
+  ]);
+  if (!jahresStammdaten) return 0;
+
+  const heuteIso = iso(new Date());
+  const [feiertageDb, entriesDb, pensumWechselDb] = await Promise.all([
+    prisma.holiday.findMany({
+      where: {
+        companyId: user.companyId,
+        date: { gte: new Date(Date.UTC(jahr, 0, 1)), lt: new Date(Date.UTC(jahr + 1, 0, 1)) },
+      },
+    }),
+    prisma.dailyEntry.findMany({
+      where: {
+        userId,
+        date: { gte: new Date(Date.UTC(jahr, 0, 1)), lt: new Date(Date.UTC(jahr + 1, 0, 1)) },
+      },
+      include: { bookings: true },
+    }),
+    prisma.pensumWechsel.findMany({ where: { userId }, orderBy: { gueltigAb: "asc" } }),
+  ]);
+
+  const feiertage: Feiertag[] = feiertageDb.map((h) => ({
+    date: iso(h.date),
+    label: h.label,
+    bezahlt: h.bezahlt,
+  }));
+  const entriesByDate = new Map(entriesDb.map((e) => [iso(e.date), e]));
+  const pensumBasis = { anstellungPct: jahresStammdaten.anstellungPct, wochenstunden: jahresStammdaten.wochenstunden };
+  const pensumWechsel: PensumPeriode[] = pensumWechselDb.map((w) => ({
+    gueltigAb: iso(w.gueltigAb),
+    anstellungPct: w.anstellungPct,
+    wochenstunden: w.wochenstunden,
+  }));
+  const sollProTagWertFuerDatum = (date: string) => sollProTagFuerDatum(date, pensumBasis, pensumWechsel);
+  const startDatumIso = jahresStammdaten.erfassungStartDatum ? iso(jahresStammdaten.erfassungStartDatum) : null;
+
+  const tageBisHeute = alleTageImJahr(jahr).filter((d) => d <= heuteIso);
+  const entryInputs: DailyEntryInput[] = tageBisHeute.map((date) => {
+    const e = entriesByDate.get(date);
+    const vorStart = startDatumIso !== null && date < startDatumIso;
+    if (!e) {
+      const leer: StempelPaar = { start: null, stop: null };
+      return {
+        date,
+        projektStunden: 0,
+        krank: 0,
+        reisezeit: 0,
+        cad: 0,
+        ausbildung: 0,
+        buero: 0,
+        ferien: 0,
+        sollOverride: vorStart ? 0 : null,
+        stempelzeiten: [leer, leer, leer, leer],
+      };
+    }
+    return {
+      date,
+      projektStunden: e.bookings.reduce((sum, b) => sum + b.hours, 0),
+      krank: e.krank,
+      reisezeit: e.reisezeit,
+      cad: e.cad,
+      ausbildung: e.ausbildung,
+      buero: e.buero,
+      ferien: e.ferien,
+      sollOverride: vorStart ? 0 : e.sollOverride,
+      stempelzeiten: [
+        { start: e.start1, stop: e.stop1 },
+        { start: e.start2, stop: e.stop2 },
+        { start: e.start3, stop: e.stop3 },
+        { start: e.start4, stop: e.stop4 },
+      ],
+    };
+  });
+
+  const ergebnisse = berechneTagesReihe(entryInputs, sollProTagWertFuerDatum, feiertage, 0);
+  return ergebnisse[ergebnisse.length - 1]?.stand ?? 0;
+}

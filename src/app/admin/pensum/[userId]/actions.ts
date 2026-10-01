@@ -73,3 +73,44 @@ export async function stammdatenKorrigieren(formData: FormData) {
 
   revalidatePath(`/admin/pensum/${userId}`);
 }
+
+// Schnellkorrektur fuer den haeufigsten Admin-Fall: "ich habe gerade X Stunden/Tage ausbezahlt,
+// die muessen weg vom Saldo" — ohne dass der Chef erst den neuen absoluten Startwert selbst
+// ausrechnen muss (siehe Kommentar auf der Seite: vorher musste man den Startwert so lange
+// anpassen, bis der angezeigte Stand stimmte). Negative Eingabe ist bewusst erlaubt, damit sich
+// ein Versehen direkt mit derselben Aktion (negative Zahl eintippen) wieder geradeziehen laesst,
+// statt extra zur Detail-Korrektur unten wechseln zu muessen.
+
+export async function stundenAuszahlen(formData: FormData) {
+  await pruefeAdmin();
+
+  const userId = String(formData.get("userId") ?? "");
+  const jahr = Number(formData.get("jahr") ?? 0);
+  const stunden = Number(formData.get("stunden") ?? NaN);
+  if (!userId || !jahr || !Number.isFinite(stunden) || stunden === 0) return;
+
+  await prisma.jahresStammdaten.update({
+    where: { userId_year: { userId, year: jahr } },
+    data: { stundenuebertragAltesJahr: { decrement: stunden } },
+  });
+
+  revalidatePath(`/admin/pensum/${userId}`);
+}
+
+export async function ferientageAuszahlen(formData: FormData) {
+  await pruefeAdmin();
+
+  const userId = String(formData.get("userId") ?? "");
+  const jahr = Number(formData.get("jahr") ?? 0);
+  const tage = Number(formData.get("tage") ?? NaN);
+  if (!userId || !jahr || !Number.isFinite(tage) || tage === 0) return;
+
+  // Eine Auszahlung zaehlt wie ein genommener, aber nie im Kalender erfasster Ferientag -> derselbe
+  // Mechanismus wie "Zusaetzlich verbrauchte Ferientage" unten, nur additiv statt als Absolutwert.
+  await prisma.jahresStammdaten.update({
+    where: { userId_year: { userId, year: jahr } },
+    data: { ferienBezogenKorrektur: { increment: tage } },
+  });
+
+  revalidatePath(`/admin/pensum/${userId}`);
+}

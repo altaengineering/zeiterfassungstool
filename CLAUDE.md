@@ -1,6 +1,6 @@
 # Zeiterfassung Alta Engineering AG – Projekt-Referenz
 
-**Status (Stand 2026-09-23): Live und in Nutzung.**
+**Status (Stand 2026-10-01): Live und in Nutzung.**
 URL: https://zeiterfassungstool-psi.vercel.app — GitHub: https://github.com/altaengineering/zeiterfassungstool
 (privates Repo). Login mit E-Mail + Passwort für alle 14 Mitarbeitenden, Rollen MITARBEITER/ADMIN
 (Stefan Herger + Michael Küng sind Admin; in der Anzeige heisst Michaels Rolle aus Spass „sudo“,
@@ -948,6 +948,34 @@ Funktionierender Workaround: Befehl trotzdem versuchen (manchmal geht er durch),
 bitten, `git push` selbst in einem eigenen Terminal auszuführen (Remote ist bereits korrekt
 gesetzt: `origin` → `https://github.com/altaengineering/zeiterfassungstool.git`, Branch `main`).
 
+**Gleitzeit-Übertrag doppelt gezählt — gefunden und gefixt (2026-10-01):** Michael meldete, der
+Excel-Export sei "hervorragend bis auf die Gleitzeit, die ist verbuggt". Ursache: exakt derselbe
+Bug-Mechanismus wie beim Ferien-Guthaben (siehe weiter oben), nur für die Ferien-Rückrechnung
+gelöst, für die Stunden nicht. Auf `/konto/einrichtung` wurde der eingegebene "Aktueller
+Überstunden-Saldo" (das, was die Person tatsächlich kennt) bisher 1:1 als
+`stundenuebertragAltesJahr` gespeichert (`src/app/konto/einrichtung/actions.ts`), obwohl
+`Stand(heute) = Übertrag + diesjährige Plus/Minus-Stunden` gilt (`berechneStandReihe`,
+`src/lib/calc/stand.ts`), die App zählte die diesjährigen Stunden dann ein zweites Mal oben drauf,
+im Excel-Export genauso (derselbe Wert geht dort nach `Summen!B14`). Fix: neue Funktion
+`berechneUebertragAusAktuellemStundenSaldo` (`src/lib/calc/stand.ts`, getestet in `stand.test.ts`)
+rechnet exakt wie `berechneUebertragAusAktuellemSaldo` bei Ferien zurück, nur additiv statt
+anteilig. Die dafür nötige "wie viel ist dieses Jahr bis heute real angefallen"-Zahl liefert die
+neue, wiederverwendbare `berechneAkkumulierteStundenBisHeute` (`src/lib/monatsStand.ts`, rechnet
+mit Übertrag=0 bis und mit heute, Tage ohne Eintrag zählen bewusst normal als Rückstand, exakt wie
+überall sonst im Tool). `/konto/einrichtung` zeigt jetzt zusätzlich eine Live-Karte "Aktueller
+Gleitzeit-Stand", analog zu den bestehenden Ferien-Karten. Alle 45 Tests grün, `tsc --noEmit` ohne
+Fehler. Nicht live mit echtem Login verifiziert (keine gitignorten Klartext-Testpasswörter
+verwendet, siehe `prisma/seed-data/mitarbeitende-2026.local.json`), nur per `vitest` und
+Typecheck, bei Gelegenheit mit echtem Account gegenprüfen.
+
+**Admin-Schnellkorrektur für Auszahlungen (2026-10-01):** Bisher musste ein Admin bei
+`/admin/pensum/[userId]` den rohen Startwert (`stundenuebertragAltesJahr`/`ferienBezogenKorrektur`)
+so lange von Hand anpassen, bis der angezeigte Stand stimmte ("wenn er etwas ausbezahlt, direkt 5
+Tage abziehen können" war so nicht möglich). Zwei neue Server Actions in
+`src/app/admin/pensum/[userId]/actions.ts`, `stundenAuszahlen`/`ferientageAuszahlen`, ziehen die
+eingegebene Zahl per Prisma `{decrement}`/`{increment}` direkt vom jeweiligen Saldo ab (negative
+Eingabe = Gutschrift statt Abzug, für Versehen-Korrekturen ohne Formularwechsel). UI: zwei kleine
+Formulare oberhalb der bestehenden Detail-Korrektur, die bleibt für Spezialfälle erhalten.
 
 Diese Datei ist die verbindliche Business-Logik-Referenz für alle künftigen Claude-Code-Sessions
 an diesem Projekt. Quelle: `Zeiterfassung_Spezifikation.md` **und** die tatsächlichen Formeln aus

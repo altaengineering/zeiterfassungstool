@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { STANDARD_JAHRESFERIENTAGE } from "@/lib/calc";
 import { berechneFerienSaldo } from "@/lib/ferienSaldo";
+import { berechneAkkumulierteStundenBisHeute } from "@/lib/monatsStand";
 import { EinrichtungForm } from "./EinrichtungForm";
 
 export const dynamic = "force-dynamic";
@@ -14,12 +15,13 @@ export default async function EinrichtungSeite() {
   const userId = (session.user as { id: string }).id;
   const jahr = new Date().getFullYear();
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  const [stammdaten, companySettings, saldo] = await Promise.all([
+  const [stammdaten, companySettings, saldo, akkumulierteStunden] = await Promise.all([
     prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
     prisma.companySettings.findUnique({
       where: { companyId_year: { companyId: user.companyId, year: jahr } },
     }),
     berechneFerienSaldo(userId, jahr),
+    berechneAkkumulierteStundenBisHeute(userId, jahr),
   ]);
   const standardJahresferientage = companySettings?.jahresferientage ?? STANDARD_JAHRESFERIENTAGE;
 
@@ -29,6 +31,11 @@ export default async function EinrichtungSeite() {
   const ferienGuthaben = saldo?.ferienGuthaben ?? null;
   const ferienBezogen = saldo?.ferienBezogen ?? null;
   const ferienUebertrag = saldo?.ferienUebertrag ?? null;
+
+  // Aktueller Gleitzeit-Stand genau jetzt (Uebertrag + diesjaehrige Akkumulation), nicht der rohe
+  // gespeicherte Uebertrag -- das Formular fragt nach dem Saldo, den die Person tatsaechlich kennt
+  // (siehe berechneUebertragAusAktuellemStundenSaldo), genau wie beim Ferien-Feld oben.
+  const aktuellerStundenStand = (stammdaten?.stundenuebertragAltesJahr ?? 0) + akkumulierteStunden;
 
   const heute = new Date().toISOString().slice(0, 10);
   const defaultDatum = stammdaten?.erfassungStartDatum
@@ -52,6 +59,10 @@ export default async function EinrichtungSeite() {
       {stammdaten && (
         <div className="card-row" style={{ marginBottom: 16 }}>
           <div className="card card-accent card-accent-blau">
+            <div className="label">Aktueller Gleitzeit-Stand</div>
+            <div className="value">{aktuellerStundenStand.toFixed(1)} Std.</div>
+          </div>
+          <div className="card card-accent card-accent-blau">
             <div className="label">Ferien, die du bekommst ({jahr})</div>
             <div className="value">{ferienGuthaben != null ? `${ferienGuthaben.toFixed(1)} Tage` : "–"}</div>
           </div>
@@ -68,7 +79,7 @@ export default async function EinrichtungSeite() {
       <div className="konto-card">
         <EinrichtungForm
           defaultDatum={defaultDatum}
-          defaultStundenSaldo={stammdaten?.stundenuebertragAltesJahr ?? 0}
+          defaultStundenSaldo={aktuellerStundenStand}
           defaultFerienGuthaben={saldo?.ferienUebertrag ?? 0}
           defaultJahresferientage={stammdaten?.jahresferientage ?? null}
           standardJahresferientage={standardJahresferientage}

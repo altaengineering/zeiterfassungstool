@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import { STANDARD_JAHRESFERIENTAGE } from "@/lib/calc";
+import { STANDARD_JAHRESFERIENTAGE, berechneUebertragAusAktuellemStundenSaldo } from "@/lib/calc";
 import { berechneFerienSaldo, berechneUebertragAusAktuellemSaldo } from "@/lib/ferienSaldo";
+import { berechneAkkumulierteStundenBisHeute } from "@/lib/monatsStand";
 
 export interface EinrichtungState {
   error?: string;
@@ -40,16 +41,18 @@ export async function einrichtungSpeichern(
   }
 
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-  const [stammdaten, companySettings, saldoVorher] = await Promise.all([
+  const [stammdaten, companySettings, saldoVorher, akkumulierteStunden] = await Promise.all([
     prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
     prisma.companySettings.findUnique({
       where: { companyId_year: { companyId: user.companyId, year: jahr } },
     }),
     berechneFerienSaldo(userId, jahr),
+    berechneAkkumulierteStundenBisHeute(userId, jahr),
   ]);
   if (!stammdaten || !saldoVorher) {
     return { error: `Keine Jahres-Stammdaten für ${jahr} gefunden. Bitte bei einem Admin melden.` };
   }
+  const neuerStundenuebertrag = berechneUebertragAusAktuellemStundenSaldo(stundenSaldo, akkumulierteStunden);
 
   const standardJahresferientage = companySettings?.jahresferientage ?? STANDARD_JAHRESFERIENTAGE;
   const effektivJahresferientage = jahresferientage ?? standardJahresferientage;
@@ -71,7 +74,7 @@ export async function einrichtungSpeichern(
       where: { userId_year: { userId, year: jahr } },
       data: {
         erfassungStartDatum: new Date(startdatum),
-        stundenuebertragAltesJahr: stundenSaldo,
+        stundenuebertragAltesJahr: neuerStundenuebertrag,
         ferienuebertragAltesJahr: neuerUebertrag,
         jahresferientage,
         ferienBezogenKorrektur,

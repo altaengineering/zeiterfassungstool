@@ -39,9 +39,14 @@ export function EinrichtungForm({
           <input type="date" name="startdatum" defaultValue={defaultDatum} required />
         </label>
         <label>
-          Aktueller Überstunden-Saldo (in Stunden, z.B. 0 oder -5.5)
+          Wie viele Überstunden hast du JETZT insgesamt (in Stunden, z.B. 0 oder -5.5)
           <input type="number" step="0.1" name="stundenSaldo" defaultValue={defaultStundenSaldo} required />
         </label>
+        <p className="form-message small">
+          Nicht der Übertrag aus dem Vorjahr, sondern dein Gleitzeit-Saldo genau jetzt in diesem
+          Moment — die diesjährigen Plus-/Minus-Stunden aus deinen Einträgen rechnet das Tool
+          selbst dazu.
+        </p>
         <label>
           Wie viele Ferientage hast du JETZT insgesamt noch? (dein aktueller Gesamtsaldo)
           <input type="number" step="0.1" name="aktuellerSaldo" defaultValue={defaultFerienGuthaben} required />
