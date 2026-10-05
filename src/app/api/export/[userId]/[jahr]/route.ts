@@ -4,6 +4,10 @@ import { auth } from "@/lib/auth";
 import { erzeugeExcelExport, istSchaltjahr, type ExportTag } from "@/lib/export/exportExcel";
 import { STANDARD_JAHRESFERIENTAGE } from "@/lib/calc";
 
+// Der Export rechnet alle Formeln der Vorlage selbst aus (siehe src/lib/export/formelWerte.ts), das
+// dauert einige Sekunden, das Standard-Zeitlimit von Vercel waere dafuer zu knapp.
+export const maxDuration = 60;
+
 function iso(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
