@@ -257,10 +257,6 @@ export function EntryForm({
           // nach dem Speichern sichtbar, passend zum neuen Bearbeiten-Verhalten.
           e.preventDefault();
           if (speichertGerade) return;
-          if ((ferienModus !== "keine" || krankChecked) && sollFuerTag <= 0) {
-            setFehler("An diesem Tag ist kein Soll hinterlegt (Wochenende, Feiertag oder freier Tag), Ferien bzw. Krank lassen sich dort nicht eintragen.");
-            return;
-          }
           setSpeichertGerade(true);
           setFehler(null);
           const formData = new FormData(e.currentTarget);
