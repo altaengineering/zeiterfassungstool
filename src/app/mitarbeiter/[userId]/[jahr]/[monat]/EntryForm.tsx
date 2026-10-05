@@ -497,7 +497,7 @@ export function EntryForm({
               </div>
 
               <label className="reisezeit-feld">
-                Reisezeit (h)
+                Reisezeit (h) <small>nicht mitstempeln</small>
                 <input
                   type="number"
                   step="0.25"
