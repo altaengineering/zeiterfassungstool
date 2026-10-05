@@ -114,7 +114,7 @@ function sollFormel(row: number): string {
 }
 
 function setzeOderLeere(cell: ExcelJS.Cell, wert: number | null | undefined) {
-  cell.value = wert && wert !== 0 ? wert : wert === 0 ? 0 : null;
+  cell.value = wert ? wert : null;
 }
 
 export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
@@ -233,14 +233,16 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
         setzeOderLeere(ws.getCell(`${col}${row}`), stunden);
       });
 
-      setzeOderLeere(ws.getCell(`L${row}`), eintrag?.krank ?? 0);
-      setzeOderLeere(ws.getCell(`M${row}`), eintrag?.reisezeit ?? 0);
-      setzeOderLeere(ws.getCell(`N${row}`), eintrag?.cad ?? 0);
-      setzeOderLeere(ws.getCell(`O${row}`), eintrag?.ausbildung ?? 0);
-      setzeOderLeere(ws.getCell(`P${row}`), eintrag?.buero ?? 0);
-      setzeOderLeere(ws.getCell(`Q${row}`), eintrag?.ferien ?? 0);
-      setzeOderLeere(ws.getCell(`V${row}`), eintrag?.spesenFr ?? 0);
-      setzeOderLeere(ws.getCell(`W${row}`), eintrag?.km ?? 0);
+      // Kategorie-, Spesen- und Km-Spalten bleiben ohne Eintrag leer statt 0 (uebersichtlicher). SUM und
+      // die Formeln in Ist/Summen behandeln leere Zellen wie 0.
+      setzeOderLeere(ws.getCell(`L${row}`), eintrag?.krank);
+      setzeOderLeere(ws.getCell(`M${row}`), eintrag?.reisezeit);
+      setzeOderLeere(ws.getCell(`N${row}`), eintrag?.cad);
+      setzeOderLeere(ws.getCell(`O${row}`), eintrag?.ausbildung);
+      setzeOderLeere(ws.getCell(`P${row}`), eintrag?.buero);
+      setzeOderLeere(ws.getCell(`Q${row}`), eintrag?.ferien);
+      setzeOderLeere(ws.getCell(`V${row}`), eintrag?.spesenFr);
+      setzeOderLeere(ws.getCell(`W${row}`), eintrag?.km);
 
       // Soll-Formel in jeder Tageszeile wiederherstellen. Die Vorlage stammt aus Michaels persönlichem
       // Rapport und enthält in Jan-Jun an vielen Arbeitstagen fest eingetipptes Soll = 0 (Reste seiner
