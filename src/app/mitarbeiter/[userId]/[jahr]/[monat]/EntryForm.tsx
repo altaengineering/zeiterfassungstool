@@ -496,7 +496,7 @@ export function EntryForm({
                 Reisezeit (h)
                 <input
                   type="number"
-                  step="0.25"
+                  step="any"
                   name="reisezeit"
                   defaultValue={bestehenderEintrag?.reisezeit ?? 0}
                 />
@@ -546,7 +546,7 @@ export function EntryForm({
             <div className="form-grid">
               <label>
                 Spesen (Fr.)
-                <input type="number" step="0.05" name="spesenFr" defaultValue={bestehenderEintrag?.spesenFr ?? 0} />
+                <input type="number" step="any" name="spesenFr" defaultValue={bestehenderEintrag?.spesenFr ?? 0} />
               </label>
               <label>
                 Km
@@ -556,7 +556,7 @@ export function EntryForm({
                 Soll-Override (h)
                 <input
                   type="number"
-                  step="0.1"
+                  step="any"
                   name="sollOverride"
                   placeholder="leer = automatisch"
                   defaultValue={bestehenderEintrag?.sollOverride ?? undefined}
@@ -569,15 +569,15 @@ export function EntryForm({
             <div className="form-grid">
               <label>
                 CAD (h)
-                <input type="number" step="0.25" name="cad" defaultValue={bestehenderEintrag?.cad ?? 0} />
+                <input type="number" step="any" name="cad" defaultValue={bestehenderEintrag?.cad ?? 0} />
               </label>
               <label>
                 Ausbildung (h)
-                <input type="number" step="0.25" name="ausbildung" defaultValue={bestehenderEintrag?.ausbildung ?? 0} />
+                <input type="number" step="any" name="ausbildung" defaultValue={bestehenderEintrag?.ausbildung ?? 0} />
               </label>
               <label>
                 Büro (h)
-                <input type="number" step="0.25" name="buero" defaultValue={bestehenderEintrag?.buero ?? 0} />
+                <input type="number" step="any" name="buero" defaultValue={bestehenderEintrag?.buero ?? 0} />
               </label>
             </div>
           </div>

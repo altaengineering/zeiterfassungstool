@@ -79,8 +79,8 @@ export default async function EinrichtungSeite() {
       <div className="konto-card">
         <EinrichtungForm
           defaultDatum={defaultDatum}
-          defaultStundenSaldo={aktuellerStundenStand}
-          defaultFerienGuthaben={saldo?.ferienUebertrag ?? 0}
+          defaultStundenSaldo={Math.round(aktuellerStundenStand * 100) / 100}
+          defaultFerienGuthaben={Math.round((saldo?.ferienUebertrag ?? 0) * 100) / 100}
           defaultJahresferientage={stammdaten?.jahresferientage ?? null}
           standardJahresferientage={standardJahresferientage}
           defaultFerienBezogenKorrektur={stammdaten?.ferienBezogenKorrektur ?? 0}
