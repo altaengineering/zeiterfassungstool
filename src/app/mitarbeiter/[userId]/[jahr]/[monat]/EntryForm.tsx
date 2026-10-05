@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { berechneSpesenSumme } from "@/lib/spesen";
 import { useRouter } from "next/navigation";
 import { tageseintragSpeichern } from "./actions";
 
@@ -80,6 +81,7 @@ export function EntryForm({
   monat,
   datum,
   sollFuerTag,
+  kmSatz,
   bestehenderEintrag,
   projekte,
 }: {
@@ -88,6 +90,7 @@ export function EntryForm({
   monat: number;
   datum: string;
   sollFuerTag: number;
+  kmSatz: number;
   bestehenderEintrag: BestehenderEintrag | null;
   projekte: ProjektOption[];
 }) {
@@ -102,6 +105,12 @@ export function EntryForm({
   const [weitereZeitbloecke, setWeitereZeitbloecke] = useState(
     !!(bestehenderEintrag?.start3 != null || bestehenderEintrag?.start4 != null),
   );
+
+  // Spesen: Live-Summe aus weiteren Spesen (Fr.) plus Kilometer mal Satz, damit man sofort sieht,
+  // was im Excel-Export landet.
+  const [spesenFrWert, setSpesenFrWert] = useState(String(bestehenderEintrag?.spesenFr ?? 0));
+  const [kmWert, setKmWert] = useState(String(bestehenderEintrag?.km ?? 0));
+  const spesenSumme = berechneSpesenSumme(Number(spesenFrWert) || 0, Number(kmWert) || 0, kmSatz);
 
   const [krankChecked, setKrankChecked] = useState((bestehenderEintrag?.krank ?? 0) > 0);
   const [ferienModus, setFerienModus] = useState(
@@ -545,12 +554,18 @@ export function EntryForm({
             <div className="form-section-title">Spesen &amp; Sonstiges</div>
             <div className="form-grid">
               <label>
-                Spesen (Fr.)
-                <input type="number" step="any" name="spesenFr" defaultValue={bestehenderEintrag?.spesenFr ?? 0} />
+                Weitere Spesen (Fr.)
+                <input
+                  type="number"
+                  step="any"
+                  name="spesenFr"
+                  value={spesenFrWert}
+                  onChange={(e) => setSpesenFrWert(e.target.value)}
+                />
               </label>
               <label>
-                Km
-                <input type="number" step="1" name="km" defaultValue={bestehenderEintrag?.km ?? 0} />
+                Km (verrechenbar)
+                <input type="number" step="any" name="km" value={kmWert} onChange={(e) => setKmWert(e.target.value)} />
               </label>
               <label>
                 Soll-Override (h)
@@ -562,6 +577,19 @@ export function EntryForm({
                   defaultValue={bestehenderEintrag?.sollOverride ?? undefined}
                 />
               </label>
+            </div>
+            <div className="spesen-hinweis">
+              <div>
+                <strong>Spesen total: Fr. {spesenSumme.toFixed(2)}</strong>
+                {" "}= weitere Spesen {(Number(spesenFrWert) || 0).toFixed(2)} + {Number(kmWert) || 0} km x Fr. {kmSatz.toFixed(2)} pro km
+              </div>
+              <div>
+                Hier gehören nur <strong>tatsächliche Spesen</strong> hin, die vertraglich vereinbart sind. Trägt
+                man bei den Kilometern nur die Strecke ein, die über den Selbstbehalt hinausgeht: Gehen die ersten
+                100 km zu Lasten der Mitarbeitenden und es wurden 136 km gefahren, werden nur <strong>36 km</strong>{" "}
+                eingetragen. Die Kilometer werden automatisch mit dem Satz pro km in Franken umgerechnet, dafür
+                muss man sie nicht selbst in die Spalte "Weitere Spesen" rechnen.
+              </div>
             </div>
             <div className="form-hint" style={{ marginTop: 4 }}>
               Sonstiges
