@@ -95,6 +95,9 @@ export function EntryForm({
 
   const [gespeichert, setGespeichert] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
+  // Schuetzt vor Doppelklick: zwei gleichzeitige Speichervorgaenge fuer denselben Tag fuehrten sonst
+  // zu Konflikten in der Datenbank (gleichzeitiger Upsert), eine Ursache fuer sporadische Fehler.
+  const [speichertGerade, setSpeichertGerade] = useState(false);
 
   const [weitereZeitbloecke, setWeitereZeitbloecke] = useState(
     !!(bestehenderEintrag?.start3 != null || bestehenderEintrag?.start4 != null),
@@ -253,14 +256,24 @@ export function EntryForm({
           // obwohl sie korrekt in der DB stehen. Mit eigenem onSubmit bleibt der Formularinhalt
           // nach dem Speichern sichtbar, passend zum neuen Bearbeiten-Verhalten.
           e.preventDefault();
+          if (speichertGerade) return;
+          setSpeichertGerade(true);
           setFehler(null);
           const formData = new FormData(e.currentTarget);
           try {
-            await tageseintragSpeichern(formData);
-            setGespeichert(true);
-            setTimeout(() => setGespeichert(false), 2500);
-          } catch (err) {
-            setFehler(err instanceof Error ? err.message : "Speichern fehlgeschlagen.");
+            const ergebnis = await tageseintragSpeichern(formData);
+            if (ergebnis.ok) {
+              setGespeichert(true);
+              setTimeout(() => setGespeichert(false), 2500);
+            } else {
+              setFehler(ergebnis.fehler);
+            }
+          } catch {
+            // Nur noch Netzwerk-/Verbindungsabbrueche landen hier, inhaltliche Fehler kommen als
+            // Ergebnis zurueck (siehe SpeicherErgebnis in actions.ts).
+            setFehler("Keine Verbindung zum Server. Bitte Verbindung prüfen und nochmal speichern.");
+          } finally {
+            setSpeichertGerade(false);
           }
         }}
       >
@@ -570,7 +583,9 @@ export function EntryForm({
           </div>
 
           <div className="entry-form-footer">
-            <button type="submit">Tag speichern</button>
+            <button type="submit" disabled={speichertGerade}>
+              {speichertGerade ? "Speichert…" : "Tag speichern"}
+            </button>
             {gespeichert && <p className="form-message success">Gespeichert.</p>}
             {fehler && <p className="form-message error">{fehler}</p>}
           </div>

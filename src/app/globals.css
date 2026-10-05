@@ -428,6 +428,28 @@ tr.holiday {
   background: var(--bg-holiday);
 }
 
+/* Ferientag: ganze Zeile eingefaerbt, Akzentstreifen links und Badge im Datum, damit man einen
+   Ferientag in der Monatsuebersicht auf einen Blick erkennt (vorher nur kleiner Grautext). */
+tr.ferien-tag {
+  background: color-mix(in srgb, var(--accent) 13%, var(--surface));
+}
+
+tr.ferien-tag td:first-child {
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.ferien-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--accent);
+}
+
 td.pos {
   color: var(--pos);
 }
