@@ -996,6 +996,23 @@ Fehlerzellen/Soll-Nullen übrig sind. Route hat jetzt `maxDuration = 60`, der Ex
 einige Sekunden. Nicht in echtem Excel/Geschützter Ansicht geöffnet (kein Excel hier), bitte einmal
 mit einem frischen Download gegenprüfen.
 
+**Excel-Export, zweite Runde: Buchungen gingen verloren (2026-10-05):** Nach dem ersten Fix meldete
+Michael anhand seines eigenen Sep-Exports "immer noch komplett falsch": an Arbeitstagen mit
+Stempelzeiten von 8 bis 12 Stunden stand Ist = 0.00. Ursache in `exportExcel.ts`/Route: der Export
+nahm nur Buchungen auf **aktive** Projekte (max. 9 Spalten, `aktiv: true`) und von diesen pro Tag nur
+die **erste** Buchung (`find`). Buchungen auf deaktivierte Projekte, auf gelöschte oder umbenannte
+Projekte (Buchung ohne `projectId`, nur noch Label), eine zweite Buchung auf dasselbe Projekt am
+selben Tag und alles ab dem 10. Projekt fehlten im Excel, die App summiert dagegen alle Buchungen.
+Ist, +/- und Gleitzeit-Stand waren dadurch zu niedrig. Fix: neues `src/lib/export/projektSpalten.ts`
+(`ordneProjektSpalten`): aktive Projekte zuerst in fester Reihenfolge, danach jedes Projekt/Label mit
+Buchungen (auch inaktiv), bei mehr als 9 Spalten fallen zuerst unbenutzte weg, der Rest landet in der
+Sammelspalte "Weitere Projekte". Route lädt alle Projekte (nicht nur aktive) und ordnet jede Buchung
+einer Spalte zu, `exportExcel.ts` summiert alle passenden Buchungen. Tests in
+`projektSpalten.test.ts`. Ausserdem Spalten AJ/AL verbreitert, die Monatssumme der Ist-Zeit zeigte
+"#####". Zahlen wie "Stundenübertrag Vormonat" und Stand sind die der App-Berechnung (Test belegt
+Gleichheit über alle 365 Tage); wirkt eine Zahl falsch, liegt es an Startdatum/Übertrag in der
+Einrichtung oder an fehlenden Einträgen, nicht am Export. Ein Export dauert lokal ca. 4 bis 6 s.
+
 **Admin-Schnellkorrektur für Auszahlungen (2026-10-01):** Bisher musste ein Admin bei
 `/admin/pensum/[userId]` den rohen Startwert (`stundenuebertragAltesJahr`/`ferienBezogenKorrektur`)
 so lange von Hand anpassen, bis der angezeigte Stand stimmte ("wenn er etwas ausbezahlt, direkt 5
