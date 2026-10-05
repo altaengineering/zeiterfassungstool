@@ -346,10 +346,6 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
             const hatFerien = (!!dbEntry && dbEntry.ferien > 0) || (abwesenheit === "ferien" && tag.soll > 0);
             const hatGleitzeitFrei = abwesenheit === "gleitzeit" && tag.soll > 0 && !(dbEntry && dbEntry.ferien > 0);
             const notizen = notizenByDate.get(tag.date) ?? [];
-            // Reisezeit wird nicht mitgestempelt (Stempelzeit = reine Arbeitszeit), zaehlt aber im Ist:
-            // fuer die Kontrolle abziehen, sonst zeigt jeder Reisetag eine Differenz in Hoehe der Reisezeit.
-            const kontrolle =
-              tag.istZeitAusStempelzeiten > 0 ? tag.aufteilungIstzeit - (dbEntry?.reisezeit ?? 0) : tag.aufteilungIstzeit;
             const ferienHalb = !!dbEntry && dbEntry.ferien > 0 && tag.soll > 0 && dbEntry.ferien < tag.soll * 0.75;
             const rowClass = [feiertag ? "holiday" : istWochenende ? "weekend" : "", hatFerien || hatGleitzeitFrei ? "ferien-tag" : ""]
               .filter(Boolean)
@@ -404,7 +400,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                   {formatMinuten(dbEntry?.start1)}–{formatMinuten(dbEntry?.stop1)}
                   {dbEntry?.start2 != null ? `, ${formatMinuten(dbEntry.start2)}–${formatMinuten(dbEntry.stop2)}` : ""}
                 </td>
-                <td>{Math.abs(kontrolle) > 0.01 ? formatStunden(kontrolle) : "✓"}</td>
+                <td>{Math.abs(tag.aufteilungIstzeit) > 0.01 ? formatStunden(tag.aufteilungIstzeit) : "✓"}</td>
               </TagesZeile>
             );
           })}
