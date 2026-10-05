@@ -968,6 +968,28 @@ Fehler. Nicht live mit echtem Login verifiziert (keine gitignorten Klartext-Test
 verwendet, siehe `prisma/seed-data/mitarbeitende-2026.local.json`), nur per `vitest` und
 Typecheck, bei Gelegenheit mit echtem Account gegenprüfen.
 
+**Tag speichern: sporadischer Fehler bei Ferien, Ferientage deutlich sichtbar (2026-10-05):** Michael: beim
+Markieren eines Tages als Ferien und Speichern erscheine "manchmal" eine Fehlermeldung, und in der
+Tabelle sehe man nicht klar, dass es ein Ferientag ist. Ursachen/Änderungen in
+`src/app/mitarbeiter/[userId]/[jahr]/[monat]/actions.ts`: (1) die Aktion machte bis zu ca. 14
+Datenbank-Rundreisen nacheinander (je Projekt ein `findFirst` + `create`) und der `upsert` konnte bei
+Doppelklick/gleichzeitigen Anfragen an der Unique-Prüfung scheitern (P2002). Jetzt: ein einziges
+`findMany` für alle Projekte, Buchungen per `deleteMany` + `createMany` in einer Transaktion (vorher:
+erst löschen, dann einzeln anlegen, ein Fehler dazwischen liess den Tag ohne Buchungen zurück),
+`mitWiederholung()` wiederholt kurzzeitige DB-Fehler (P2002, P2034, P2024, P1001, P1002, P1008, P1017)
+bis zu dreimal. (2) Next.js ersetzt die Nachricht geworfener Fehler in Server Actions in der
+Produktion durch einen generischen Text, der Nutzer sah nie den echten Grund. Jetzt gibt die Aktion
+ein `SpeicherErgebnis` zurück (`{ok:true}` oder `{ok:false, fehler}`), erwartete Fehler (kein Zugriff,
+Monat abgeschlossen) kommen als lesbarer Text an, unerwartete werden geloggt und mit einem Hinweis
+"nochmal speichern" gemeldet. (3) Der Mailversand der Krankmeldung kann das Speichern nicht mehr
+scheitern lassen (Eintrag ist da schon gespeichert). (4) `EntryForm`: Speichern-Button ist während des
+Speicherns gesperrt (Doppelklick-Schutz). (5) Monatstabelle: Ferientage bekommen `tr.ferien-tag`
+(Zeile eingefärbt, Akzentstreifen links) und ein Badge "🏖 Ferien"/"Ferien halbtags" im Datum. Lokal mit
+dem synthetischen Test-Account durchgespielt (Ferientag speichern, Anzeige, "Ferien bezogen" +1).
+Die genaue Ursache des einen gemeldeten Fehlers ist nicht reproduziert (kein Produktionszugriff), die
+beschriebenen Schwachstellen sind aber real und behoben. Falls es wieder auftritt: Vercel-Logs nach
+"tageseintragSpeichern fehlgeschlagen" durchsuchen, jetzt steht dort der echte Fehler.
+
 **Excel-Export: Name, Gleitzeit, Spesen und Ist-Zeit falsch — gefunden und gefixt (2026-10-05):**
 Michael meldete: im Excel steht beim Namen immer noch er selbst, Gleitzeit und Spesen sind nicht
 ausgefüllt, die Stunden hinten in der Tabelle fehlen. Zwei Ursachen, beide in `exportExcel.ts`:

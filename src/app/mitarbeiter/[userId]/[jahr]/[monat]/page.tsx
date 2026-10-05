@@ -313,7 +313,11 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
             const feiertag = feiertage.find((f) => f.date === tag.date);
             const wochentag = new Date(`${tag.date}T00:00:00Z`).getUTCDay();
             const istWochenende = wochentag === 0 || wochentag === 6;
-            const rowClass = feiertag ? "holiday" : istWochenende ? "weekend" : "";
+            const hatFerien = !!dbEntry && dbEntry.ferien > 0;
+            const ferienHalb = hatFerien && tag.soll > 0 && dbEntry!.ferien < tag.soll * 0.75;
+            const rowClass = [feiertag ? "holiday" : istWochenende ? "weekend" : "", hatFerien ? "ferien-tag" : ""]
+              .filter(Boolean)
+              .join(" ");
             const kategorien = [
               dbEntry && dbEntry.krank ? `krank ${formatStunden(dbEntry.krank)}h` : null,
               dbEntry && dbEntry.reisezeit ? `Reisezeit ${formatStunden(dbEntry.reisezeit)}h` : null,
@@ -328,6 +332,9 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                 <td>
                   {tag.date.slice(8, 10)}.{tag.date.slice(5, 7)}.
                   {feiertag ? ` (${feiertag.label.trim()})` : istWochenende ? " (WE)" : ""}
+                  {hatFerien && (
+                    <span className="ferien-badge">🏖 Ferien{ferienHalb ? " halbtags" : ""}</span>
+                  )}
                 </td>
                 <td className="label-cell">
                   {dbEntry?.bookings.length || kategorien.length ? (
