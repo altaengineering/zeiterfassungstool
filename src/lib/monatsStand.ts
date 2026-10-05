@@ -161,9 +161,9 @@ export async function berechneMonatsStand(
 
 // Fuer die Rueckrechnung auf der Einrichtungsseite (siehe konto/einrichtung/actions.ts und
 // berechneUebertragAusAktuellemStundenSaldo in calc/stand.ts): wie viel Plus/Minus dieses Jahr
-// bereits real angefallen ist, gerechnet mit Uebertrag=0 und bis einschliesslich heute (Tage ohne
-// Eintrag zaehlen dabei bewusst normal als Rueckstand, exakt wie ueberall sonst im Tool, siehe
-// Kommentar bei MonatsStandOptionen.nichtInDieZukunftProjizieren).
+// bereits real angefallen ist, gerechnet mit Uebertrag=0 und bis einschliesslich GESTERN (wie der
+// "Stand" in der Chef-Uebersicht und auf /admin/pensum: der heutige Tag ist noch nicht vorbei).
+// Tage ohne Eintrag zaehlen dabei bewusst normal als Rueckstand, exakt wie ueberall sonst im Tool.
 export async function berechneAkkumulierteStundenBisHeute(userId: string, jahr: number): Promise<number> {
   const [jahresStammdaten, user] = await Promise.all([
     prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
@@ -204,7 +204,7 @@ export async function berechneAkkumulierteStundenBisHeute(userId: string, jahr: 
   const sollProTagWertFuerDatum = (date: string) => sollProTagFuerDatum(date, pensumBasis, pensumWechsel);
   const startDatumIso = jahresStammdaten.erfassungStartDatum ? iso(jahresStammdaten.erfassungStartDatum) : null;
 
-  const tageBisHeute = alleTageImJahr(jahr).filter((d) => d <= heuteIso);
+  const tageBisHeute = alleTageImJahr(jahr).filter((d) => d < heuteIso);
   const entryInputs: DailyEntryInput[] = tageBisHeute.map((date) => {
     const e = entriesByDate.get(date);
     const vorStart = startDatumIso !== null && date < startDatumIso;

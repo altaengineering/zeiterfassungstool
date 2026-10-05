@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { berechneUebertragAusAktuellemStundenSaldo } from "@/lib/calc";
+import { berechneAkkumulierteStundenBisHeute } from "@/lib/monatsStand";
 
 async function pruefeAdmin() {
   const session = await auth();
@@ -92,6 +94,27 @@ export async function stundenAuszahlen(formData: FormData) {
   await prisma.jahresStammdaten.update({
     where: { userId_year: { userId, year: jahr } },
     data: { stundenuebertragAltesJahr: { decrement: stunden } },
+  });
+
+  revalidatePath(`/admin/pensum/${userId}`);
+}
+
+// "Der Gleitzeit-Stand soll X sein": rechnet den passenden Startwert (Uebertrag 1. Januar) selbst
+// aus, statt dass der Chef ihn von Hand so lange anpassen muss, bis die Anzeige stimmt. Gleiche
+// Definition wie die Karte "Gleitzeit-Stand (aktuell)" und der Excel-Export: Stand bis einschliesslich
+// gestern, gerechnet mit dem hinterlegten Startdatum (Tage davor zaehlen nicht).
+export async function gleitzeitStandSetzen(formData: FormData) {
+  await pruefeAdmin();
+
+  const userId = String(formData.get("userId") ?? "");
+  const jahr = Number(formData.get("jahr") ?? 0);
+  const ziel = Number(formData.get("ziel") ?? NaN);
+  if (!userId || !jahr || !Number.isFinite(ziel)) return;
+
+  const akkumuliert = await berechneAkkumulierteStundenBisHeute(userId, jahr);
+  await prisma.jahresStammdaten.update({
+    where: { userId_year: { userId, year: jahr } },
+    data: { stundenuebertragAltesJahr: berechneUebertragAusAktuellemStundenSaldo(ziel, akkumuliert) },
   });
 
   revalidatePath(`/admin/pensum/${userId}`);

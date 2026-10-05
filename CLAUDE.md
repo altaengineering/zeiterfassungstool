@@ -1013,6 +1013,18 @@ einer Spalte zu, `exportExcel.ts` summiert alle passenden Buchungen. Tests in
 Gleichheit über alle 365 Tage); wirkt eine Zahl falsch, liegt es an Startdatum/Übertrag in der
 Einrichtung oder an fehlenden Einträgen, nicht am Export. Ein Export dauert lokal ca. 4 bis 6 s.
 
+**Gleitzeit-Stand direkt setzen (2026-10-05):** Michael: "die Gleitzeit muss ja schon stimmen". Der Export
+rechnet exakt wie die App (Test über alle 365 Tage), ein falsch wirkender Stand liegt also am
+gespeicherten Startwert/Startdatum, die ich in Produktion nicht einsehen kann. Darum auf
+`/admin/pensum/[userId]` neu "Gleitzeit-Stand auf diesen Wert setzen" (`gleitzeitStandSetzen`): der Chef
+tippt den gewünschten Stand, das Tool rechnet den Startwert aus (`berechneUebertragAusAktuellemStundenSaldo`
+mit `berechneAkkumulierteStundenBisHeute`), Karte, Monatsseite und Excel zeigen danach genau diesen Wert.
+`berechneAkkumulierteStundenBisHeute` zählt jetzt bis einschliesslich GESTERN (vorher inkl. heute), damit
+es dieselbe Definition ist wie die Karte und die Chef-Übersicht (`nichtInDieZukunftProjizieren`), sonst
+wäre der gesetzte Wert um das Tages-Soll daneben. Lokal gegen dev.db geprüft (Karte = Startwert + Akk,
+Roundtrip). Offener Punkt: der gespeicherte Startwert in Produktion (Michael zeigte Stundenübertrag
+Vormonat -341.50 für September) muss einmal mit diesem Feld auf den echten Stand gesetzt werden.
+
 **Admin-Schnellkorrektur für Auszahlungen (2026-10-01):** Bisher musste ein Admin bei
 `/admin/pensum/[userId]` den rohen Startwert (`stundenuebertragAltesJahr`/`ferienBezogenKorrektur`)
 so lange von Hand anpassen, bis der angezeigte Stand stimmte ("wenn er etwas ausbezahlt, direkt 5

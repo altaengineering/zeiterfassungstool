@@ -17,6 +17,7 @@ import {
   stammdatenKorrigieren,
   stundenAuszahlen,
   ferientageAuszahlen,
+  gleitzeitStandSetzen,
 } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -122,6 +123,31 @@ export default async function PensumSeite({ params }: Props) {
           </div>
         ) : (
           <p className="form-message small">Keine Jahres-Stammdaten für {jahr} hinterlegt.</p>
+        )}
+
+        {jahresStammdaten && (
+          <form action={gleitzeitStandSetzen} className="entry-form" style={{ marginBottom: 20 }}>
+            <input type="hidden" name="userId" value={userId} />
+            <input type="hidden" name="jahr" value={jahr} />
+            <label>
+              Gleitzeit-Stand auf diesen Wert setzen (Stunden, Stand bis gestern)
+              <input
+                type="number"
+                name="ziel"
+                step={0.01}
+                placeholder={aktuellerStand != null ? `aktuell ${aktuellerStand.toFixed(2)}` : "z.B. -12.5"}
+                required
+              />
+            </label>
+            <p className="form-message small" style={{ margin: "4px 0 10px" }}>
+              Du gibst den Gleitzeit-Stand ein, der stimmen soll. Das Tool rechnet den Startwert (1. Januar)
+              selbst so um, dass die Karte oben, die Monatsseite und der Excel-Export genau diesen Wert
+              zeigen. Der Stand zählt bis gestern, mit dem Startdatum der Person.
+            </p>
+            <div className="entry-form-footer" style={{ marginTop: 0 }}>
+              <button type="submit">Stand setzen</button>
+            </div>
+          </form>
         )}
 
         {jahresStammdaten && (
