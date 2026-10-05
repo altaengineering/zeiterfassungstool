@@ -24,7 +24,7 @@ export function FerienEinrichtungForm({
       )}
       <label>
         Wie viele Ferientage hast du JETZT insgesamt noch? (dein aktueller Gesamtsaldo)
-        <input type="number" step="any" name="aktuellerSaldo" defaultValue={defaultAktuellerSaldo} required />
+        <input type="number" step="0.1" name="aktuellerSaldo" defaultValue={defaultAktuellerSaldo} required />
       </label>
       <p className="form-message small">
         Nicht der Übertrag aus dem Vorjahr, sondern dein Saldo genau jetzt in diesem Moment — bereits
@@ -34,7 +34,7 @@ export function FerienEinrichtungForm({
         Ferientage pro Jahr laut Vertrag (nur ausfüllen, falls abweichend vom Standard)
         <input
           type="number"
-          step="any"
+          step="0.1"
           name="jahresferientage"
           defaultValue={defaultJahresferientage ?? ""}
           placeholder={`Standard: ${standardJahresferientage.toFixed(1)} Tage/Jahr`}

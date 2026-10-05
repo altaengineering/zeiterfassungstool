@@ -49,7 +49,7 @@ export default async function FerienEinrichtungSeite() {
 
       <div className="konto-card">
         <FerienEinrichtungForm
-          defaultAktuellerSaldo={Math.round((saldo?.ferienUebertrag ?? 0) * 100) / 100}
+          defaultAktuellerSaldo={saldo?.ferienUebertrag ?? 0}
           defaultJahresferientage={stammdaten?.jahresferientage ?? null}
           standardJahresferientage={standardJahresferientage}
         />
