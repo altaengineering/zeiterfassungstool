@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import path from "node:path";
 import { berechneSoll, sollProTag, sollProTagFuerDatum, type PensumPeriode } from "@/lib/calc";
+import { berechneFormelWerte } from "./formelWerte";
 
 // Original-Vorlage (Arbeitsrapport_2026_kum.xlsx). Enthält bereits alle Formeln pro Monatsblatt
 // (Soll/Ist/+/-/Stand, Ist-Zeit aus Stempelzeiten, Ferien-Kette, Jahres-Summen). Wir befüllen nur
@@ -104,6 +105,14 @@ function daysInMonth(jahr: number, monatIndex0: number): number {
   return new Date(Date.UTC(jahr, monatIndex0 + 1, 0)).getUTCDate();
 }
 
+// Original-Soll-Formel der Vorlage (Spalte R), siehe Kommentar bei der Verwendung.
+function sollFormel(row: number): string {
+  return (
+    `IF(OR(WEEKDAY(A${row},2)=6,WEEKDAY(A${row},2)=7),0,` +
+    `IFERROR(IF(VLOOKUP(A${row},Feiertage!$B:$D,3,0)="ja",0,Summen!$B$9),Summen!$B$9))`
+  );
+}
+
 function setzeOderLeere(cell: ExcelJS.Cell, wert: number | null | undefined) {
   cell.value = wert && wert !== 0 ? wert : wert === 0 ? 0 : null;
 }
@@ -124,6 +133,20 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
   // daher hier entfernt statt die ganze Export-Logik davon abhängig zu machen.
   for (const ws of workbook.worksheets) {
     (ws as unknown as { conditionalFormattings: unknown[] }).conditionalFormattings = [];
+  }
+
+  // Geteilte Formeln (shared formulas) in normale Einzelformeln umwandeln. Darunter liegende
+  // Zellen werden unten teils ueberschrieben (Spalte R), eine ueberschriebene "Master"-Zelle wuerde
+  // sonst ihre Kind-Zellen ohne Formelquelle zuruecklassen und die Datei beschaedigen.
+  for (const ws of workbook.worksheets) {
+    ws.eachRow({ includeEmpty: false }, (row) =>
+      row.eachCell({ includeEmpty: false }, (cell) => {
+        if (cell.type !== ExcelJS.ValueType.Formula) return;
+        const v = cell.value as { sharedFormula?: string; shareType?: string; result?: unknown };
+        if (v.sharedFormula === undefined && v.shareType === undefined) return;
+        cell.value = { formula: cell.formula, result: v.result } as ExcelJS.CellValue;
+      }),
+    );
   }
 
   const summen = workbook.getWorksheet("Summen");
@@ -208,6 +231,12 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
       setzeOderLeere(ws.getCell(`V${row}`), eintrag?.spesenFr ?? 0);
       setzeOderLeere(ws.getCell(`W${row}`), eintrag?.km ?? 0);
 
+      // Soll-Formel in jeder Tageszeile wiederherstellen. Die Vorlage stammt aus Michaels persönlichem
+      // Rapport und enthält in Jan-Jun an vielen Arbeitstagen fest eingetipptes Soll = 0 (Reste seiner
+      // Startphase) statt der Formel. Ohne diesen Reset bekamen alle Mitarbeitenden dieselben Null-
+      // Soll-Tage, Soll, Plus/Minus und Gleitzeit-Stand waren dadurch falsch.
+      ws.getCell(`R${row}`).value = { formula: sollFormel(row) } as ExcelJS.CellValue;
+
       // Soll-Override: nur bei explizitem Override den Formel-Wert überschreiben (Literalwert,
       // analog zum Original-Excel bei manuellen Anpassungen — siehe CLAUDE.md §3/§7.2). Tage vor
       // dem individuellen Startdatum (§7 "leere Startphase") werden immer auf 0 gezwungen, auch
@@ -235,6 +264,14 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
       });
     }
   });
+
+  // Alle Formeln selbst ausrechnen und die Ergebnisse als mitgespeicherte Werte ablegen, siehe
+  // Kommentar in formelWerte.ts. Sonst zeigen Geschuetzte Ansicht und Vorschauen weiter die alten
+  // Vorlagenwerte (Name "Michael Kueng", Gleitzeit-Stand, Spesen, Ist-Zeit-Spalten).
+  const formelErgebnis = berechneFormelWerte(workbook);
+  if (formelErgebnis.fehler.length > 0) {
+    console.warn("Excel-Export: Formel-Auswertung mit Fehlern:", formelErgebnis.fehler.slice(0, 5));
+  }
 
   const buffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(buffer);

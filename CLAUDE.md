@@ -1,6 +1,6 @@
 # Zeiterfassung Alta Engineering AG – Projekt-Referenz
 
-**Status (Stand 2026-10-01): Live und in Nutzung.**
+**Status (Stand 2026-10-05): Live und in Nutzung.**
 URL: https://zeiterfassungstool-psi.vercel.app — GitHub: https://github.com/altaengineering/zeiterfassungstool
 (privates Repo). Login mit E-Mail + Passwort für alle 14 Mitarbeitenden, Rollen MITARBEITER/ADMIN
 (Stefan Herger + Michael Küng sind Admin; in der Anzeige heisst Michaels Rolle aus Spass „sudo“,
@@ -967,6 +967,34 @@ Gleitzeit-Stand", analog zu den bestehenden Ferien-Karten. Alle 45 Tests grün, 
 Fehler. Nicht live mit echtem Login verifiziert (keine gitignorten Klartext-Testpasswörter
 verwendet, siehe `prisma/seed-data/mitarbeitende-2026.local.json`), nur per `vitest` und
 Typecheck, bei Gelegenheit mit echtem Account gegenprüfen.
+
+**Excel-Export: Name, Gleitzeit, Spesen und Ist-Zeit falsch — gefunden und gefixt (2026-10-05):**
+Michael meldete: im Excel steht beim Namen immer noch er selbst, Gleitzeit und Spesen sind nicht
+ausgefüllt, die Stunden hinten in der Tabelle fehlen. Zwei Ursachen, beide in `exportExcel.ts`:
+(1) **Veraltete Formelwerte.** Alle diese Felder sind Formeln (`Summen!B3`, Stand `U`, Spesen `X`,
+Ist-Zeit `AG`–`AL`), ExcelJS schreibt zu jeder Formel aber den in der Vorlage mitgespeicherten Wert
+zurück ("cached value", Name "Michael Küng", alter Stand, leer). `fullCalcOnLoad` lässt Excel nur
+neu rechnen, wenn die Bearbeitung aktiviert ist, **nicht in der Geschützten Ansicht** (Standard bei
+Downloads) und nicht in Vorschauen. Fix: neues Modul `src/lib/export/formelWerte.ts` wertet vor dem
+Schreiben alle Formeln der befüllten Mappe selbst aus (Parser `fast-formula-parser`, MIT) und legt die
+Ergebnisse als mitgespeicherte Werte ab; `fullCalcOnLoad` bleibt zusätzlich an. Bewusst iterativ in
+Abhängigkeits-Reihenfolge, weil der Parser nicht re-entrant ist, mit eigener Bezugs-Erkennung (der
+mitgelieferte DepParser verliert hinter `VLOOKUP` die weiteren Bezüge), Ganzspalten-Bezüge
+(`Feiertage!$B:$C`) werden zu `$B$1:$C$1000` aufgelöst (Parser rechnet sie falsch), `HOUR`/`MINUTE`
+sind überschrieben (Excel rundet auf die Sekunde). Selbsttest: auf der unveränderten Vorlage stimmen
+alle 1783 von Excel gespeicherten Werte überein.
+(2) **Fest eingetipptes Soll = 0 in der Vorlage.** Die Vorlage ist Michaels persönlicher Rapport; in
+Spalte R stehen in Jan–Jun an vielen Arbeitstagen Literale 0 statt der Soll-Formel (Reste seiner
+Startphase). Das floss bei allen Mitarbeitenden in Soll, +/- und Gleitzeit-Stand. Fix: Export setzt
+in jeder Tageszeile die Original-Soll-Formel wieder ein (vor den bestehenden Override-Fällen), und
+löst vorher alle Shared-Formulas der Vorlage auf, damit überschriebene Master-Zellen keine Kinder
+ohne Quelle hinterlassen. Nur Spalte R war betroffen (alle Spalten geprüft).
+Neuer Test `src/lib/export/exportExcel.test.ts` (benötigt den neuen `@`-Alias in `vitest.config.ts`):
+vergleicht Soll, Ist, +/- und Stand aller 365 Tage aus dem exportierten Excel mit der App-eigenen
+Berechnung (0 Abweichungen), prüft Namen in allen Blättern, Spesen, Ist-Zeit und dass keine
+Fehlerzellen/Soll-Nullen übrig sind. Route hat jetzt `maxDuration = 60`, der Export braucht
+einige Sekunden. Nicht in echtem Excel/Geschützter Ansicht geöffnet (kein Excel hier), bitte einmal
+mit einem frischen Download gegenprüfen.
 
 **Admin-Schnellkorrektur für Auszahlungen (2026-10-01):** Bisher musste ein Admin bei
 `/admin/pensum/[userId]` den rohen Startwert (`stundenuebertragAltesJahr`/`ferienBezogenKorrektur`)
