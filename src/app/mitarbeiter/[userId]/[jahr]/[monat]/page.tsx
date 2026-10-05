@@ -70,7 +70,9 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
   const session = await auth();
   const binAdmin = (session?.user as { role?: string } | undefined)?.role === "ADMIN";
 
-  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, monatsAbschluss, pensumWechselDb, projekteDb] =
+  const monatsStart = new Date(Date.UTC(jahr, monat - 1, 1));
+  const monatsEnde = new Date(Date.UTC(jahr, monat, 0));
+  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, monatsAbschluss, pensumWechselDb, projekteDb, antraegeDb, notizenDb] =
     await Promise.all([
       prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
       prisma.companySettings.findUnique({
@@ -97,7 +99,34 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
         where: { userId, aktiv: true },
         orderBy: { createdAt: "asc" },
       }),
+      // Genehmigte Abwesenheiten und Kalender-Notizen des Monats: ein Gleitzeit-Bezug legt nur eine leere
+      // Tageszeile an, ohne diese Abfrage wuerde der Tag in der Tabelle leer aussehen.
+      prisma.ferienAntrag.findMany({
+        where: { userId, status: "genehmigt", von: { lte: monatsEnde }, bis: { gte: monatsStart } },
+      }),
+      prisma.kalenderNotiz.findMany({
+        where: { userId, date: { gte: monatsStart, lte: monatsEnde } },
+        orderBy: { createdAt: "asc" },
+      }),
     ]);
+
+  const abwesenheitByDate = new Map<string, "ferien" | "gleitzeit">();
+  for (const a of antraegeDb) {
+    const von = iso(a.von);
+    const bis = iso(a.bis);
+    for (let t = new Date(a.von); iso(t) <= bis; t = new Date(t.getTime() + 86400000)) {
+      const d = iso(t);
+      if (d >= von) abwesenheitByDate.set(d, a.typ === "gleitzeit" ? "gleitzeit" : "ferien");
+    }
+  }
+  const notizenByDate = new Map<string, string[]>();
+  const meineId = (session?.user as { id?: string } | undefined)?.id;
+  for (const n of notizenDb) {
+    // Private Notizen sieht nur die Person selbst, auch ein Admin nicht.
+    if (!n.oeffentlich && n.userId !== meineId) continue;
+    const d = iso(n.date);
+    notizenByDate.set(d, [...(notizenByDate.get(d) ?? []), n.text]);
+  }
 
   // Mitarbeitende dürfen einen abgeschlossenen Monat nicht mehr bearbeiten, Admins schon
   // (siehe CLAUDE.md, Feature "Monatsabschluss" — die Server Action prüft das zusätzlich).
@@ -313,9 +342,12 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
             const feiertag = feiertage.find((f) => f.date === tag.date);
             const wochentag = new Date(`${tag.date}T00:00:00Z`).getUTCDay();
             const istWochenende = wochentag === 0 || wochentag === 6;
-            const hatFerien = !!dbEntry && dbEntry.ferien > 0;
-            const ferienHalb = hatFerien && tag.soll > 0 && dbEntry!.ferien < tag.soll * 0.75;
-            const rowClass = [feiertag ? "holiday" : istWochenende ? "weekend" : "", hatFerien ? "ferien-tag" : ""]
+            const abwesenheit = abwesenheitByDate.get(tag.date);
+            const hatFerien = (!!dbEntry && dbEntry.ferien > 0) || (abwesenheit === "ferien" && tag.soll > 0);
+            const hatGleitzeitFrei = abwesenheit === "gleitzeit" && tag.soll > 0 && !(dbEntry && dbEntry.ferien > 0);
+            const notizen = notizenByDate.get(tag.date) ?? [];
+            const ferienHalb = !!dbEntry && dbEntry.ferien > 0 && tag.soll > 0 && dbEntry.ferien < tag.soll * 0.75;
+            const rowClass = [feiertag ? "holiday" : istWochenende ? "weekend" : "", hatFerien || hatGleitzeitFrei ? "ferien-tag" : ""]
               .filter(Boolean)
               .join(" ");
             const kategorien = [
@@ -335,9 +367,10 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                   {hatFerien && (
                     <span className="ferien-badge">🏖 Ferien{ferienHalb ? " halbtags" : ""}</span>
                   )}
+                  {hatGleitzeitFrei && <span className="ferien-badge">⏱ Gleitzeit frei</span>}
                 </td>
                 <td className="label-cell">
-                  {dbEntry?.bookings.length || kategorien.length ? (
+                  {dbEntry?.bookings.length || kategorien.length || notizen.length ? (
                     <span className="buchungen-zelle">
                       {dbEntry?.bookings.map((b, i) => (
                         <span key={i} className="tag tag-klein">
@@ -348,6 +381,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                       {kategorien.length > 0 && (
                         <span className="buchungen-kategorien">{kategorien.join(", ")}</span>
                       )}
+                      {notizen.length > 0 && <span className="buchungen-kategorien">{notizen.join(" · ")}</span>}
                     </span>
                   ) : (
                     "—"
