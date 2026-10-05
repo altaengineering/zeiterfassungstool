@@ -134,7 +134,7 @@ export default async function PensumSeite({ params }: Props) {
               <input
                 type="number"
                 name="ziel"
-                step={0.01}
+                step="any"
                 placeholder={aktuellerStand != null ? `aktuell ${aktuellerStand.toFixed(2)}` : "z.B. -12.5"}
                 required
               />
@@ -157,7 +157,7 @@ export default async function PensumSeite({ params }: Props) {
               <input type="hidden" name="jahr" value={jahr} />
               <label>
                 Gleitzeit auszahlen (Stunden)
-                <input type="number" name="stunden" step={0.1} placeholder="z.B. 5" />
+                <input type="number" name="stunden" step="any" placeholder="z.B. 5" />
               </label>
               <p className="form-message small" style={{ margin: "4px 0 10px" }}>
                 Wird direkt vom Gleitzeit-Stand oben abgezogen. Negative Zahl eintippen, um
@@ -172,7 +172,7 @@ export default async function PensumSeite({ params }: Props) {
               <input type="hidden" name="jahr" value={jahr} />
               <label>
                 Ferientage auszahlen (Tage)
-                <input type="number" name="tage" step={0.5} placeholder="z.B. 5" />
+                <input type="number" name="tage" step="any" placeholder="z.B. 5" />
               </label>
               <p className="form-message small" style={{ margin: "4px 0 10px" }}>
                 Wird direkt von "Ferien, die noch da sind" oben abgezogen. Negative Zahl eintippen,
@@ -201,7 +201,7 @@ export default async function PensumSeite({ params }: Props) {
               <input
                 type="number"
                 name="stundenuebertragAltesJahr"
-                step={0.01}
+                step="any"
                 defaultValue={jahresStammdaten?.stundenuebertragAltesJahr ?? 0}
               />
             </label>
@@ -210,7 +210,7 @@ export default async function PensumSeite({ params }: Props) {
               <input
                 type="number"
                 name="ferienuebertragAltesJahr"
-                step={0.1}
+                step="any"
                 defaultValue={jahresStammdaten?.ferienuebertragAltesJahr ?? 0}
               />
             </label>
@@ -220,7 +220,7 @@ export default async function PensumSeite({ params }: Props) {
             <input
               type="number"
               name="jahresferientage"
-              step={0.1}
+              step="any"
               defaultValue={jahresStammdaten?.jahresferientage ?? ""}
               placeholder={`Standard: ${standardJahresferientage.toFixed(1)} Tage/Jahr`}
             />
@@ -230,7 +230,7 @@ export default async function PensumSeite({ params }: Props) {
             <input
               type="number"
               name="ferienBezogenKorrektur"
-              step={0.1}
+              step="any"
               defaultValue={jahresStammdaten?.ferienBezogenKorrektur ?? 0}
             />
           </label>
