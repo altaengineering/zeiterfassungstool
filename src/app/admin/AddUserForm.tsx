@@ -43,7 +43,7 @@ export function AddUserForm() {
           </label>
           <label>
             Wochenstunden
-            <input type="number" name="wochenstunden" defaultValue={42} step="any" required />
+            <input type="number" name="wochenstunden" defaultValue={42} step="0.1" required />
           </label>
           <label>
             Rolle

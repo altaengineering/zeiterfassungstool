@@ -40,7 +40,7 @@ export function EinrichtungForm({
         </label>
         <label>
           Wie viele Überstunden hast du JETZT insgesamt (in Stunden, z.B. 0 oder -5.5)
-          <input type="number" step="any" name="stundenSaldo" defaultValue={defaultStundenSaldo} required />
+          <input type="number" step="0.1" name="stundenSaldo" defaultValue={defaultStundenSaldo} required />
         </label>
         <p className="form-message small">
           Nicht der Übertrag aus dem Vorjahr, sondern dein Gleitzeit-Saldo genau jetzt in diesem
@@ -49,7 +49,7 @@ export function EinrichtungForm({
         </p>
         <label>
           Wie viele Ferientage hast du JETZT insgesamt noch? (dein aktueller Gesamtsaldo)
-          <input type="number" step="any" name="aktuellerSaldo" defaultValue={defaultFerienGuthaben} required />
+          <input type="number" step="0.1" name="aktuellerSaldo" defaultValue={defaultFerienGuthaben} required />
         </label>
         <p className="form-message small">
           Nicht der Übertrag aus dem Vorjahr, sondern dein Saldo genau jetzt in diesem Moment —
@@ -60,7 +60,7 @@ export function EinrichtungForm({
           Ferientage pro Jahr laut Vertrag (nur ausfüllen, falls abweichend vom Standard)
           <input
             type="number"
-            step="any"
+            step="0.1"
             name="jahresferientage"
             defaultValue={defaultJahresferientage ?? ""}
             placeholder={`Standard: ${standardJahresferientage.toFixed(1)} Tage/Jahr`}
@@ -75,7 +75,7 @@ export function EinrichtungForm({
           Zusätzlich verbrauchte Ferientage, nicht im Kalender erfasst
           <input
             type="number"
-            step="any"
+            step="0.1"
             name="ferienBezogenKorrektur"
             defaultValue={defaultFerienBezogenKorrektur}
           />
