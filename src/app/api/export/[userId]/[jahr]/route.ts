@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { erzeugeExcelExport, istSchaltjahr, type ExportTag } from "@/lib/export/exportExcel";
 import { STANDARD_JAHRESFERIENTAGE } from "@/lib/calc";
+import { ordneProjektSpalten } from "@/lib/export/projektSpalten";
 
 // Der Export rechnet alle Formeln der Vorlage selbst aus (siehe src/lib/export/formelWerte.ts), das
 // dauert einige Sekunden, das Standard-Zeitlimit von Vercel waere dafuer zu knapp.
@@ -65,7 +66,7 @@ export async function GET(
     }),
     prisma.pensumWechsel.findMany({ where: { userId }, orderBy: { gueltigAb: "asc" } }),
     prisma.project.findMany({
-      where: { userId, aktiv: true },
+      where: { userId },
       orderBy: { createdAt: "asc" },
     }),
   ]);
@@ -74,9 +75,20 @@ export async function GET(
     return NextResponse.json({ error: "Jahres-Stammdaten nicht gefunden" }, { status: 404 });
   }
 
+  // Jede Buchung bekommt eine Excel-Spalte, auch auf deaktivierte/geloeschte/umbenannte Projekte und
+  // ueber 9 Projekte hinaus (Sammelspalte), sonst fehlen die Stunden im Ist, siehe projektSpalten.ts.
+  const projektSpalten = ordneProjektSpalten(
+    projekteDb.map((p) => ({ id: p.id, name: p.name, aktiv: p.aktiv })),
+    entriesDb.flatMap((e) => e.bookings.map((b) => ({ projectId: b.projectId, label: b.label, hours: b.hours }))),
+  );
+
   const tage: ExportTag[] = entriesDb.map((e) => ({
     date: iso(e.date),
-    bookings: e.bookings.map((b) => ({ projectId: b.projectId, label: b.label, hours: b.hours })),
+    bookings: e.bookings.map((b) => ({
+      projectId: projektSpalten.spaltenIdFuer({ projectId: b.projectId, label: b.label }),
+      label: b.label,
+      hours: b.hours,
+    })),
     krank: e.krank,
     reisezeit: e.reisezeit,
     cad: e.cad,
@@ -117,7 +129,7 @@ export async function GET(
       wochenstunden: w.wochenstunden,
     })),
     feiertage: holidaysDb.map((h) => ({ date: iso(h.date), label: h.label, bezahlt: h.bezahlt })),
-    projekte: projekteDb.map((p) => ({ id: p.id, name: p.name })),
+    projekte: projektSpalten.spalten,
     tage,
   });
 

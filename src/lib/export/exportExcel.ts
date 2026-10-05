@@ -196,6 +196,13 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
     const ws = workbook.getWorksheet(sheetName);
     if (!ws) return;
 
+    // Die Monatssumme der Ist-Zeit (AJ, Format 0.00, z.B. "243.50") und die Kontrollspalte AL sind in
+    // der Vorlage zu schmal und zeigten in der Summenzeile "#####".
+    for (const spalte of ["AJ", "AL"]) {
+      const col = ws.getColumn(spalte);
+      col.width = Math.max(col.width ?? 0, 8.5);
+    }
+
     const tageImMonat = daysInMonth(input.jahr, monatIndex0);
     const monatStr = String(monatIndex0 + 1).padStart(2, "0");
 
@@ -215,10 +222,14 @@ export async function erzeugeExcelExport(input: ExportInput): Promise<Buffer> {
       // /projekte, "Alte Einträge übernehmen").
       PROJEKT_SPALTEN.forEach((col, i) => {
         const projekt = projekte[i];
-        const stunden = projekt
-          ? eintrag?.bookings.find((b) => b.projectId === projekt.id || (!b.projectId && b.label === projekt.name))
-              ?.hours
-          : undefined;
+        // ALLE passenden Buchungen des Tages summieren (nicht nur die erste): zwei Buchungen auf
+        // dasselbe Projekt am selben Tag zaehlen in der App beide zum Ist.
+        const passende = projekt
+          ? (eintrag?.bookings ?? []).filter(
+              (b) => b.projectId === projekt.id || (!b.projectId && b.label === projekt.name),
+            )
+          : [];
+        const stunden = passende.length > 0 ? passende.reduce((summe, b) => summe + b.hours, 0) : undefined;
         setzeOderLeere(ws.getCell(`${col}${row}`), stunden);
       });
 
