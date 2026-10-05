@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { STANDARD_KM_SPESENSATZ } from "@/lib/spesen";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { erzeugeExcelExport, istSchaltjahr, type ExportTag } from "@/lib/export/exportExcel";
@@ -118,7 +119,7 @@ export async function GET(
     arbeitsmonate: jahresStammdaten.arbeitsmonate,
     jahresferientage:
       jahresStammdaten.jahresferientage ?? companySettings?.jahresferientage ?? STANDARD_JAHRESFERIENTAGE,
-    kmSpesensatz: companySettings?.kmSpesensatz ?? 0,
+    kmSpesensatz: companySettings?.kmSpesensatz ?? STANDARD_KM_SPESENSATZ,
     ferienBezogenBisher: 0,
     erfassungStartDatum: jahresStammdaten.erfassungStartDatum
       ? iso(jahresStammdaten.erfassungStartDatum)

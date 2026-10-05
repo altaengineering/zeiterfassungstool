@@ -1934,3 +1934,17 @@ main.login-hero {
   align-items: center;
   gap: 10px;
 }
+
+/* Spesen-Hinweis im Tageseintrag: Live-Summe und die Regel, was eingetragen werden darf. */
+.spesen-hinweis {
+  margin: 12px 0 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border, rgba(127, 127, 127, 0.3));
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

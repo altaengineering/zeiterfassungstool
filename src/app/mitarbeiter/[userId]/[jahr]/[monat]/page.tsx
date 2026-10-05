@@ -19,6 +19,7 @@ import {
 } from "@/lib/calc";
 import { EntryForm, type BestehenderEintrag } from "./EntryForm";
 import { TagesZeile } from "./TagesZeile";
+import { STANDARD_KM_SPESENSATZ } from "@/lib/spesen";
 
 const MONATSNAMEN = [
   "Jan", "Feb", "Mar", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez",
@@ -434,6 +435,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                 monat={monat}
                 datum={ausgewaehltesDatum}
                 sollFuerTag={sollFuerAusgewaehltenTag}
+                kmSatz={companySettings?.kmSpesensatz ?? STANDARD_KM_SPESENSATZ}
                 bestehenderEintrag={bestehenderEintrag}
                 projekte={projekteDb.map((p) => ({ id: p.id, name: p.name }))}
               />
