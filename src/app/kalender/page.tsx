@@ -45,7 +45,7 @@ export default async function KalenderSeite({ searchParams }: Props) {
     Date.UTC(heute.getUTCFullYear(), heute.getUTCMonth(), heute.getUTCDate()),
   );
 
-  const [feiertageDb, entriesDb, notizenDb] = await Promise.all([
+  const [feiertageDb, entriesDb, notizenDb, gleitzeitAntraegeDb] = await Promise.all([
     prisma.holiday.findMany({
       where: { companyId: ich.companyId, date: { gte: monatStart, lt: monatEnde } },
     }),
@@ -76,10 +76,24 @@ export default async function KalenderSeite({ searchParams }: Props) {
       include: { user: true },
       orderBy: { createdAt: "asc" },
     }),
+    // Genehmigte Gleitzeit-Kompensation (freier Tag gegen Gleitzeit-Stunden): legt in der Tabelle nur eine
+    // leere Tageszeile an, deshalb hier direkt aus dem Antrag, damit sie im Kalender wie Ferien erscheint.
+    prisma.ferienAntrag.findMany({
+      where: {
+        typ: "gleitzeit",
+        status: "genehmigt",
+        user: { companyId: ich.companyId },
+        von: { lt: monatEnde },
+        bis: { gte: monatStart },
+      },
+      include: { user: true },
+    }),
   ]);
 
   const feiertageByDate = new Map(feiertageDb.map((f) => [iso(f.date), f]));
-  const abwesendByDate = new Map<string, { name: string; art: "Ferien" | "Krank"; stunden: number }[]>();
+  const monatMinDatumIso = iso(monatStart);
+  const monatMaxDatumIso = iso(new Date(monatEnde.getTime() - 86400000));
+  const abwesendByDate = new Map<string, { name: string; art: "Ferien" | "Krank" | "Gleitzeit"; stunden: number }[]>();
   for (const e of entriesDb) {
     const datum = iso(e.date);
     const liste = abwesendByDate.get(datum) ?? [];
@@ -93,8 +107,23 @@ export default async function KalenderSeite({ searchParams }: Props) {
     abwesendByDate.set(datum, liste);
   }
 
+  for (const a of gleitzeitAntraegeDb) {
+    const bis = iso(a.bis);
+    for (let t = new Date(a.von); iso(t) <= bis; t = new Date(t.getTime() + 86400000)) {
+      const datum = iso(t);
+      if (datum < monatMinDatumIso || datum > monatMaxDatumIso) continue;
+      const wochentag = t.getUTCDay();
+      if (wochentag === 0 || wochentag === 6 || feiertageByDate.has(datum)) continue;
+      const liste = abwesendByDate.get(datum) ?? [];
+      liste.push({ name: a.user.name, art: "Gleitzeit", stunden: 0 });
+      abwesendByDate.set(datum, liste);
+    }
+  }
+
   const notizenByDate = new Map<string, typeof notizenDb>();
   for (const n of notizenDb) {
+    // Automatische Notiz der Gleitzeit-Genehmigung: wird jetzt als eigener Chip gezeigt.
+    if (n.text === "Gleitzeit-Abwesenheit (genehmigt)") continue;
     const datum = iso(n.date);
     const liste = notizenByDate.get(datum) ?? [];
     liste.push(n);
@@ -133,7 +162,7 @@ export default async function KalenderSeite({ searchParams }: Props) {
     <main>
       <h1>Kalender</h1>
       <p className="subtitle">
-        Feiertage und wer in der Firma Ferien oder krank gemeldet ist, für alle einsehbar.
+        Feiertage und wer in der Firma Ferien, Gleitzeit-Kompensation oder krank gemeldet ist, für alle einsehbar.
         {!binAdmin && " Krankheitstage sind hier nur ab heute sichtbar, nicht rückwirkend."}
       </p>
 
@@ -152,6 +181,9 @@ export default async function KalenderSeite({ searchParams }: Props) {
       <div className="kalender-legende">
         <span className="kalender-legende-item">
           <span className="kalender-chip-swatch kalender-chip-ferien" /> Ferien
+        </span>
+        <span className="kalender-legende-item">
+          <span className="kalender-chip-swatch kalender-chip-gleitzeit" /> Gleitzeit
         </span>
         <span className="kalender-legende-item">
           <span className="kalender-chip-swatch kalender-chip-krank" /> Krank
@@ -193,8 +225,19 @@ export default async function KalenderSeite({ searchParams }: Props) {
                   {t.abwesend.map((a, i) => (
                     <span
                       key={i}
-                      className={"kalender-chip " + (a.art === "Ferien" ? "kalender-chip-ferien" : "kalender-chip-krank")}
-                      title={`${a.name}, ${a.art}, ${formatStunden(a.stunden)}h`}
+                      className={
+                        "kalender-chip " +
+                        (a.art === "Ferien"
+                          ? "kalender-chip-ferien"
+                          : a.art === "Gleitzeit"
+                            ? "kalender-chip-gleitzeit"
+                            : "kalender-chip-krank")
+                      }
+                      title={
+                        a.art === "Gleitzeit"
+                          ? `${a.name}, Gleitzeit-Kompensation`
+                          : `${a.name}, ${a.art}, ${formatStunden(a.stunden)}h`
+                      }
                     >
                       {initialen(a.name)}
                     </span>
