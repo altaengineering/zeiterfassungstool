@@ -1764,6 +1764,10 @@ main.login-hero {
   background: var(--neg);
 }
 
+.kalender-chip-gleitzeit {
+  background: var(--accent-2, #d39a1d);
+}
+
 .kalender-chip-swatch {
   display: inline-block;
   width: 12px;
