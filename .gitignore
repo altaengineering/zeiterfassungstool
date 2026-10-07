@@ -13,3 +13,9 @@ prisma/seed-data/*.local.json
 
 # Übergabe-Dokumente mit Klartext-Zugangsdaten — niemals committen.
 handover/
+
+# Sicherungen und Hilfsdateien der Backup-Skripte (enthalten Personendaten bzw. erzeugte Clients)
+backups/
+scripts/.client/
+scripts/.tmp/
+.env*.local
