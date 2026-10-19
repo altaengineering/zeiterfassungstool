@@ -6,3 +6,4 @@ export * from "./ist";
 export * from "./stand";
 export * from "./ferien";
 export * from "./tag";
+export * from "./ostern";

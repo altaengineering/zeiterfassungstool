@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
+import { stelleStammdatenSicher } from "@/lib/jahreswechsel";
 import { auth } from "@/lib/auth";
 import {
   berechneFerienBezogen,
@@ -73,7 +74,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
 
   const monatsStart = new Date(Date.UTC(jahr, monat - 1, 1));
   const monatsEnde = new Date(Date.UTC(jahr, monat, 0));
-  const [jahresStammdaten, companySettings, holidaysDb, entriesDb, monatsAbschluss, pensumWechselDb, projekteDb, antraegeDb, notizenDb] =
+  const [vorhandeneStammdaten, companySettings, holidaysDb, entriesDb, monatsAbschluss, pensumWechselDb, projekteDb, antraegeDb, notizenDb] =
     await Promise.all([
       prisma.jahresStammdaten.findUnique({ where: { userId_year: { userId, year: jahr } } }),
       prisma.companySettings.findUnique({
@@ -132,6 +133,9 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
   // Mitarbeitende dürfen einen abgeschlossenen Monat nicht mehr bearbeiten, Admins schon
   // (siehe PROJEKTSTAND.md, Feature "Monatsabschluss" — die Server Action prüft das zusätzlich).
   const istGesperrt = !!monatsAbschluss && !binAdmin;
+
+  // Neues Jahr ohne Jahresdaten: aus dem Vorjahr übernehmen statt leere Seite (siehe lib/jahreswechsel.ts).
+  const jahresStammdaten = vorhandeneStammdaten ?? (await stelleStammdatenSicher(userId, jahr));
 
   if (!jahresStammdaten) {
     return (

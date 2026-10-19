@@ -3,6 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 import { auth, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { stelleStammdatenSicher } from "@/lib/jahreswechsel";
 import { ThemeToggle } from "./ThemeToggle";
 import { TopbarMenu } from "./TopbarMenu";
 
@@ -37,9 +38,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let brauchtFerienEinrichtung = false;
   if (userId) {
     const jahr = new Date().getFullYear();
-    const stammdaten = await prisma.jahresStammdaten.findUnique({
-      where: { userId_year: { userId, year: jahr } },
-    });
+    // Im neuen Jahr fehlen die Jahresdaten bis zur ersten Anmeldung: aus dem Vorjahr übernehmen.
+    const stammdaten =
+      (await prisma.jahresStammdaten.findUnique({
+        where: { userId_year: { userId, year: jahr } },
+      })) ?? (await stelleStammdatenSicher(userId, jahr));
     brauchtFerienEinrichtung = stammdaten != null && !stammdaten.ferienEinrichtungErledigt;
   }
 
@@ -113,6 +116,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       </Link>
                       <Link href="/admin/monatsabschluss" className="topbar-menu-item">
                         Monatsabschluss
+                      </Link>
+                      <Link href="/admin/jahreswechsel" className="topbar-menu-item">
+                        Jahreswechsel
                       </Link>
                     </TopbarMenu>
                   )}
