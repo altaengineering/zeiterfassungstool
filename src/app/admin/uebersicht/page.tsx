@@ -54,6 +54,9 @@ type Props = {
   searchParams: Promise<{ jahr?: string; monat?: string }>;
 };
 
+// Personen, die in der Team-Statistik nie mitzaehlen (Geschaeftsleitung). E-Mail klein geschrieben.
+const STATISTIK_AUSGESCHLOSSEN = ["s.herger@alta-engineering.ch"];
+
 export default async function UebersichtSeite({ searchParams }: Props) {
   const session = await auth();
   const rolle = (session?.user as { role?: string } | undefined)?.role;
@@ -163,13 +166,60 @@ export default async function UebersichtSeite({ searchParams }: Props) {
   const monatsStart = new Date(Date.UTC(heuteJahr, heuteMonat - 1, 1));
   const monatsStartIso = iso(monatsStart);
 
+  // Team-Statistik ohne die Geschaeftsleitung (STATISTIK_AUSGESCHLOSSEN) und ohne alle, die mit der
+  // Erfassung im laufenden Monat im Rueckstand sind: deren fehlende Tage wuerden Stunden, Gleitzeit und
+  // Ferien-Auslastung verfaelschen. Der Rueckstand wird hier immer fuer den laufenden Monat bestimmt,
+  // unabhaengig vom oben durchblaetterten Monat (die Kennzahlen gelten ebenfalls fuer jetzt).
+  const feiertageHeuteMonatDb = istAktuellerMonat
+    ? feiertageDb
+    : await prisma.holiday.findMany({
+        where: {
+          companyId: admin.companyId,
+          date: { gte: monatsStart, lt: new Date(Date.UTC(heuteJahr, heuteMonat, 1)) },
+          bezahlt: true,
+        },
+      });
+  const feiertageHeuteMonat = new Set(feiertageHeuteMonatDb.map((f) => iso(f.date)));
+  const eintraegeHeuteMonatDb = istAktuellerMonat
+    ? entriesDb.map((e) => ({ userId: e.userId, date: e.date }))
+    : await prisma.dailyEntry.findMany({
+        where: { user: { companyId: admin.companyId }, date: { gte: monatsStart, lte: bisGestern } },
+        select: { userId: true, date: true },
+      });
+  const erwartetHeute = arbeitstageBisher(heuteJahr, heuteMonat, bisGestern, feiertageHeuteMonat);
+  const imRueckstandHeute = new Set(
+    users
+      .filter((u) => {
+        const daten = new Set(eintraegeHeuteMonatDb.filter((e) => e.userId === u.id).map((e) => iso(e.date)));
+        return arbeitstageBisher(heuteJahr, heuteMonat, bisGestern, feiertageHeuteMonat, daten) < erwartetHeute;
+      })
+      .map((u) => u.id),
+  );
+  const statistikUsers = users.filter(
+    (u) => !STATISTIK_AUSGESCHLOSSEN.includes(u.email.toLowerCase()) && !imRueckstandHeute.has(u.id),
+  );
+  const statistikIds = statistikUsers.map((u) => u.id);
+  const nichtInStatistik = users.filter((u) => !statistikIds.includes(u.id));
+  const ausschlussText =
+    nichtInStatistik.length > 0
+      ? "Nicht mitgezählt: " +
+        nichtInStatistik
+          .map(
+            (u) =>
+              u.name +
+              (STATISTIK_AUSGESCHLOSSEN.includes(u.email.toLowerCase()) ? " (Geschäftsleitung)" : " (im Rückstand)"),
+          )
+          .join(", ") +
+        "."
+      : "Alle Mitarbeitenden sind mitgezählt.";
+
   const [krankEntriesJahrDb, bookingsJahrDb] = await Promise.all([
     prisma.dailyEntry.findMany({
-      where: { user: { companyId: admin.companyId }, date: { gte: jahresStart, lte: bisGestern }, krank: { gt: 0 } },
+      where: { userId: { in: statistikIds }, date: { gte: jahresStart, lte: bisGestern }, krank: { gt: 0 } },
       select: { userId: true, date: true },
     }),
     prisma.booking.findMany({
-      where: { dailyEntry: { user: { companyId: admin.companyId }, date: { gte: jahresStart, lte: bisGestern } } },
+      where: { dailyEntry: { userId: { in: statistikIds }, date: { gte: jahresStart, lte: bisGestern } } },
       select: { hours: true, dailyEntry: { select: { date: true } } },
     }),
   ]);
@@ -193,8 +243,8 @@ export default async function UebersichtSeite({ searchParams }: Props) {
   // Query noetig) — "mehr Infos, smarter" (Feedback 2026-09-23): ein einzelner Gleitzeit-Wert pro
   // Person sagt wenig ueber die Firma als Ganzes, die Summe schon (z.B. "wir liegen als Team X
   // Stunden im Plus/Minus"), ebenso die Ferien-Auslastung uebers ganze Team statt nur einzeln.
-  const alleSaldi = users.map((u) => saldoByUser.get(u.id)).filter((s) => s != null);
-  const teamGleitzeitGesamt = users.reduce(
+  const alleSaldi = statistikUsers.map((u) => saldoByUser.get(u.id)).filter((s) => s != null);
+  const teamGleitzeitGesamt = statistikUsers.reduce(
     (sum, u) => sum + (standHeuteByUser.get(u.id)?.standEndeMonat ?? 0),
     0,
   );
@@ -202,6 +252,17 @@ export default async function UebersichtSeite({ searchParams }: Props) {
   const teamFerienBezogen = alleSaldi.reduce((sum, s) => sum + s.ferienBezogen, 0);
   const teamFerienAuslastungPct =
     teamFerienGuthaben > 0 ? (teamFerienBezogen / teamFerienGuthaben) * 100 : 0;
+  // Zum Einordnen: welcher Anteil des Jahres ist schon vorbei? Liegt die Auslastung deutlich darunter,
+  // stauen sich Ferien gegen Jahresende (Uebertrag), liegt sie darueber, ist schon viel bezogen.
+  const jahrAnteilPct =
+    ((heuteMitternacht.getTime() - jahresStart.getTime()) / (Date.UTC(heuteJahr + 1, 0, 1) - jahresStart.getTime())) * 100;
+  const ferienOffenTage = teamFerienGuthaben - teamFerienBezogen;
+  const ferienTitel =
+    "Wie viel der Ferien, die dem Team " + heuteJahr + " zustehen, schon bezogen ist.\n\n" +
+    "Bezogen: " + teamFerienBezogen.toFixed(1) + " von " + teamFerienGuthaben.toFixed(1) +
+    " Tagen (Jahresanspruch plus Übertrag aus dem Vorjahr). Noch offen: " + ferienOffenTage.toFixed(1) + " Tage.\n\n" +
+    "Zum Vergleich: " + jahrAnteilPct.toFixed(0) + " % des Jahres sind vorbei. Liegt der Wert deutlich darunter, " +
+    "werden gegen Jahresende viele Ferien fällig oder ins nächste Jahr übertragen.\n\n" + ausschlussText;
 
   return (
     <main>
@@ -249,45 +310,54 @@ export default async function UebersichtSeite({ searchParams }: Props) {
             {offeneFerienantraege.length}
           </div>
         </div>
-        <div className={"card card-accent" + (teamGleitzeitGesamt < 0 ? " card-accent-rot" : " card-accent-gruen")}>
-          <div className="label" title="Summe des aktuellen Gleitzeit-Stands aller Mitarbeitenden">
+        <div
+          className={"card card-accent card-hilfe" + (teamGleitzeitGesamt < 0 ? " card-accent-rot" : " card-accent-gruen")}
+          title={"Summe des aktuellen Gleitzeit-Stands. Plus heisst: das Team hat mehr gearbeitet als das Soll, Minus weniger.\n\n" + ausschlussText}
+        >
+          <div className="label">
             Team-Gleitzeit gesamt
           </div>
           <div className={"value" + (teamGleitzeitGesamt < 0 ? " neg" : " pos")}>
             {teamGleitzeitGesamt.toFixed(1)} h
           </div>
         </div>
-        <div className="card card-accent card-accent-gold">
-          <div className="label" title={`${teamFerienBezogen.toFixed(1)} von ${teamFerienGuthaben.toFixed(1)} Tagen Team-Ferienanspruch ${heuteJahr} bezogen`}>
-            Ferien-Auslastung Team
-          </div>
+        <div className="card card-accent card-accent-gold card-hilfe" title={ferienTitel}>
+          <div className="label">Ferien bezogen (Team)</div>
           <div className="value">{teamFerienAuslastungPct.toFixed(0)}%</div>
+          <div className="card-sub">
+            {teamFerienBezogen.toFixed(0)} von {teamFerienGuthaben.toFixed(0)} Tagen, Jahr zu {jahrAnteilPct.toFixed(0)}% vorbei
+          </div>
         </div>
-        <div className="card card-accent card-accent-blau">
-          <div className="label" title="Anzahl Tage mit einer Krank-Buchung, seit Anfang dieses Monats, ganzes Team">
+        <div className="card card-accent card-accent-blau card-hilfe" title={"Anzahl Tage mit einer Krank-Buchung seit Anfang dieses Monats.\n\n" + ausschlussText}>
+          <div className="label">
             Kranktage Team (Monat)
           </div>
           <div className="value">{teamKrankTageMonat}</div>
         </div>
-        <div className="card card-accent card-accent-blau">
-          <div className="label" title={`Anzahl Tage mit einer Krank-Buchung, seit 1.1.${heuteJahr}, ganzes Team`}>
+        <div className="card card-accent card-accent-blau card-hilfe" title={"Anzahl Tage mit einer Krank-Buchung seit 1.1." + heuteJahr + ".\n\n" + ausschlussText}>
+          <div className="label">
             Kranktage Team ({heuteJahr})
           </div>
           <div className="value">{teamKrankTageJahr}</div>
         </div>
-        <div className="card card-accent card-accent-gruen">
-          <div className="label" title="Summe aller Projekt-/Kategorie-Stunden, seit Anfang dieses Monats, ganzes Team">
+        <div className="card card-accent card-accent-gruen card-hilfe" title={"Summe aller gebuchten Arbeitsstunden (Projekte und Ist-Zeit) seit Anfang dieses Monats, ohne Krank und Ferien.\n\n" + ausschlussText}>
+          <div className="label">
             Geleistete Stunden Team (Monat)
           </div>
           <div className="value pos">{teamStundenMonat.toFixed(0)} h</div>
         </div>
-        <div className="card card-accent card-accent-gruen">
-          <div className="label" title={`Summe aller Projekt-/Kategorie-Stunden, seit 1.1.${heuteJahr}, ganzes Team`}>
+        <div className="card card-accent card-accent-gruen card-hilfe" title={"Summe aller gebuchten Arbeitsstunden (Projekte und Ist-Zeit) seit 1.1." + heuteJahr + ", ohne Krank und Ferien.\n\n" + ausschlussText}>
+          <div className="label">
             Geleistete Stunden Team ({heuteJahr})
           </div>
           <div className="value pos">{teamStundenJahr.toFixed(0)} h</div>
         </div>
       </div>
+
+      <p className="form-hint statistik-hinweis">
+        Team-Kennzahlen (Gleitzeit, Ferien, Kranktage, Stunden) ohne Geschäftsleitung und ohne Personen, die
+        mit der Erfassung im Rückstand sind. {ausschlussText} Maus über eine Kachel halten für die Erklärung.
+      </p>
 
       {offeneFerienantraege.length > 0 && (
         <>

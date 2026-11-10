@@ -2108,3 +2108,19 @@ main.login-hero {
   border: 1px solid var(--border);
   color: var(--text);
 }
+
+/* Chef-Uebersicht: Kacheln mit Erklaerung beim Darueberfahren */
+.card-hilfe {
+  cursor: help;
+}
+
+.card-sub {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.statistik-hinweis {
+  margin: -6px 0 22px;
+  max-width: 900px;
+}
