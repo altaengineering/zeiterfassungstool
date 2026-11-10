@@ -1284,6 +1284,41 @@ main.login-hero {
   background: var(--surface-alt);
 }
 
+/* Abmelde-Knopf in der Kopfzeile, gleiche Form wie die Menue-Knoepfe */
+.topbar-logout-form {
+  display: inline-flex;
+  margin: 0;
+}
+
+.topbar-logout {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: var(--topbar-text);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-logout:hover {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 640px) {
+  .topbar-logout {
+    padding: 4px 8px;
+  }
+  .topbar-logout-text {
+    display: none;
+  }
+}
+
 .topbar-menu-item-btn {
   width: 100%;
   background: none;

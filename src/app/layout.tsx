@@ -59,6 +59,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     </form>
   );
 
+  // Gut sichtbarer Abmelde-Knopf direkt in der Kopfzeile (zusaetzlich zum Eintrag im Konto-Menue)
+  const abmeldenKnopf = (
+    <form
+      className="topbar-logout-form"
+      action={async () => {
+        "use server";
+        await signOut({ redirectTo: "/login" });
+      }}
+    >
+      <button type="submit" className="topbar-logout" title="Abmelden" aria-label="Abmelden">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+          <path d="M16 17l5-5-5-5" />
+          <path d="M21 12H9" />
+        </svg>
+        <span className="topbar-logout-text">Abmelden</span>
+      </button>
+    </form>
+  );
+
   return (
     <html lang="de" suppressHydrationWarning>
       <head>
@@ -135,6 +155,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   </Link>
                   {abmeldenForm}
                 </TopbarMenu>
+                {abmeldenKnopf}
                 <ThemeToggle />
               </span>
             )}
