@@ -35,6 +35,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // verlinkt daher auf eine eigene, kleine Seite mit nur den zwei Ferien-Feldern statt auf die
   // grosse Einrichtungsseite. Im Layout statt einzeln pro Seite, damit der Hinweis ueberall
   // erscheint, nicht nur auf einer Unterseite, die man zufaellig zuerst besucht.
+  // Einfache Erfassung sichtbar machen: eigener Hinweis in der Kopfzeile, fuer Admins die Zahl
+  // offener Antraege am Admin-Menue (siehe src/lib/einfacheErfassung.ts).
+  let einfachAktiv = false;
+  let offeneEinfachAntraege = 0;
+  if (userId) {
+    const ich = await prisma.user.findUnique({ where: { id: userId }, select: { einfacheErfassung: true, companyId: true } });
+    einfachAktiv = ich?.einfacheErfassung === "an";
+    if (istAdmin && ich) {
+      offeneEinfachAntraege = await prisma.user.count({ where: { companyId: ich.companyId, einfacheErfassung: "beantragt" } });
+    }
+  }
+
   let brauchtFerienEinrichtung = false;
   if (userId) {
     const jahr = new Date().getFullYear();
@@ -124,9 +136,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <Link href="/projekte">Projekte</Link>
                   <Link href="/abwesenheiten">Abwesenheiten</Link>
                   {istAdmin && (
-                    <TopbarMenu label="Admin" accent>
+                    <TopbarMenu label={offeneEinfachAntraege > 0 ? `Admin (${offeneEinfachAntraege})` : "Admin"} accent>
                       <Link href="/admin" className="topbar-menu-item">
-                        Nutzerverwaltung
+                        Nutzerverwaltung{offeneEinfachAntraege > 0 ? ` (${offeneEinfachAntraege} Antrag${offeneEinfachAntraege === 1 ? "" : "e"})` : ""}
                       </Link>
                       <Link href="/admin/uebersicht" className="topbar-menu-item">
                         Chef-Übersicht
@@ -153,8 +165,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <Link href="/konto/ferien-einrichtung" className="topbar-menu-item">
                     Ferien-Einrichtung
                   </Link>
+                  <Link href="/konto/einfache-erfassung" className="topbar-menu-item">
+                    Einfache Erfassung{einfachAktiv ? " (aktiv)" : ""}
+                  </Link>
                   {abmeldenForm}
                 </TopbarMenu>
+                {einfachAktiv && (
+                  <Link href="/konto/einfache-erfassung" className="einfach-pill" title="Einfache Erfassung ist eingeschaltet: nur Ist-Zeit">
+                    Einfache Erfassung
+                  </Link>
+                )}
                 {abmeldenKnopf}
                 <ThemeToggle />
               </span>

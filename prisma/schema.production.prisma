@@ -77,6 +77,12 @@ model User {
   passwordHash   String
   role           String    @default("MITARBEITER")
   eintrittsdatum DateTime?
+  // Einfache Erfassung: nur die Ist-Zeit pro Tag, ohne Stempelzeiten, ohne Projekt und ohne die
+  // Abgleich-Regeln (siehe src/lib/einfacheErfassung.ts). Gilt nur mit Freigabe durch einen Admin.
+  // Werte: "aus" | "beantragt" | "an". Additiv mit Default, bestehende Zeilen bleiben gueltig.
+  einfacheErfassung      String    @default("aus")
+  einfacheErfassungSeit  DateTime?
+  einfacheErfassungVon   String?
 
   jahresStammdaten JahresStammdaten[]
   dailyEntries     DailyEntry[]

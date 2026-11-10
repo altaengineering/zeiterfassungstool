@@ -1266,3 +1266,11 @@ Muss das Originalformat 1:1 reproduzieren:
 - Auth: Login pro Mitarbeitendem + Admin-Rolle
 - DB: persistente Datenbank statt Excel als Datenquelle
 - Excel-Export-Engine: `exceljs`, Template-Ansatz — Formeln erhalten (siehe §6)
+
+## Einfache Erfassung (November 2026)
+
+- Mitarbeitende können unter Konto, «Einfache Erfassung» beantragen, nur noch die Ist-Zeit pro Tag einzutragen (ohne Stempelzeiten, ohne Projekte, ohne Abgleich Projekte gegen Stempelzeiten). Eingeschaltet wird es **nur von einem Admin** (Nutzerverwaltung: Antrag freigeben oder ablehnen, Spalte «Erfassung»). Ausschalten kann die Person selbst.
+- Sichtbar: gelbes Feld «Einfache Erfassung» in der Kopfzeile, Hinweis über der Monatsansicht, Zahl offener Anträge am Admin-Menü, Mail an die Admins beim Antrag (wenn Resend eingerichtet ist).
+- Datenbank: `User.einfacheErfassung` ("aus" | "beantragt" | "an"), `einfacheErfassungSeit`, `einfacheErfassungVon`, additiv mit Default (beide Schemas). Die Ist-Zeit wird als Buchung ohne Projekt mit dem Namen «Ist-Zeit (ohne Projekt)» gespeichert und zählt damit überall mit (Ist, Gleitzeit, Chef-Übersicht, eigene Spalte im Excel-Export). Der Server prüft den Status aus der Datenbank, nicht aus dem Formular.
+- Code: `src/lib/einfacheErfassung.ts` (+ Test), `src/app/konto/einfache-erfassung/`, `einfacheErfassungSetzen` in `src/app/admin/actions.ts`, `EntryForm` (Prop `einfach`), `tageseintragSpeichern`.
+- Kopfzeile: sichtbarer Knopf «Abmelden» (zusätzlich zum Eintrag im Konto-Menü).

@@ -153,3 +153,23 @@ export async function nutzerLoeschen(formData: FormData) {
   await prisma.user.delete({ where: { id: userId } });
   revalidatePath("/admin");
 }
+
+// Einfache Erfassung (nur Ist-Zeit) ein- oder ausschalten bzw. einen Antrag ablehnen. Nur Admins:
+// das ist die "Erlaubnis vom Chef", Mitarbeitende koennen sie nur beantragen (siehe
+// src/app/konto/einfache-erfassung/actions.ts und src/lib/einfacheErfassung.ts).
+export async function einfacheErfassungSetzen(formData: FormData) {
+  const session = await pruefeAdmin();
+  const userId = String(formData.get("userId") ?? "");
+  const ziel = String(formData.get("status") ?? "");
+  if (!userId || (ziel !== "an" && ziel !== "aus")) return;
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      einfacheErfassung: ziel,
+      einfacheErfassungSeit: new Date(),
+      einfacheErfassungVon: ziel === "an" ? (session.user?.name ?? "Admin") : null,
+    },
+  });
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+}

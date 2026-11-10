@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { sendeKrankmeldung } from "@/lib/email";
+import { EINFACH_LABEL, istEinfacheErfassungAktiv, parseIstZeit } from "@/lib/einfacheErfassung";
 
 function minuten(formData: FormData, feld: string): number | null {
   const zeit = formData.get(feld);
@@ -70,6 +71,14 @@ async function tageseintragSpeichernIntern(formData: FormData) {
   }
 
   const betroffenerUser = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+
+  // Einfache Erfassung: gilt nur, wenn ein Admin sie fuer diese Person freigegeben hat (Status in der
+  // Datenbank, nicht aus dem Formular), siehe src/lib/einfacheErfassung.ts.
+  const einfach = istEinfacheErfassungAktiv(betroffenerUser.einfacheErfassung);
+  const istZeit = einfach ? parseIstZeit(formData.get("istZeit") ?? "") : null;
+  if (einfach && istZeit === null) {
+    throw new NutzerFehler("Bitte die Ist-Zeit als Stunden eingeben, zum Beispiel 8, 7.5 oder 7:30 (höchstens 24).");
+  }
 
   // Monatsabschluss: Mitarbeitende dürfen abgeschlossene Monate nicht mehr ändern, Admins schon
   // (z.B. für nachträgliche Korrekturen) — siehe PROJEKTSTAND.md, Feature "Monatsabschluss".
@@ -168,15 +177,25 @@ async function tageseintragSpeichernIntern(formData: FormData) {
         })
       : [];
   const nameById = new Map(projekte.map((p) => [p.id, p.name]));
-  const buchungen = gewuenscht
-    .filter((g) => nameById.has(g.projectId))
-    .map((g) => ({
-      dailyEntryId: entry.id,
-      projectId: g.projectId,
-      label: nameById.get(g.projectId)!,
-      hours: g.stunden,
-      kommentar: g.kommentar,
-    }));
+  const buchungen = einfach
+    ? istZeit && istZeit > 0
+      ? [{
+          dailyEntryId: entry.id,
+          projectId: null,
+          label: EINFACH_LABEL,
+          hours: istZeit,
+          kommentar: String(formData.get("istKommentar") ?? "").trim().slice(0, 300),
+        }]
+      : []
+    : gewuenscht
+        .filter((g) => nameById.has(g.projectId))
+        .map((g) => ({
+          dailyEntryId: entry.id,
+          projectId: g.projectId as string | null,
+          label: nameById.get(g.projectId)!,
+          hours: g.stunden,
+          kommentar: g.kommentar,
+        }));
 
   // Alte Buchungen ersetzen in einer Transaktion: ein Fehler mittendrin laesst den Tag nicht mehr
   // ohne Buchungen zurueck (vorher: erst loeschen, dann einzeln anlegen).

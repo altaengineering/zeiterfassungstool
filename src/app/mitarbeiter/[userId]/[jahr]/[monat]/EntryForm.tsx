@@ -84,6 +84,7 @@ export function EntryForm({
   kmSatz,
   bestehenderEintrag,
   projekte,
+  einfach = false,
 }: {
   userId: string;
   jahr: number;
@@ -93,6 +94,8 @@ export function EntryForm({
   kmSatz: number;
   bestehenderEintrag: BestehenderEintrag | null;
   projekte: ProjektOption[];
+  /** Einfache Erfassung (vom Chef freigegeben): nur Ist-Zeit, keine Stempelzeiten, keine Projekte */
+  einfach?: boolean;
 }) {
   const router = useRouter();
 
@@ -317,6 +320,50 @@ export function EntryForm({
         </div>
 
         <div className="entry-form">
+          {einfach && (
+            <div className="form-section einfach-section">
+              <div className="form-section-title">Ist-Zeit</div>
+              <p className="form-hint">
+                Einfache Erfassung ist eingeschaltet: nur die gearbeitete Zeit des Tages eintragen,
+                als Stunden (z.B. 8 oder 7.5) oder als Stunden:Minuten (z.B. 7:30). Ohne Stempelzeiten
+                und ohne Projekte.
+              </p>
+              <div className="form-row-pair">
+                <label>
+                  Ist-Zeit (h)
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    name="istZeit"
+                    placeholder="z.B. 8 oder 7:30"
+                    defaultValue={
+                      bestehendeBookings.length
+                        ? String(rund2(bestehendeBookings.reduce((a, b) => a + b.hours, 0)))
+                        : ""
+                    }
+                    autoFocus
+                  />
+                </label>
+                <label>
+                  Notiz (optional)
+                  <input
+                    type="text"
+                    name="istKommentar"
+                    placeholder="z.B. Baustelle Zürich"
+                    defaultValue={bestehendeBookings[0]?.kommentar ?? ""}
+                  />
+                </label>
+              </div>
+              {bestehendeBookings.some((b) => b.projectId) && (
+                <p className="form-hint form-hint-warn">
+                  Dieser Tag hat noch Projektbuchungen aus der normalen Erfassung. Beim Speichern
+                  werden sie durch die eine Ist-Zeit ersetzt.
+                </p>
+              )}
+            </div>
+          )}
+
+          {!einfach && (<>
           <div className="form-section">
             <div className="form-section-title">Stempelzeiten</div>
             <p className="form-hint">
@@ -488,6 +535,8 @@ export function EntryForm({
               </button>
             )}
           </div>
+
+          </>)}
 
           <div className="form-section">
             <div className="form-section-title">Kategorien</div>

@@ -19,6 +19,7 @@ import {
   type StempelPaar,
 } from "@/lib/calc";
 import { EntryForm, type BestehenderEintrag } from "./EntryForm";
+import { istEinfacheErfassungAktiv } from "@/lib/einfacheErfassung";
 import { TagesZeile } from "./TagesZeile";
 import { STANDARD_KM_SPESENSATZ } from "@/lib/spesen";
 
@@ -266,6 +267,14 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
         h/Woche (Soll/Tag {formatStunden(sollProTagWert)} h)
       </p>
 
+      {istEinfacheErfassungAktiv(user.einfacheErfassung) && (
+        <p className="einfach-banner">
+          <span className="einfach-tag">Einfache Erfassung</span> Vom Chef freigegeben: pro Tag nur die
+          Ist-Zeit eintragen, ohne Stempelzeiten und ohne Projekte.{" "}
+          <a href="/konto/einfache-erfassung">Details</a>
+        </p>
+      )}
+
       {/* Nur zeigen, wenn wirklich noch KEIN einziger Tageseintrag existiert — hat jemand
           bereits echte Daten (z.B. aus dem alten Excel übernommen), ist der Saldo längst
           korrekt und der Hinweis wäre irreführend (siehe PROJEKTSTAND.md, Einrichtung-Reset-Fix). */}
@@ -476,6 +485,7 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                 kmSatz={companySettings?.kmSpesensatz ?? STANDARD_KM_SPESENSATZ}
                 bestehenderEintrag={bestehenderEintrag}
                 projekte={projekteDb.map((p) => ({ id: p.id, name: p.name }))}
+                einfach={istEinfacheErfassungAktiv(user.einfacheErfassung)}
               />
             </>
           );

@@ -1987,3 +1987,124 @@ main.login-hero {
   flex-direction: column;
   gap: 6px;
 }
+
+/* ---------- Einfache Erfassung (nur Ist-Zeit, siehe src/lib/einfacheErfassung.ts) ---------- */
+.einfach-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  background: #d9a521;
+  color: #1b1405 !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+}
+
+.einfach-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(217, 165, 33, 0.18);
+  color: #9a6c00;
+  white-space: nowrap;
+}
+
+.einfach-tag-offen {
+  background: rgba(200, 60, 50, 0.14);
+  color: var(--neg);
+}
+
+.einfach-banner {
+  max-width: 760px;
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(217, 165, 33, 0.5);
+  border-radius: 8px;
+  background: rgba(217, 165, 33, 0.1);
+  font-size: 0.9rem;
+}
+
+.einfach-section {
+  border-left: 3px solid #d9a521;
+  padding-left: 12px;
+}
+
+.einfach-status {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.einfach-status-punkt {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex: none;
+  background: var(--border);
+}
+
+.einfach-status-an .einfach-status-punkt {
+  background: #2e9d5b;
+}
+
+.einfach-status-beantragt .einfach-status-punkt {
+  background: #d9a521;
+}
+
+.einfach-status-titel {
+  font-weight: 700;
+}
+
+.einfach-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 520px;
+}
+
+.einfach-form button {
+  align-self: flex-start;
+}
+
+.einfach-antraege {
+  border-color: rgba(217, 165, 33, 0.6);
+}
+
+.einfach-antrag-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.einfach-antrag-knoepfe {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.einfach-knopf {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.einfach-knopf-sekundaer {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.button-secondary {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
