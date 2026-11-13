@@ -5,6 +5,7 @@ import { berechneFerienSaldo } from "@/lib/ferienSaldo";
 import { berechneMonatsStand } from "@/lib/monatsStand";
 import { AbwesenheitAntragForm } from "./AbwesenheitAntragForm";
 import { ferienAntragZuruecknehmen } from "./actions";
+import { StornoForm } from "./StornoForm";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,7 @@ const STATUS_LABEL: Record<string, string> = {
   offen: "offen",
   genehmigt: "genehmigt",
   abgelehnt: "abgelehnt",
+  storniert: "storniert",
 };
 
 const TYP_LABEL: Record<string, string> = {
@@ -23,11 +25,22 @@ const TYP_LABEL: Record<string, string> = {
   gleitzeit: "🕑 Gleitzeit",
 };
 
-export default async function AbwesenheitenSeite() {
+export default async function AbwesenheitenSeite({
+  searchParams,
+}: {
+  searchParams: Promise<{ userId?: string }>;
+}) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
-  const userId = (session.user as { id: string }).id;
+  const meineId = (session.user as { id: string }).id;
+  const istAdmin = (session.user as { role?: string }).role === "ADMIN";
+  // Admins können mit ?userId=... die Anträge einer anderen Person einsehen und dort stornieren.
+  const { userId: userIdParam } = await searchParams;
+  const fremdeAnsicht = istAdmin && !!userIdParam && userIdParam !== meineId;
+  const userId = fremdeAnsicht ? userIdParam! : meineId;
+  const betroffene = fremdeAnsicht ? await prisma.user.findUnique({ where: { id: userId } }) : null;
+  if (fremdeAnsicht && !betroffene) redirect("/abwesenheiten");
   const heute = new Date();
   const jahr = heute.getFullYear();
   const monat = heute.getMonth() + 1;
@@ -42,7 +55,7 @@ export default async function AbwesenheitenSeite() {
 
   return (
     <main>
-      <h1>Abwesenheiten</h1>
+      <h1>{betroffene ? `Abwesenheiten von ${betroffene.name}` : "Abwesenheiten"}</h1>
       <p className="subtitle">
         Ferien oder Gleitzeit-Abwesenheiten planen, beantragen und deinen aktuellen Saldo im Blick
         behalten. Ein Admin entscheidet über jeden Antrag, du siehst den Status hier live.
@@ -84,12 +97,14 @@ export default async function AbwesenheitenSeite() {
         )}
       </div>
 
-      <div className="konto-card">
-        <h2 style={{ marginTop: 0 }}>Neuer Antrag</h2>
-        <AbwesenheitAntragForm heute={heuteIso} />
-      </div>
+      {!fremdeAnsicht && (
+        <div className="konto-card">
+          <h2 style={{ marginTop: 0 }}>Neuer Antrag</h2>
+          <AbwesenheitAntragForm heute={heuteIso} />
+        </div>
+      )}
 
-      <h2>Deine Anträge</h2>
+      <h2>{betroffene ? "Anträge" : "Deine Anträge"}</h2>
       {antraegeDb.length === 0 ? (
         <p className="form-hint">Noch keine Abwesenheitsanträge gestellt.</p>
       ) : (
@@ -110,6 +125,13 @@ export default async function AbwesenheitenSeite() {
                 <span className={`status-badge status-badge-${a.status}`}>
                   {STATUS_LABEL[a.status] ?? a.status}
                 </span>
+                {a.status === "genehmigt" && (
+                  <StornoForm
+                    antragId={a.id}
+                    von={a.von.toISOString().slice(0, 10)}
+                    bis={a.bis.toISOString().slice(0, 10)}
+                  />
+                )}
                 {a.status === "offen" && (
                   <form action={ferienAntragZuruecknehmen}>
                     <input type="hidden" name="antragId" value={a.id} />

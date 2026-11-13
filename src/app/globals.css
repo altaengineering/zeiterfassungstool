@@ -1938,6 +1938,25 @@ main.login-hero {
   color: var(--neg);
 }
 
+.status-badge-storniert {
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  color: color-mix(in srgb, var(--text) 65%, transparent);
+  text-decoration: line-through;
+}
+
+.storno-details {
+  display: inline-block;
+}
+
+.storno-details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.storno-details > summary::-webkit-details-marker {
+  display: none;
+}
+
 .ferien-antraege-liste {
   display: flex;
   flex-direction: column;

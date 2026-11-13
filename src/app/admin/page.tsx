@@ -94,6 +94,7 @@ export default async function AdminSeite() {
               <th className="label-cell">Eintritt</th>
               <th className="label-cell">Monatsansicht</th>
               <th className="label-cell">Pensum</th>
+              <th className="label-cell">Abwesenheiten</th>
               <th className="label-cell">Erfassung</th>
               <th className="label-cell">Passwort</th>
               <th></th>
@@ -119,6 +120,9 @@ export default async function AdminSeite() {
                 </td>
                 <td className="label-cell">
                   <Link href={`/admin/pensum/${u.id}`}>ändern</Link>
+                </td>
+                <td className="label-cell">
+                  <Link href={`/abwesenheiten?userId=${u.id}`}>anzeigen / stornieren</Link>
                 </td>
                 <td className="label-cell">
                   {normalisiereStatus(u.einfacheErfassung) === "an" ? (

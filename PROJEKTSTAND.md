@@ -713,6 +713,26 @@ Tage ab. Wie bei Ferienübertrag/Jahresferientage an **beiden** Stellen editierb
 Person). Lokal end-to-end verifiziert an beiden Stellen: Korrektur auf 3 bzw. 2 Tage gesetzt,
 "Ferien bezogen" und "Ferienübertrag" zogen auf beiden Seiten korrekt nach.
 
+**Genehmigte Abwesenheiten stornieren (2026-11-13):** Auslöser: Sven Mohler wollte genehmigte Ferien
+(16.–20.11.) und zwei Gleitzeit-Tage (12./13.11.) wieder rückgängig machen — bisher ging das nur für
+*offene* Anträge („Zurücknehmen“), bei genehmigten gab es keinen Weg (auch nicht für Admins). Neu:
+- `ferienAntragStornieren(antragId, von, bis)` in `src/lib/ferienAntrag.ts`: macht die Wirkung der
+  Genehmigung rückgängig — „ferien“: `ferien`-Stunden der Arbeitstage zurück auf 0; „gleitzeit“:
+  leere Tageszeilen + öffentliche Kalender-Notiz „Gleitzeit-Abwesenheit (genehmigt)“ entfernen.
+  Gearbeitete Stunden/Buchungen bleiben immer erhalten (Tageszeile wird nur gelöscht, wenn sie danach
+  komplett leer ist). **Teil-Storno möglich:** der Antrag wird auf den verbleibenden Zeitraum gekürzt;
+  liegt ein Rest vor UND nach dem Storno-Zeitraum, entsteht für den hinteren Rest ein neuer
+  genehmigter Antrag. Vollständig stornierte Anträge bekommen `status = "storniert"` (bleibt als
+  Historie; Monatsansicht/Kalender zählen nur `genehmigt`).
+- Server Action `abwesenheitStornieren` (`src/app/abwesenheiten/actions.ts`): eigene Person oder
+  Admin; Nicht-Admins scheitern an abgeschlossenen Monaten (`MonthClose`), Admins nicht.
+- UI: auf `/abwesenheiten` bei jedem genehmigten Antrag „Stornieren…“ (`StornoForm.tsx`, Von/Bis
+  vorbelegt mit dem ganzen Zeitraum, für Teil-Storno anpassen). Admins sehen die Anträge jeder Person
+  über `/abwesenheiten?userId=<id>` (Link „anzeigen / stornieren“ in der Nutzerverwaltung `/admin`).
+- Lokal verifiziert (Skript + Browser): Ferienwoche komplett storniert, Gleitzeit 11.–13.11. →
+  12./13. storniert (11. bleibt), Mitte-Storno splittet in zwei Anträge, UI-Teilstorno 18.–19.11.,
+  Admin-Fremdansicht ohne „Neuer Antrag“-Formular.
+
 **Ferienanträge, neuer Standard-Jahresanspruch, Einrichtungs-Hinweis, Hintergrund (2026-09-23):**
 Vier von Michael in einer Anfrage gebündelte Punkte:
 - **`STANDARD_JAHRESFERIENTAGE` von 10.83 auf 20 Tage geändert** (`src/lib/calc/ferien.ts`). Der
