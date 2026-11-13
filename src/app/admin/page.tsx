@@ -5,7 +5,6 @@ import { prisma } from "@/lib/db";
 import { ResetPasswordButton } from "./ResetPasswordButton";
 import { AddUserForm } from "./AddUserForm";
 import { DeleteUserButton } from "./DeleteUserButton";
-import { DienstalterButton } from "./DienstalterButton";
 import { vergleicheDienstalter } from "@/lib/dienstalter";
 import { normalisiereStatus } from "@/lib/einfacheErfassung";
 import { einfacheErfassungSetzen } from "./actions";
@@ -75,36 +74,25 @@ export default async function AdminSeite() {
 
       <AddUserForm />
 
-      <div className="entry-form-card" style={{ marginBottom: 16 }}>
-        <div className="form-section-title">Reihenfolge nach Dienstalter</div>
-        <p className="form-hint">
-          Die Liste unten ist nach Firmeneintritt sortiert (älteste zuerst), genauso wie die
-          Chef-Übersicht. Einmalig aus der von Michael gelieferten Liste importieren:
-        </p>
-        <DienstalterButton />
-      </div>
-
       <div className="table-wrap">
-        <table>
+        <table className="nutzer-tabelle">
           <thead>
             <tr>
-              <th>Name</th>
-              <th className="label-cell">E-Mail</th>
+              <th>Mitarbeiter:in</th>
               <th className="label-cell">Rolle</th>
               <th className="label-cell">Eintritt</th>
-              <th className="label-cell">Monatsansicht</th>
-              <th className="label-cell">Pensum</th>
-              <th className="label-cell">Abwesenheiten</th>
+              <th className="label-cell">Ansicht &amp; Verwaltung</th>
               <th className="label-cell">Erfassung</th>
-              <th className="label-cell">Passwort</th>
-              <th></th>
+              <th className="label-cell">Konto</th>
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
-                <td className="label-cell">{u.name}</td>
-                <td className="label-cell">{u.email}</td>
+                <td className="label-cell">
+                  <div className="nutzer-name">{u.name}</div>
+                  <div className="nutzer-mail">{u.email}</div>
+                </td>
                 <td className="label-cell">
                   {u.email === "m.kueng@alta-engineering.ch"
                     ? "sudo"
@@ -114,39 +102,37 @@ export default async function AdminSeite() {
                 </td>
                 <td className="label-cell">{formatDatum(u.eintrittsdatum)}</td>
                 <td className="label-cell">
-                  <Link href={`/mitarbeiter/${u.id}/${jetzt.getFullYear()}/${jetzt.getMonth() + 1}`}>
-                    öffnen
-                  </Link>
-                </td>
-                <td className="label-cell">
-                  <Link href={`/admin/pensum/${u.id}`}>ändern</Link>
-                </td>
-                <td className="label-cell">
-                  <Link href={`/abwesenheiten?userId=${u.id}`}>anzeigen / stornieren</Link>
+                  <div className="nutzer-links">
+                    <Link href={`/mitarbeiter/${u.id}/${jetzt.getFullYear()}/${jetzt.getMonth() + 1}`}>
+                      Monatsansicht
+                    </Link>
+                    <Link href={`/admin/pensum/${u.id}`}>Pensum</Link>
+                    <Link href={`/abwesenheiten?userId=${u.id}`}>Abwesenheiten</Link>
+                  </div>
                 </td>
                 <td className="label-cell">
                   {normalisiereStatus(u.einfacheErfassung) === "an" ? (
-                    <>
-                      <span className="einfach-tag">Einfach (nur Ist-Zeit)</span>{" "}
+                    <div className="nutzer-erfassung">
+                      <span className="einfach-tag">Einfach (nur Ist-Zeit)</span>
                       {erfassungKnopf(u.id, "aus", "ausschalten", true)}
-                    </>
+                    </div>
                   ) : normalisiereStatus(u.einfacheErfassung) === "beantragt" ? (
-                    <>
-                      <span className="einfach-tag einfach-tag-offen">beantragt</span>{" "}
+                    <div className="nutzer-erfassung">
+                      <span className="einfach-tag einfach-tag-offen">beantragt</span>
                       {erfassungKnopf(u.id, "an", "freigeben")}
-                    </>
+                    </div>
                   ) : (
-                    <>
-                      <span className="form-hint">normal</span>{" "}
+                    <div className="nutzer-erfassung">
+                      <span className="form-hint">normal</span>
                       {erfassungKnopf(u.id, "an", "einfach erlauben", true)}
-                    </>
+                    </div>
                   )}
                 </td>
                 <td className="label-cell">
-                  <ResetPasswordButton userId={u.id} name={u.name} />
-                </td>
-                <td className="label-cell">
-                  {u.id !== meineId && <DeleteUserButton userId={u.id} name={u.name} />}
+                  <div className="nutzer-links">
+                    <ResetPasswordButton userId={u.id} name={u.name} />
+                    {u.id !== meineId && <DeleteUserButton userId={u.id} name={u.name} />}
+                  </div>
                 </td>
               </tr>
             ))}

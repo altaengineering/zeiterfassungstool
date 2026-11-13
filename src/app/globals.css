@@ -2143,3 +2143,27 @@ main.login-hero {
   margin: -6px 0 22px;
   max-width: 900px;
 }
+
+/* Nutzerverwaltung: kompakte Tabelle ohne horizontales Scrollen */
+.nutzer-tabelle td {
+  vertical-align: middle;
+}
+.nutzer-name {
+  font-weight: 600;
+}
+.nutzer-mail {
+  font-size: 0.78rem;
+  color: var(--muted, color-mix(in srgb, var(--text) 60%, transparent));
+}
+.nutzer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+}
+.nutzer-erfassung {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}

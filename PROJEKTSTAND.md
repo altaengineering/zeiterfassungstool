@@ -733,6 +733,12 @@ Person). Lokal end-to-end verifiziert an beiden Stellen: Korrektur auf 3 bzw. 2 
   12./13. storniert (11. bleibt), Mitte-Storno splittet in zwei Anträge, UI-Teilstorno 18.–19.11.,
   Admin-Fremdansicht ohne „Neuer Antrag“-Formular.
 
+**Nutzerverwaltung aufgeräumt (2026-11-13):** `/admin` hatte 10 Spalten und scrollte horizontal. Jetzt 6:
+Name+E-Mail in einer Zelle, „Monatsansicht/Pensum/Abwesenheiten“ als Linkgruppe in einer Spalte,
+Passwort-Reset + Löschen in „Konto“. Die Karte „Reihenfolge nach Dienstalter / Dienstalter
+importieren“ wurde aus der UI entfernt (einmaliger Import ist erledigt; `DienstalterButton.tsx` und
+die Action `dienstalterImportieren` existieren noch, falls man ihn erneut braucht).
+
 **Ferienanträge, neuer Standard-Jahresanspruch, Einrichtungs-Hinweis, Hintergrund (2026-09-23):**
 Vier von Michael in einer Anfrage gebündelte Punkte:
 - **`STANDARD_JAHRESFERIENTAGE` von 10.83 auf 20 Tage geändert** (`src/lib/calc/ferien.ts`). Der
