@@ -85,6 +85,8 @@ export function EntryForm({
   bestehenderEintrag,
   projekte,
   einfach = false,
+  kopierbarVon = null,
+  istKopie = false,
 }: {
   userId: string;
   jahr: number;
@@ -96,6 +98,10 @@ export function EntryForm({
   projekte: ProjektOption[];
   /** Einfache Erfassung (vom Chef freigegeben): nur Ist-Zeit, keine Stempelzeiten, keine Projekte */
   einfach?: boolean;
+  /** Datum (ISO) des letzten erfassten Tages, den man hier hineinkopieren kann (nur bei leerem Tag) */
+  kopierbarVon?: string | null;
+  /** bestehenderEintrag ist in Wahrheit eine noch nicht gespeicherte Kopie des Vortags */
+  istKopie?: boolean;
 }) {
   const router = useRouter();
 
@@ -257,6 +263,10 @@ export function EntryForm({
 
   const formRef = useRef<HTMLFormElement>(null);
 
+  function kurzDatum(iso: string): string {
+    return `${ermittleWochentag(iso).slice(0, 2)} ${iso.slice(8, 10)}.${iso.slice(5, 7)}.`;
+  }
+
   return (
     <div className="entry-form-card">
       <form
@@ -312,8 +322,22 @@ export function EntryForm({
             <span className="datum-lesbar">{ermittleWochentag(datum)}</span>
           </label>
           <span className="edit-badge">
-            {bestehenderEintrag ? "✏️ bestehender Eintrag wird bearbeitet" : "neuer Eintrag"}
+            {istKopie && kopierbarVon
+              ? `📋 Kopie von ${kurzDatum(kopierbarVon)}, noch nicht gespeichert`
+              : bestehenderEintrag
+                ? "✏️ bestehender Eintrag wird bearbeitet"
+                : "neuer Eintrag"}
           </span>
+          {kopierbarVon && !istKopie && !bestehenderEintrag && (
+            <button
+              type="button"
+              className="link-btn-inline"
+              onClick={() => router.push(`/mitarbeiter/${userId}/${jahr}/${monat}?tag=${datum}&kopie=1#tageseintrag-formular`)}
+              title="Übernimmt Stempelzeiten, Projekte, Kommentare und Spesen vom letzten erfassten Tag ins Formular. Gespeichert wird erst mit „Tag speichern“."
+            >
+              📋 Vortag kopieren ({kurzDatum(kopierbarVon)})
+            </button>
+          )}
           <span className="override-hint">
             Soll-Override nur bei Sonderfällen nötig (unten, normalerweise leer lassen)
           </span>

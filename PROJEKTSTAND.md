@@ -739,6 +739,15 @@ Passwort-Reset + Löschen in „Konto“. Die Karte „Reihenfolge nach Dienstal
 importieren“ wurde aus der UI entfernt (einmaliger Import ist erledigt; `DienstalterButton.tsx` und
 die Action `dienstalterImportieren` existieren noch, falls man ihn erneut braucht).
 
+**„Vortag kopieren“ im Tageseintrag (2026-11-13):** Bei einem noch leeren Tag zeigt die Datumsleiste des
+Formulars den Knopf „📋 Vortag kopieren (Do 12.11.)“. Vorlage = letzter Tag mit echter Arbeit
+(Buchungen oder Stempelzeiten, nicht krank/Ferien) in den 7 Tagen davor, am Montag also der Freitag.
+Technisch: Knopf navigiert auf `?tag=…&kopie=1`; `page.tsx` reicht die Vorlage als
+`bestehenderEintrag` (mit `krank=0`, `ferien=0`, `sollOverride=null`) plus `istKopie` an `EntryForm`,
+das Badge zeigt „Kopie von …, noch nicht gespeichert“. Es wird NICHTS gespeichert, bevor die Person
+„Tag speichern“ klickt; bei bereits vorhandenem Eintrag erscheint der Knopf nicht (nichts wird
+überschrieben). Funktioniert auch bei Einfacher Erfassung (Ist-Zeit = Summe der Buchungen).
+
 **Ferienanträge, neuer Standard-Jahresanspruch, Einrichtungs-Hinweis, Hintergrund (2026-09-23):**
 Vier von Michael in einer Anfrage gebündelte Punkte:
 - **`STANDARD_JAHRESFERIENTAGE` von 10.83 auf 20 Tage geändert** (`src/lib/calc/ferien.ts`). Der

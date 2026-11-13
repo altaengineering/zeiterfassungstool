@@ -58,12 +58,12 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ userId: string; jahr: string; monat: string }>;
-  searchParams: Promise<{ tag?: string }>;
+  searchParams: Promise<{ tag?: string; kopie?: string }>;
 };
 
 export default async function MonatsAnsicht({ params, searchParams }: Props) {
   const { userId, jahr: jahrStr, monat: monatStr } = await params;
-  const { tag: tagParam } = await searchParams;
+  const { tag: tagParam, kopie: kopieParam } = await searchParams;
   const jahr = Number(jahrStr);
   const monat = Number(monatStr); // 1-12
 
@@ -441,26 +441,47 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
           const sollFuerAusgewaehltenTag =
             monatErgebnisse.find((e) => e.date === ausgewaehltesDatum)?.soll ?? 0;
           const bestehenderDbEintrag = entriesByDateFull.get(ausgewaehltesDatum);
-          const bestehenderEintrag: BestehenderEintrag | null = bestehenderDbEintrag
+          // "Vortag kopieren": nur bei noch leerem Tag anbieten (nichts wird überschrieben). Vorlage ist der
+          // letzte Tag mit echter Arbeit (Buchungen oder Stempelzeiten, nicht krank/Ferien) in den 7 Tagen
+          // davor — so findet man am Montag den Freitag. Kopiert wird nur ins Formular, gespeichert wird
+          // erst, wenn die Person selbst auf "Tag speichern" klickt.
+          let vorlageDatum: string | null = null;
+          let vorlageEintrag: typeof bestehenderDbEintrag = undefined;
+          if (!bestehenderDbEintrag) {
+            for (let i = 1; i <= 7; i++) {
+              const t = new Date(`${ausgewaehltesDatum}T00:00:00Z`);
+              t.setUTCDate(t.getUTCDate() - i);
+              const iso = t.toISOString().slice(0, 10);
+              const e = entriesByDateFull.get(iso);
+              if (e && e.krank === 0 && e.ferien === 0 && (e.bookings.length > 0 || e.start1 !== null)) {
+                vorlageDatum = iso;
+                vorlageEintrag = e;
+                break;
+              }
+            }
+          }
+          const istKopie = kopieParam === "1" && !!vorlageEintrag;
+          const quelle = bestehenderDbEintrag ?? (istKopie ? vorlageEintrag : undefined);
+          const bestehenderEintrag: BestehenderEintrag | null = quelle
             ? {
-                krank: bestehenderDbEintrag.krank,
-                reisezeit: bestehenderDbEintrag.reisezeit,
-                ferien: bestehenderDbEintrag.ferien,
-                cad: bestehenderDbEintrag.cad,
-                ausbildung: bestehenderDbEintrag.ausbildung,
-                buero: bestehenderDbEintrag.buero,
-                spesenFr: bestehenderDbEintrag.spesenFr,
-                km: bestehenderDbEintrag.km,
-                sollOverride: bestehenderDbEintrag.sollOverride,
-                start1: bestehenderDbEintrag.start1,
-                stop1: bestehenderDbEintrag.stop1,
-                start2: bestehenderDbEintrag.start2,
-                stop2: bestehenderDbEintrag.stop2,
-                start3: bestehenderDbEintrag.start3,
-                stop3: bestehenderDbEintrag.stop3,
-                start4: bestehenderDbEintrag.start4,
-                stop4: bestehenderDbEintrag.stop4,
-                bookings: bestehenderDbEintrag.bookings.map((b) => ({
+                krank: istKopie ? 0 : quelle.krank,
+                reisezeit: quelle.reisezeit,
+                ferien: istKopie ? 0 : quelle.ferien,
+                cad: quelle.cad,
+                ausbildung: quelle.ausbildung,
+                buero: quelle.buero,
+                spesenFr: quelle.spesenFr,
+                km: quelle.km,
+                sollOverride: istKopie ? null : quelle.sollOverride,
+                start1: quelle.start1,
+                stop1: quelle.stop1,
+                start2: quelle.start2,
+                stop2: quelle.stop2,
+                start3: quelle.start3,
+                stop3: quelle.stop3,
+                start4: quelle.start4,
+                stop4: quelle.stop4,
+                bookings: quelle.bookings.map((b) => ({
                   projectId: b.projectId,
                   label: b.label,
                   hours: b.hours,
@@ -472,11 +493,11 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
           return (
             <>
               <h2 id="tageseintrag-formular">
-                {bestehenderEintrag ? "Tageseintrag bearbeiten" : "Tageseintrag erfassen"} —{" "}
+                {bestehenderDbEintrag ? "Tageseintrag bearbeiten" : "Tageseintrag erfassen"} —{" "}
                 {ausgewaehltesDatum.slice(8, 10)}.{ausgewaehltesDatum.slice(5, 7)}.{jahr}
               </h2>
               <EntryForm
-                key={ausgewaehltesDatum}
+                key={`${ausgewaehltesDatum}-${istKopie ? "kopie" : ""}`}
                 userId={userId}
                 jahr={jahr}
                 monat={monat}
@@ -484,6 +505,8 @@ export default async function MonatsAnsicht({ params, searchParams }: Props) {
                 sollFuerTag={sollFuerAusgewaehltenTag}
                 kmSatz={companySettings?.kmSpesensatz ?? STANDARD_KM_SPESENSATZ}
                 bestehenderEintrag={bestehenderEintrag}
+                kopierbarVon={vorlageDatum}
+                istKopie={istKopie}
                 projekte={projekteDb.map((p) => ({ id: p.id, name: p.name }))}
                 einfach={istEinfacheErfassungAktiv(user.einfacheErfassung)}
               />
